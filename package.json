@@ -4,7 +4,7 @@
   "description": "Find files based on partial paths",
   "main": "index.js",
   "bin": {
-    "filing-cabinet": "cli.js"
+    "filing-cabinet": "bin/cli.js"
   },
   "directories": {
     "test": "test"
