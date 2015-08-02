@@ -143,5 +143,54 @@ describe('filing-cabinet', function() {
       assert.ok(stub.called);
       assert.equal(path, 'foo');
     });
+
+    it('allows does not break default resolvers', function() {
+      var stub = sinon.stub().returns('foo');
+      var stub2 = sinon.stub().returns('foo');
+
+      var revert = cabinet.__set__('stylusLookup', stub2);
+
+      cabinet.register('.foobar', stub);
+
+      var path = cabinet({
+        partial: './bar',
+        filename: 'js/amd/foo.foobar',
+        directory: 'js/amd/'
+      });
+
+      var path2 = cabinet({
+        partial: './bar',
+        filename: 'stylus/foo.styl',
+        directory: 'stylus/'
+      });
+
+      assert.ok(stub.called);
+      assert.ok(stub2.called);
+
+      revert();
+    });
+
+    it('can be called multiple times', function() {
+      var stub = sinon.stub().returns('foo');
+      var stub2 = sinon.stub().returns('foo');
+
+      cabinet.register('.foobar', stub);
+      cabinet.register('.barbar', stub2);
+
+      var path = cabinet({
+        partial: './bar',
+        filename: 'js/amd/foo.foobar',
+        directory: 'js/amd/'
+      });
+
+      var path2 = cabinet({
+        partial: './bar',
+        filename: 'js/amd/foo.barbar',
+        directory: 'js/amd/'
+      });
+
+      assert.ok(stub.called);
+      assert.ok(stub2.called);
+    });
   });
 });

@@ -43,7 +43,6 @@
   "dependencies": {
     "commander": "~2.8.1",
     "debug": "~2.2.0",
-    "lodash.assign": "~3.2.0",
     "module-definition": "~2.2.2",
     "module-lookup-amd": "~2.0.4",
     "resolve-dependency-path": "~1.0.2",

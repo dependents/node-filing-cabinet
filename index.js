@@ -7,13 +7,22 @@ var amdLookup = require('module-lookup-amd');
 var stylusLookup = require('stylus-lookup');
 var sassLookup = require('sass-lookup');
 var resolveDependencyPath = require('resolve-dependency-path');
-var assign = require('lodash.assign');
+
+var assign = function(obj1, obj2) {
+  for (var prop in obj2) {
+    if (obj2.hasOwnProperty(prop)) {
+      obj1[prop] = obj2[prop];
+    }
+  }
+
+  return obj1;
+};
 
 var defaultLookups = {};
 
 module.exports = function(options) {
   // Lazy binding for test stubbing purposes
-  defaultLookups = assign(defaultLookups, {
+  assign(defaultLookups, {
     '.js': jsLookup,
     '.scss': sassLookup,
     '.sass': sassLookup,
