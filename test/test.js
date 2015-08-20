@@ -31,10 +31,28 @@ describe('filing-cabinet', function() {
         var stub = sinon.stub();
         var revert = cabinet.__set__('resolveDependencyPath', stub);
 
-        var path = cabinet({
+        cabinet({
           partial: './bar',
           filename: 'js/es6/foo.js',
           directory: 'js/es6/'
+        });
+
+        assert.ok(stub.called);
+
+        revert();
+      });
+
+      it('assumes amd for es6 modules with a requirejs config', function() {
+        var stub = sinon.stub();
+        var revert = cabinet.__set__('amdLookup', stub);
+
+        cabinet({
+          partial: './bar',
+          filename: 'js/es6/foo.js',
+          directory: 'js/es6/',
+          config: {
+            baseUrl: 'js/'
+          }
         });
 
         assert.ok(stub.called);
@@ -48,7 +66,7 @@ describe('filing-cabinet', function() {
         var stub = sinon.stub();
         var revert = cabinet.__set__('amdLookup', stub);
 
-        var path = cabinet({
+        cabinet({
           partial: './bar',
           filename: 'js/amd/foo.js',
           directory: 'js/amd/'
@@ -65,7 +83,7 @@ describe('filing-cabinet', function() {
         var stub = sinon.stub();
         var revert = cabinet.__set__('commonJSLookup', stub);
 
-        var path = cabinet({
+        cabinet({
           partial: './bar',
           filename: 'js/commonjs/foo.js',
           directory: 'js/commonjs/'
@@ -84,7 +102,7 @@ describe('filing-cabinet', function() {
         var stub = sinon.stub();
         var revert = cabinet.__set__('sassLookup', stub);
 
-        var path = cabinet({
+        cabinet({
           partial: './bar',
           filename: 'js/sass/foo.scss',
           directory: 'js/sass/'
@@ -99,7 +117,7 @@ describe('filing-cabinet', function() {
         var stub = sinon.stub();
         var revert = cabinet.__set__('sassLookup', stub);
 
-        var path = cabinet({
+        cabinet({
           partial: './bar',
           filename: 'sass/foo.sass',
           directory: 'sass/'
@@ -116,7 +134,7 @@ describe('filing-cabinet', function() {
         var stub = sinon.stub();
         var revert = cabinet.__set__('stylusLookup', stub);
 
-        var path = cabinet({
+        cabinet({
           partial: './bar',
           filename: 'stylus/foo.styl',
           directory: 'stylus/'
@@ -152,13 +170,13 @@ describe('filing-cabinet', function() {
 
       cabinet.register('.foobar', stub);
 
-      var path = cabinet({
+      cabinet({
         partial: './bar',
         filename: 'js/amd/foo.foobar',
         directory: 'js/amd/'
       });
 
-      var path2 = cabinet({
+      cabinet({
         partial: './bar',
         filename: 'stylus/foo.styl',
         directory: 'stylus/'
@@ -177,13 +195,13 @@ describe('filing-cabinet', function() {
       cabinet.register('.foobar', stub);
       cabinet.register('.barbar', stub2);
 
-      var path = cabinet({
+      cabinet({
         partial: './bar',
         filename: 'js/amd/foo.foobar',
         directory: 'js/amd/'
       });
 
-      var path2 = cabinet({
+      cabinet({
         partial: './bar',
         filename: 'js/amd/foo.barbar',
         directory: 'js/amd/'
