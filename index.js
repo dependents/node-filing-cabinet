@@ -68,10 +68,15 @@ module.exports.register = function(extension, lookupStrategy) {
 function jsLookup(partial, filename, directory, config) {
   var type = getModuleType.sync(filename);
 
+  // Handle es6 exported to amd via babel
+  if (type === 'es6' && config) {
+    type = 'amd';
+  }
+
   switch (type) {
     case 'amd':
       debug('using amd resolver');
-      return amdLookup(config, partial, filename, directory)
+      return amdLookup(config, partial, filename, directory);
     case 'commonjs':
       debug('using commonjs resolver');
       return commonJSLookup(partial);
