@@ -8,6 +8,8 @@ var stylusLookup = require('stylus-lookup');
 var sassLookup = require('sass-lookup');
 var resolveDependencyPath = require('resolve-dependency-path');
 
+var appModulePath = require('app-module-path');
+
 var assign = function(obj1, obj2) {
   for (var prop in obj2) {
     if (obj2.hasOwnProperty(prop)) {
@@ -44,7 +46,10 @@ module.exports = function(options) {
   }
 
   debug('found a resolver for ' + ext);
-  return resolver(partial, filename, directory, config);
+
+  var result = resolver(partial, filename, directory, config);
+  debug('resolved path: ' + result);
+  return result;
 };
 
 /**
@@ -79,7 +84,7 @@ function jsLookup(partial, filename, directory, config) {
       return amdLookup(config, partial, filename, directory);
     case 'commonjs':
       debug('using commonjs resolver');
-      return commonJSLookup(partial);
+      return commonJSLookup(partial, directory);
     case 'es6':
     default:
       debug('using generic resolver for es6');
@@ -90,8 +95,21 @@ function jsLookup(partial, filename, directory, config) {
 /**
  * @private
  * @param  {String} partial
+ * @param  {String} directory
  * @return {String}
  */
-function commonJSLookup(partial) {
-  return require.resolve(partial);
+function commonJSLookup(partial, directory) {
+  // Need to resolve partials within the directory of the module, not filing-cabinet
+  appModulePath.addPath(path.join(directory, 'node_modules'));
+
+  var result = '';
+
+  try {
+    result = require.resolve(partial);
+    debug('resolved path: ' + result);
+  } catch (e) {
+    debug('could not resolve ' + partial);
+  }
+
+  return result;
 }

@@ -34,13 +34,14 @@
   },
   "homepage": "https://github.com/mrjoelkemp/node-filing-cabinet",
   "devDependencies": {
-    "jscs": "~1.13.1",
+    "jscs": "~2.0.0",
     "mocha": "~2.2.5",
     "mock-fs": "~3.0.0",
     "rewire": "~2.3.4",
     "sinon": "~1.15.4"
   },
   "dependencies": {
+    "app-module-path": "~1.0.4",
     "commander": "~2.8.1",
     "debug": "~2.2.0",
     "module-definition": "~2.2.2",
