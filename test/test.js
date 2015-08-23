@@ -93,6 +93,29 @@ describe('filing-cabinet', function() {
 
         revert();
       });
+
+      it('returns an empty string for an unresolved module', function() {
+        var result = cabinet({
+          partial: 'foobar',
+          filename: 'js/commonjs/foo.js',
+          directory: 'js/commonjs/'
+        });
+
+        assert.equal(result.length, 0);
+      });
+
+      it('adds the directory to the require resolution paths', function() {
+        var directory = 'js/commonjs/';
+        var result = cabinet({
+          partial: 'foobar',
+          filename: 'js/commonjs/foo.js',
+          directory: directory
+        });
+
+        assert.ok(require.main.paths.some(function(p) {
+          return p.indexOf(directory) !== -1;
+        }));
+      });
     });
   });
 
