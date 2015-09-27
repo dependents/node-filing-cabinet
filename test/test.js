@@ -2,6 +2,7 @@ var assert = require('assert');
 var sinon = require('sinon');
 var rewire = require('rewire');
 var mock = require('mock-fs');
+var path = require('path');
 
 var cabinet = rewire('../');
 
@@ -115,6 +116,19 @@ describe('filing-cabinet', function() {
         assert.ok(require.main.paths.some(function(p) {
           return p.indexOf(directory) !== -1;
         }));
+      });
+
+      it('resolves a relative partial about the filename', function() {
+        var directory = 'js/commonjs/';
+        var filename = directory + 'foo.js';
+
+        var result = cabinet({
+          partial: './bar',
+          filename: filename,
+          directory: directory
+        });
+
+        assert.equal(result, path.join(path.resolve(directory), 'bar.js'));
       });
     });
   });

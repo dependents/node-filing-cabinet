@@ -2,6 +2,7 @@ var path = require('path');
 var debug = require('debug')('cabinet');
 
 var getModuleType = require('module-definition');
+var isRelative = require('is-relative-path');
 
 var amdLookup = require('module-lookup-amd');
 var stylusLookup = require('stylus-lookup');
@@ -48,7 +49,7 @@ module.exports = function(options) {
   debug('found a resolver for ' + ext);
 
   var result = resolver(partial, filename, directory, config);
-  debug('resolved path: ' + result);
+  debug('resolved path for ' + partial + ': ' + result);
   return result;
 };
 
@@ -84,7 +85,7 @@ function jsLookup(partial, filename, directory, config) {
       return amdLookup(config, partial, filename, directory);
     case 'commonjs':
       debug('using commonjs resolver');
-      return commonJSLookup(partial, directory);
+      return commonJSLookup(partial, filename, directory);
     case 'es6':
     default:
       debug('using generic resolver for es6');
@@ -95,12 +96,23 @@ function jsLookup(partial, filename, directory, config) {
 /**
  * @private
  * @param  {String} partial
+ * @param  {String} filename
  * @param  {String} directory
  * @return {String}
  */
-function commonJSLookup(partial, directory) {
+function commonJSLookup(partial, filename, directory) {
   // Need to resolve partials within the directory of the module, not filing-cabinet
-  appModulePath.addPath(path.join(directory, 'node_modules'));
+  var moduleLookupDir = path.join(directory, 'node_modules');
+
+  debug('adding ' + moduleLookupDir + ' to the require resolution paths');
+
+  appModulePath.addPath(moduleLookupDir);
+
+  // Make sure the partial is being resolved to the filename's context
+  // 3rd party modules will not be relative
+  if (isRelative(partial)) {
+    partial = path.resolve(path.dirname(filename), partial);
+  }
 
   var result = '';
 
