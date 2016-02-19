@@ -3,6 +3,7 @@ var debug = require('debug')('cabinet');
 
 var getModuleType = require('module-definition');
 var isRelative = require('is-relative-path');
+var resolve = require('resolve');
 
 var amdLookup = require('module-lookup-amd');
 var stylusLookup = require('stylus-lookup');
@@ -117,7 +118,7 @@ function commonJSLookup(partial, filename, directory) {
   var result = '';
 
   try {
-    result = require.resolve(partial);
+    result = resolve.sync(partial, {basedir: path.dirname(filename)});
     debug('resolved path: ' + result);
   } catch (e) {
     debug('could not resolve ' + partial);

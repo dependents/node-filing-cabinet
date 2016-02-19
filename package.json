@@ -47,6 +47,7 @@
     "is-relative-path": "~1.0.0",
     "module-definition": "~2.2.2",
     "module-lookup-amd": "~2.0.4",
+    "resolve": "~1.1.7",
     "resolve-dependency-path": "~1.0.2",
     "sass-lookup": "~1.0.2",
     "stylus-lookup": "~1.0.0"
