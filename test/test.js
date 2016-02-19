@@ -154,7 +154,15 @@ describe('filing-cabinet', function() {
           directory: directory
         });
 
-        assert.equal(result, path.join(path.resolve(directory), 'node_modules', 'lodash.assign', 'index.js'));
+        assert.equal(
+            result,
+            path.join(
+                path.resolve(directory),
+                'node_modules',
+                'lodash.assign',
+                'index.js'
+            )
+        );
       });
     });
   });
