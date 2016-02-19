@@ -22,6 +22,19 @@ describe('filing-cabinet', function() {
           'commonjs': {
             'foo.js': 'var bar = require("./bar");',
             'bar.js': 'module.exports = function() {};'
+          },
+          'node_modules': {
+            'lodash.assign': {
+              'index.js': 'module.exports = function() {};'
+            },
+            'nested': {
+              'index.js': 'require("lodash.assign")',
+              'node_modules': {
+                'lodash.assign': {
+                  'index.js': 'module.exports = function() {};'
+                }
+              }
+            }
           }
         }
       });
@@ -129,6 +142,19 @@ describe('filing-cabinet', function() {
         });
 
         assert.equal(result, path.join(path.resolve(directory), 'bar.js'));
+      });
+
+      it('resolves a nested module', function() {
+        var directory = 'js/node_modules/nested/';
+        var filename = directory + 'index.js';
+
+        var result = cabinet({
+          partial: 'lodash.assign',
+          filename: filename,
+          directory: directory
+        });
+
+        assert.equal(result, path.join(path.resolve(directory), 'node_modules', 'lodash.assign', 'index.js'));
       });
     });
   });
