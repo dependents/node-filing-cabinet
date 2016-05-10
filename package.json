@@ -6,11 +6,8 @@
   "bin": {
     "filing-cabinet": "bin/cli.js"
   },
-  "directories": {
-    "test": "test"
-  },
   "scripts": {
-    "test": "jscs index.js test/test.js && mocha"
+    "test": "jscs index.js test/test.js && ./node_modules/.bin/mocha --compilers js:babel/register test/test.js"
   },
   "repository": {
     "type": "git",
@@ -34,7 +31,9 @@
   },
   "homepage": "https://github.com/mrjoelkemp/node-filing-cabinet",
   "devDependencies": {
-    "jscs": "~2.0.0",
+    "babel": "~5.8.38",
+    "jscs": "~2.11.0",
+    "jscs-preset-mrjoelkemp": "~1.0.0",
     "mocha": "~2.2.5",
     "mock-fs": "~3.7.0",
     "rewire": "~2.3.4",
@@ -44,9 +43,11 @@
     "app-module-path": "~1.0.4",
     "commander": "~2.8.1",
     "debug": "~2.2.0",
+    "enhanced-resolve": "~2.2.2",
     "is-relative-path": "~1.0.0",
     "module-definition": "~2.2.2",
     "module-lookup-amd": "~2.0.4",
+    "object-assign": "~4.0.1",
     "resolve": "~1.1.7",
     "resolve-dependency-path": "~1.0.2",
     "sass-lookup": "~1.0.2",

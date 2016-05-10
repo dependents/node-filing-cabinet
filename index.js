@@ -11,16 +11,9 @@ var sassLookup = require('sass-lookup');
 var resolveDependencyPath = require('resolve-dependency-path');
 
 var appModulePath = require('app-module-path');
+var assign = require('object-assign');
 
-var assign = function(obj1, obj2) {
-  for (var prop in obj2) {
-    if (obj2.hasOwnProperty(prop)) {
-      obj1[prop] = obj2[prop];
-    }
-  }
-
-  return obj1;
-};
+var webpackResolve = require('enhanced-resolve');
 
 var defaultLookups = {};
 
@@ -37,6 +30,7 @@ module.exports = function(options) {
   var filename = options.filename;
   var directory = options.directory;
   var config = options.config;
+  var webpackConfig = options.webpackConfig;
 
   var ext = path.extname(filename);
 
@@ -49,7 +43,7 @@ module.exports = function(options) {
 
   debug('found a resolver for ' + ext);
 
-  var result = resolver(partial, filename, directory, config);
+  var result = resolver(partial, filename, directory, config, webpackConfig);
   debug('resolved path for ' + partial + ': ' + result);
   return result;
 };
@@ -72,21 +66,34 @@ module.exports.register = function(extension, lookupStrategy) {
  * @param  {String} config
  * @return {String}
  */
-function jsLookup(partial, filename, directory, config) {
-  var type = getModuleType.sync(filename);
+function jsLookup(partial, filename, directory, config, webpackConfig) {
+  var type;
 
-  // Handle es6 exported to amd via babel
-  if (type === 'es6' && config) {
+  if (config) {
     type = 'amd';
+  }
+
+  if (webpackConfig) {
+    type = 'webpack';
+  }
+
+  if (!type) {
+    type = getModuleType.sync(filename);
   }
 
   switch (type) {
     case 'amd':
       debug('using amd resolver');
       return amdLookup(config, partial, filename, directory);
+
     case 'commonjs':
       debug('using commonjs resolver');
       return commonJSLookup(partial, filename, directory);
+
+    case 'webpack':
+      debug('using webpack resolver for es6');
+      return resolveWebpackPath(partial, filename, directory, webpackConfig);
+
     case 'es6':
     default:
       debug('using generic resolver for es6');
@@ -95,6 +102,8 @@ function jsLookup(partial, filename, directory, config) {
 }
 
 /**
+ * TODO: Export to a separate module
+ *
  * @private
  * @param  {String} partial
  * @param  {String} filename
@@ -125,4 +134,28 @@ function commonJSLookup(partial, filename, directory) {
   }
 
   return result;
+}
+
+function resolveWebpackPath(partial, filename, directory, webpackConfig) {
+  webpackConfig = path.resolve(webpackConfig);
+
+  try {
+    var loadedConfig = require(webpackConfig);
+    var aliases = loadedConfig.resolve ? loadedConfig.resolve.alias : [];
+
+    var resolver = webpackResolve.create.sync({
+      alias: aliases
+    });
+
+    var resolvedPath = resolver(directory, partial);
+
+    return resolvedPath;
+
+  } catch (e) {
+    debug('error loading the webpack config at ' + webpackConfig);
+    debug(e.message);
+    debug(e.stack);
+  }
+
+  return '';
 }

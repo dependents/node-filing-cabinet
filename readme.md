@@ -14,15 +14,17 @@ var result = cabinet({
   partial: 'somePartialPath',
   directory: 'path/to/all/files',
   filename: 'path/to/parent/file',
-  config: 'path/to/requirejs/config'
+  config: 'path/to/requirejs/config',
+  webpackConfig: 'path/to/webpack/config'
 });
 
-console.log(result);
+console.log(result); // absolute/path/to/somePartialPath
 ```
 
 * `partial`: the dependency path
  * This could be in any of the registered languages
-
+* `config`: (optional) requirejs config for resolving aliased modules
+* `webpackConfig`: (optional) webpack config for resolving aliased modules
 
 ### Registered languages
 
