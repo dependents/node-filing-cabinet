@@ -40,6 +40,10 @@ describe('filing-cabinet', function() {
       });
     });
 
+    afterEach(function() {
+      mock.restore();
+    });
+
     describe('es6', function() {
       it('uses a generic resolver', function() {
         var stub = sinon.stub();
@@ -155,13 +159,13 @@ describe('filing-cabinet', function() {
         });
 
         assert.equal(
-            result,
-            path.join(
-                path.resolve(directory),
-                'node_modules',
-                'lodash.assign',
-                'index.js'
-            )
+          result,
+          path.join(
+            path.resolve(directory),
+            'node_modules',
+            'lodash.assign',
+            'index.js'
+          )
         );
       });
     });
@@ -280,6 +284,29 @@ describe('filing-cabinet', function() {
 
       assert.ok(stub.called);
       assert.ok(stub2.called);
+    });
+  });
+
+  describe('webpack', function() {
+    function testResolution(partial) {
+      const directory = path.resolve(__dirname, '../');
+
+      const resolved = cabinet({
+        partial,
+        filename: `${directory}/index.js`,
+        directory,
+        webpackConfig: `${directory}/webpack.config.js`
+      });
+
+      assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
+    }
+
+    it('resolves an aliased path', function() {
+      testResolution('R');
+    });
+
+    it('resolves a non-aliased path', function() {
+      testResolution('resolve');
     });
   });
 });
