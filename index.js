@@ -44,6 +44,11 @@ module.exports = function(options) {
   debug('found a resolver for ' + ext);
 
   var result = resolver(partial, filename, directory, config, webpackConfig);
+
+  if (result && !path.extname(result)) {
+    result = result + ext;
+  }
+
   debug('resolved path for ' + partial + ': ' + result);
   return result;
 };
@@ -59,6 +64,26 @@ module.exports.register = function(extension, lookupStrategy) {
 };
 
 /**
+ * Exposed for testing
+ *
+ * @param  {String} config
+ * @param  {String} webpackConfig
+ * @param  {String} filename
+ * @return {String}
+ */
+module.exports._getJSType = function(config, webpackConfig, filename) {
+  if (config) {
+    return 'amd';
+  }
+
+  if (webpackConfig) {
+    return 'webpack';
+  }
+
+  return getModuleType.sync(filename);
+};
+
+/**
  * @private
  * @param  {String} partial
  * @param  {String} filename
@@ -67,24 +92,17 @@ module.exports.register = function(extension, lookupStrategy) {
  * @return {String}
  */
 function jsLookup(partial, filename, directory, config, webpackConfig) {
-  var type;
-
-  if (config) {
-    type = 'amd';
-  }
-
-  if (webpackConfig) {
-    type = 'webpack';
-  }
-
-  if (!type) {
-    type = getModuleType.sync(filename);
-  }
+  var type = module.exports._getJSType(config, webpackConfig, filename);
 
   switch (type) {
     case 'amd':
       debug('using amd resolver');
-      return amdLookup(config, partial, filename, directory);
+      return amdLookup({
+        config: config,
+        partial: partial,
+        filename: filename,
+        directory: directory
+      });
 
     case 'commonjs':
       debug('using commonjs resolver');

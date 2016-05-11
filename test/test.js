@@ -61,21 +61,20 @@ describe('filing-cabinet', function() {
       });
 
       it('assumes amd for es6 modules with a requirejs config', function() {
-        var stub = sinon.stub();
-        var revert = cabinet.__set__('amdLookup', stub);
+        var spy = sinon.spy(cabinet, '_getJSType');
 
-        cabinet({
+        var result = cabinet({
           partial: './bar',
           filename: 'js/es6/foo.js',
           directory: 'js/es6/',
           config: {
-            baseUrl: 'js/'
+            baseUrl: './'
           }
         });
 
-        assert.ok(stub.called);
-
-        revert();
+        assert.ok(spy.called);
+        assert.equal(result, 'js/es6/bar.js');
+        spy.restore();
       });
     });
 
@@ -119,7 +118,7 @@ describe('filing-cabinet', function() {
           directory: 'js/commonjs/'
         });
 
-        assert.equal(result.length, 0);
+        assert.equal(result, '');
       });
 
       it('adds the directory to the require resolution paths', function() {
@@ -234,7 +233,7 @@ describe('filing-cabinet', function() {
       });
 
       assert.ok(stub.called);
-      assert.equal(path, 'foo');
+      assert.equal(path, 'foo.foobar');
     });
 
     it('allows does not break default resolvers', function() {
