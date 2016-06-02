@@ -45,6 +45,7 @@ module.exports = function(options) {
 
   var result = resolver(partial, filename, directory, config, webpackConfig);
 
+  // TODO: Remove. All resolvers should provide a complete path
   if (result && !path.extname(result)) {
     result = result + ext;
   }
@@ -100,8 +101,7 @@ function jsLookup(partial, filename, directory, config, webpackConfig) {
       return amdLookup({
         config: config,
         partial: partial,
-        filename: filename,
-        directory: directory
+        filename: filename
       });
 
     case 'commonjs':
