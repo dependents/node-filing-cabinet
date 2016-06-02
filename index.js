@@ -31,6 +31,7 @@ module.exports = function(options) {
   var directory = options.directory;
   var config = options.config;
   var webpackConfig = options.webpackConfig;
+  var configPath = options.configPath;
 
   var ext = path.extname(filename);
 
@@ -43,7 +44,8 @@ module.exports = function(options) {
 
   debug('found a resolver for ' + ext);
 
-  var result = resolver(partial, filename, directory, config, webpackConfig);
+  // TODO: Change all resolvers to accept an options argument
+  var result = resolver(partial, filename, directory, config, webpackConfig, configPath);
 
   // TODO: Remove. All resolvers should provide a complete path
   if (result && !path.extname(result)) {
@@ -92,7 +94,7 @@ module.exports._getJSType = function(config, webpackConfig, filename) {
  * @param  {String} config
  * @return {String}
  */
-function jsLookup(partial, filename, directory, config, webpackConfig) {
+function jsLookup(partial, filename, directory, config, webpackConfig, configPath) {
   var type = module.exports._getJSType(config, webpackConfig, filename);
 
   switch (type) {
@@ -100,6 +102,8 @@ function jsLookup(partial, filename, directory, config, webpackConfig) {
       debug('using amd resolver');
       return amdLookup({
         config: config,
+        // Optional in case a pre-parsed config is being passed in
+        configPath: configPath,
         partial: partial,
         filename: filename
       });

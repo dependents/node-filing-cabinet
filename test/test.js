@@ -93,6 +93,29 @@ describe('filing-cabinet', function() {
 
         revert();
       });
+
+      it('passes along the configPath', function() {
+        var stub = sinon.stub();
+        var revert = cabinet.__set__('amdLookup', stub);
+        var config = {baseUrl: 'js'};
+
+        cabinet({
+          partial: 'bar',
+          config,
+          configPath: 'config.js',
+          filename: 'js/amd/foo.js',
+          directory: 'js/amd/'
+        });
+
+        var args = stub.getCall(0).args[0];
+
+        assert.equal(args.config, config);
+        assert.equal(args.configPath, 'config.js');
+
+        assert.ok(stub.called);
+
+        revert();
+      });
     });
 
     describe('commonjs', function() {
