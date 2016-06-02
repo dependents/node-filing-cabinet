@@ -1,6 +1,6 @@
 {
   "name": "filing-cabinet",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Find files based on partial paths",
   "main": "index.js",
   "bin": {
