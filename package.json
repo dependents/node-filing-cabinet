@@ -46,7 +46,7 @@
     "enhanced-resolve": "~2.2.2",
     "is-relative-path": "~1.0.0",
     "module-definition": "~2.2.2",
-    "module-lookup-amd": "~4.0.0",
+    "module-lookup-amd": "~4.0.1",
     "object-assign": "~4.0.1",
     "resolve": "~1.1.7",
     "resolve-dependency-path": "~1.0.2",

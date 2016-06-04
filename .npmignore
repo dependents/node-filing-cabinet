@@ -1,0 +1,8 @@
+test
+.gitignore
+.jscsrc
+.jshintrc
+.travis.yml
+.deprc
+readme.md
+webpack.config.js
