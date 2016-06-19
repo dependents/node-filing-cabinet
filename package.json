@@ -44,6 +44,7 @@
     "commander": "~2.8.1",
     "debug": "~2.2.0",
     "enhanced-resolve": "~2.2.2",
+    "file-exists": "~1.0.0",
     "is-relative-path": "~1.0.0",
     "module-definition": "~2.2.3",
     "module-lookup-amd": "~4.0.2",

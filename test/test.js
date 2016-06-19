@@ -76,6 +76,24 @@ describe('filing-cabinet', function() {
         assert.equal(result, 'js/es6/bar.js');
         spy.restore();
       });
+
+      it('falls back to commonjs when the es6 result does not exist', function() {
+        var revert = cabinet.__set__('resolveDependencyPath', sinon.stub().returns(''));
+
+        var stub = sinon.stub();
+        var revert2 = cabinet.__set__('commonJSLookup', stub);
+
+        cabinet({
+          partial: './bar',
+          filename: 'js/es6/foo.js',
+          directory: 'js/es6/'
+        });
+
+        assert.ok(stub.called);
+
+        revert();
+        revert2();
+      });
     });
 
     describe('amd', function() {

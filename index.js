@@ -12,6 +12,7 @@ var resolveDependencyPath = require('resolve-dependency-path');
 
 var appModulePath = require('app-module-path');
 var assign = require('object-assign');
+var fileExists = require('file-exists');
 
 var webpackResolve = require('enhanced-resolve');
 
@@ -119,7 +120,17 @@ function jsLookup(partial, filename, directory, config, webpackConfig, configPat
     case 'es6':
     default:
       debug('using generic resolver for es6');
-      return resolveDependencyPath(partial, filename, directory);
+      var result = resolveDependencyPath(partial, filename, directory);
+      debug('es6 resolver result: ' + result);
+      // For codebases transpiling es6 to commonjs
+      // es6 to amd transpilation would have picked up a require config
+      if (!fileExists(result)) {
+        debug('es6 result was not a real file');
+        debug('trying commonjs resolver');
+        result = commonJSLookup(partial, filename, directory);
+      }
+
+      return result;
   }
 }
 
