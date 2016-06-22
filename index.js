@@ -158,9 +158,14 @@ function commonJSLookup(partial, filename, directory) {
   }
 
   var result = '';
+  var fileDir = path.dirname(filename);
 
   try {
-    result = resolve.sync(partial, {basedir: path.dirname(filename)});
+    result = resolve.sync(partial, {
+      basedir: fileDir,
+      // Add fileDir to resolve index.js files in that dir
+      moduleDirectory: ['node_modules', fileDir]
+    });
     debug('resolved path: ' + result);
   } catch (e) {
     debug('could not resolve ' + partial);

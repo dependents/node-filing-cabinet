@@ -35,6 +35,12 @@ describe('filing-cabinet', function() {
                 }
               }
             }
+          },
+          'withIndex': {
+            'subdir': {
+              'index.js': ''
+            },
+            'index.js': 'var sub = require("./subdir");'
           }
         }
       });
@@ -206,6 +212,22 @@ describe('filing-cabinet', function() {
             'lodash.assign',
             'index.js'
           )
+        );
+      });
+
+      it('resolves to the index.js file of a directory', function() {
+        var directory = 'js/withIndex';
+        var filename = directory + '/index.js';
+
+        var result = cabinet({
+          partial: './subdir',
+          filename: filename,
+          directory: directory
+        });
+
+        assert.equal(
+          result,
+          path.resolve(directory) + '/subdir/index.js'
         );
       });
     });
