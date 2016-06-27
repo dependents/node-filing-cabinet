@@ -185,6 +185,9 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
       alias: aliases
     });
 
+    // We don't care about what the loader resolves the partial to
+    // we only wnat the path of the resolved file
+    partial = stripLoader(partial);
     var resolvedPath = resolver(directory, partial);
 
     return resolvedPath;
@@ -196,4 +199,12 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
   }
 
   return '';
+}
+
+function stripLoader(partial) {
+  var exclamationLocation = partial.indexOf('!');
+
+  if (exclamationLocation === -1) { return partial; }
+
+  return partial.slice(exclamationLocation + 1);
 }
