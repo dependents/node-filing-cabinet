@@ -370,5 +370,11 @@ describe('filing-cabinet', function() {
     it('resolves a non-aliased path', function() {
       testResolution('resolve');
     });
+
+    describe('when the partial contains a loader', function() {
+      it('still works', function() {
+        testResolution('hgn!resolve');
+      });
+    });
   });
 });
