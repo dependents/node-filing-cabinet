@@ -21,7 +21,15 @@ describe('filing-cabinet', function() {
           },
           'commonjs': {
             'foo.js': 'var bar = require("./bar");',
-            'bar.js': 'module.exports = function() {};'
+            'bar.js': 'module.exports = function() {};',
+            'index.js': '',
+            'subdir': {
+              'module.js': 'var entry = require("../");',
+              'index.js': ''
+            },
+            'test': {
+              'index.spec.js': 'var subdir = require("subdir");'
+            }
           },
           'node_modules': {
             'lodash.assign': {
@@ -192,6 +200,32 @@ describe('filing-cabinet', function() {
         });
 
         assert.equal(result, path.join(path.resolve(directory), 'bar.js'));
+      });
+
+      it('resolves a .. partial to its parent directory\'s index.js file', function() {
+        var directory = 'js/commonjs/';
+        var filename = directory + 'subdir/module.js';
+
+        var result = cabinet({
+          partial: '../',
+          filename: filename,
+          directory: directory
+        });
+
+        assert.equal(result, path.join(path.resolve(directory), 'index.js'));
+      });
+
+      it('resolves a partial within a directory outside of the given file', function() {
+        var directory = 'js/commonjs/';
+        var filename = directory + 'test/index.spec.js';
+
+        var result = cabinet({
+          partial: 'subdir',
+          filename: filename,
+          directory: directory
+        });
+
+        assert.equal(result, path.join(path.resolve(directory), 'subdir/index.js'));
       });
 
       it('resolves a nested module', function() {
