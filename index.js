@@ -158,13 +158,12 @@ function commonJSLookup(partial, filename, directory) {
   }
 
   var result = '';
-  var fileDir = path.dirname(filename);
 
   try {
     result = resolve.sync(partial, {
-      basedir: fileDir,
+      basedir: directory,
       // Add fileDir to resolve index.js files in that dir
-      moduleDirectory: ['node_modules', fileDir]
+      moduleDirectory: ['node_modules', directory]
     });
     debug('resolved path: ' + result);
   } catch (e) {
