@@ -126,7 +126,7 @@ describe('filing-cabinet', function() {
         revert();
       });
 
-      it('passes along the configPath', function() {
+      it('passes along arguments', function() {
         var stub = sinon.stub();
         var revert = cabinet.__set__('amdLookup', stub);
         var config = {baseUrl: 'js'};
@@ -141,8 +141,11 @@ describe('filing-cabinet', function() {
 
         var args = stub.getCall(0).args[0];
 
+        assert.equal(args.partial, 'bar');
         assert.equal(args.config, config);
         assert.equal(args.configPath, 'config.js');
+        assert.equal(args.filename, 'js/amd/foo.js');
+        assert.equal(args.directory, 'js/amd/');
 
         assert.ok(stub.called);
 

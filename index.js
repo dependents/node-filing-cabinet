@@ -106,6 +106,7 @@ function jsLookup(partial, filename, directory, config, webpackConfig, configPat
         // Optional in case a pre-parsed config is being passed in
         configPath: configPath,
         partial: partial,
+        directory: directory,
         filename: filename
       });
 
