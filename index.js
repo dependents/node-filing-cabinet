@@ -11,22 +11,18 @@ var sassLookup = require('sass-lookup');
 var resolveDependencyPath = require('resolve-dependency-path');
 
 var appModulePath = require('app-module-path');
-var assign = require('object-assign');
 var fileExists = require('file-exists');
 
 var webpackResolve = require('enhanced-resolve');
 
-var defaultLookups = {};
+var defaultLookups = {
+  '.js': jsLookup,
+  '.scss': sassLookup,
+  '.sass': sassLookup,
+  '.styl': stylusLookup
+};
 
-module.exports = function(options) {
-  // Lazy binding for test stubbing purposes
-  assign(defaultLookups, {
-    '.js': jsLookup,
-    '.scss': sassLookup,
-    '.sass': sassLookup,
-    '.styl': stylusLookup
-  });
-
+module.exports = function cabinet(options) {
   var partial = options.partial;
   var filename = options.filename;
   var directory = options.directory;
@@ -57,6 +53,8 @@ module.exports = function(options) {
   return result;
 };
 
+module.exports.supportedFileExtensions = Object.keys(defaultLookups);
+
 /**
  * Register a custom lookup resolver for a file extension
  *
@@ -65,6 +63,10 @@ module.exports = function(options) {
  */
 module.exports.register = function(extension, lookupStrategy) {
   defaultLookups[extension] = lookupStrategy;
+
+  if (this.supportedFileExtensions.indexOf(extension) === -1) {
+    this.supportedFileExtensions.push(extension);
+  }
 };
 
 /**
