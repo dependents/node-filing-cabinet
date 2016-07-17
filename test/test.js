@@ -5,57 +5,25 @@ var mock = require('mock-fs');
 var path = require('path');
 
 var cabinet = rewire('../');
+var mockedFiles = require('./mockedJSFiles');
 
 describe('filing-cabinet', function() {
   describe('JavaScript', function() {
     beforeEach(function() {
-      mock({
-        'js': {
-          'es6': {
-            'foo.js': 'import bar from "./bar";',
-            'bar.js': 'export default function() {};'
-          },
-          'amd': {
-            'foo.js': 'define(["./bar"], function(bar){ return bar; });',
-            'bar.js': 'define({});'
-          },
-          'commonjs': {
-            'foo.js': 'var bar = require("./bar");',
-            'bar.js': 'module.exports = function() {};',
-            'index.js': '',
-            'subdir': {
-              'module.js': 'var entry = require("../");',
-              'index.js': ''
-            },
-            'test': {
-              'index.spec.js': 'var subdir = require("subdir");'
-            }
-          },
-          'node_modules': {
-            'lodash.assign': {
-              'index.js': 'module.exports = function() {};'
-            },
-            'nested': {
-              'index.js': 'require("lodash.assign")',
-              'node_modules': {
-                'lodash.assign': {
-                  'index.js': 'module.exports = function() {};'
-                }
-              }
-            }
-          },
-          'withIndex': {
-            'subdir': {
-              'index.js': ''
-            },
-            'index.js': 'var sub = require("./subdir");'
-          }
-        }
-      });
+      mock(mockedFiles);
     });
 
     afterEach(function() {
       mock.restore();
+    });
+
+    it('dangles off its supported file extensions', function() {
+      assert.deepEqual(cabinet.supportedFileExtensions, [
+        '.js',
+        '.scss',
+        '.sass',
+        '.styl'
+      ]);
     });
 
     describe('es6', function() {
@@ -271,52 +239,58 @@ describe('filing-cabinet', function() {
   });
 
   describe('CSS', function() {
-    describe('Sass', function() {
-      it('uses the sass resolver for .scss files', function() {
-        var stub = sinon.stub();
-        var revert = cabinet.__set__('sassLookup', stub);
+    beforeEach(function() {
+      mock({
+        stylus: {
+          'foo.styl': '',
+          'bar.styl': ''
+        },
+        sass: {
+          'foo.scss': '',
+          'bar.scss': '',
+          'foo.sass': '',
+          'bar.sass': ''
+        }
+      });
 
-        cabinet({
-          partial: './bar',
-          filename: 'js/sass/foo.scss',
-          directory: 'js/sass/'
+      this._directory = path.resolve(__dirname, '../');
+    });
+
+    afterEach(function() {
+      mock.restore();
+    });
+
+    describe('sass', function() {
+      it('uses the sass resolver for .scss files', function() {
+        const result = cabinet({
+          partial: 'bar',
+          filename: 'sass/foo.scss',
+          directory: 'sass/'
         });
 
-        assert.ok(stub.called);
-
-        revert();
+        assert.equal(result, `${this._directory}/sass/bar.scss`);
       });
 
       it('uses the sass resolver for .sass files', function() {
-        var stub = sinon.stub();
-        var revert = cabinet.__set__('sassLookup', stub);
-
-        cabinet({
-          partial: './bar',
+        const result = cabinet({
+          partial: 'bar',
           filename: 'sass/foo.sass',
           directory: 'sass/'
         });
 
-        assert.ok(stub.called);
-
-        revert();
+        assert.equal(result, `${this._directory}/sass/bar.sass`);
       });
     });
 
     describe('stylus', function() {
       it('uses the stylus resolver', function() {
-        var stub = sinon.stub();
-        var revert = cabinet.__set__('stylusLookup', stub);
-
-        cabinet({
-          partial: './bar',
+        const result = cabinet({
+          partial: 'bar',
           filename: 'stylus/foo.styl',
           directory: 'stylus/'
         });
 
-        assert.ok(stub.called);
-
-        revert();
+        assert.equal(result, `${this._directory}/stylus/bar.styl`);
       });
     });
   });
@@ -337,10 +311,14 @@ describe('filing-cabinet', function() {
     });
 
     it('allows does not break default resolvers', function() {
-      var stub = sinon.stub().returns('foo');
-      var stub2 = sinon.stub().returns('foo');
+      mock({
+        stylus: {
+          'foo.styl': '',
+          'bar.styl': ''
+        }
+      });
 
-      var revert = cabinet.__set__('stylusLookup', stub2);
+      var stub = sinon.stub().returns('foo');
 
       cabinet.register('.foobar', stub);
 
@@ -350,16 +328,16 @@ describe('filing-cabinet', function() {
         directory: 'js/amd/'
       });
 
-      cabinet({
+      var result = cabinet({
         partial: './bar',
         filename: 'stylus/foo.styl',
         directory: 'stylus/'
       });
 
       assert.ok(stub.called);
-      assert.ok(stub2.called);
+      assert.ok(result);
 
-      revert();
+      mock.restore();
     });
 
     it('can be called multiple times', function() {
@@ -383,6 +361,18 @@ describe('filing-cabinet', function() {
 
       assert.ok(stub.called);
       assert.ok(stub2.called);
+    });
+
+    it('does not add redundant extensions to supportedFileExtensions', function() {
+      const stub = sinon.stub;
+      const newExt = '.foobar';
+
+      cabinet.register(newExt, stub);
+      cabinet.register(newExt, stub);
+
+      const {supportedFileExtensions} = cabinet;
+
+      assert.equal(supportedFileExtensions.indexOf(newExt), supportedFileExtensions.lastIndexOf(newExt));
     });
   });
 
