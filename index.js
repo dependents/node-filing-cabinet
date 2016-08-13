@@ -29,6 +29,7 @@ module.exports = function cabinet(options) {
   var config = options.config;
   var webpackConfig = options.webpackConfig;
   var configPath = options.configPath;
+  var ast = options.ast;
 
   var ext = path.extname(filename);
 
@@ -42,7 +43,7 @@ module.exports = function cabinet(options) {
   debug('found a resolver for ' + ext);
 
   // TODO: Change all resolvers to accept an options argument
-  var result = resolver(partial, filename, directory, config, webpackConfig, configPath);
+  var result = resolver(partial, filename, directory, config, webpackConfig, configPath, ast);
 
   // TODO: Remove. All resolvers should provide a complete path
   if (result && !path.extname(result)) {
@@ -72,21 +73,31 @@ module.exports.register = function(extension, lookupStrategy) {
 /**
  * Exposed for testing
  *
- * @param  {String} config
- * @param  {String} webpackConfig
- * @param  {String} filename
+ * @param  {Object} options
+ * @param  {String} options.config
+ * @param  {String} options.webpackConfig
+ * @param  {String} options.filename
+ * @param  {Object} options.ast
  * @return {String}
  */
-module.exports._getJSType = function(config, webpackConfig, filename) {
-  if (config) {
+module.exports._getJSType = function(options) {
+  options = options || {};
+
+  if (options.config) {
     return 'amd';
   }
 
-  if (webpackConfig) {
+  if (options.webpackConfig) {
     return 'webpack';
   }
 
-  return getModuleType.sync(filename);
+  if (options.ast) {
+    debug('reusing the given ast');
+    return getModuleType.fromSource(options.ast);
+  }
+
+  debug('using the filename to find the module type');
+  return getModuleType.sync(options.filename);
 };
 
 /**
@@ -94,11 +105,19 @@ module.exports._getJSType = function(config, webpackConfig, filename) {
  * @param  {String} partial
  * @param  {String} filename
  * @param  {String} directory
- * @param  {String} config
+ * @param  {String} [config]
+ * @param  {String} [webpackConfig]
+ * @param  {String} [configPath]
+ * @param  {Object} [ast]
  * @return {String}
  */
-function jsLookup(partial, filename, directory, config, webpackConfig, configPath) {
-  var type = module.exports._getJSType(config, webpackConfig, filename);
+function jsLookup(partial, filename, directory, config, webpackConfig, configPath, ast) {
+  var type = module.exports._getJSType({
+    config: config,
+    webpackConfig: webpackConfig,
+    filename: filename,
+    ast: ast
+  });
 
   switch (type) {
     case 'amd':

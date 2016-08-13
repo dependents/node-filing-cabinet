@@ -6,6 +6,7 @@ var path = require('path');
 
 var cabinet = rewire('../');
 var mockedFiles = require('./mockedJSFiles');
+var mockAST = require('./ast');
 
 describe('filing-cabinet', function() {
   describe('JavaScript', function() {
@@ -24,6 +25,58 @@ describe('filing-cabinet', function() {
         '.sass',
         '.styl'
       ]);
+    });
+
+    describe('when given an ast for a JS file', function() {
+      it('reuses the ast when trying to determine the module type', function() {
+        var stub = sinon.stub();
+        var revert = cabinet.__set__('getModuleType', {
+          fromSource: stub
+        });
+        var ast = {};
+
+        var result = cabinet({
+          partial: './bar',
+          filename: 'js/es6/foo.js',
+          directory: 'js/es6/',
+          ast
+        });
+
+        assert.deepEqual(stub.args[0][0], ast);
+        revert();
+      });
+
+      it('resolves the partial successfully', function() {
+        var result = cabinet({
+          partial: './bar',
+          filename: 'js/es6/foo.js',
+          directory: 'js/es6/',
+          ast: mockAST
+        });
+
+        assert.equal(result, path.join(__dirname, '../js/es6/bar.js'));
+      });
+    });
+
+    describe('when not given an ast', function() {
+      it('uses the filename to look for the module type', function() {
+        var stub = sinon.stub();
+
+        var revert = cabinet.__set__('getModuleType', {
+          sync: stub
+        });
+
+        var options = {
+          partial: './bar',
+          filename: 'js/es6/foo.js',
+          directory: 'js/es6/'
+        };
+
+        var result = cabinet(options);
+
+        assert.deepEqual(stub.args[0][0], options.filename);
+        revert();
+      });
     });
 
     describe('es6', function() {

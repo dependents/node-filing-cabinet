@@ -2,7 +2,7 @@
 
 > Look up a filename based on a partial path
 
-`npm install filing-cabinet`
+`npm install --save filing-cabinet`
 
 ### Usage
 
@@ -14,17 +14,23 @@ var result = cabinet({
   partial: 'somePartialPath',
   directory: 'path/to/all/files',
   filename: 'path/to/parent/file',
+  ast: {}, // an optional AST representation of `filename`
+  // Only for JavaScript files
   config: 'path/to/requirejs/config',
   webpackConfig: 'path/to/webpack/config'
 });
 
-console.log(result); // absolute/path/to/somePartialPath
+console.log(result); // /absolute/path/to/somePartialPath
 ```
 
 * `partial`: the dependency path
  * This could be in any of the registered languages
-* `config`: (optional) requirejs config for resolving aliased modules
-* `webpackConfig`: (optional) webpack config for resolving aliased modules
+* `directory`: the path to all files
+* `filename`: the path to the file containing the `partial`
+* `ast`: (optional) the parsed AST for `filename`.
+ * Useful optimization for avoiding a parse of filename
+* `config`: (optional) requirejs config for resolving aliased JavaScript modules
+* `webpackConfig`: (optional) webpack config for resolving aliased JavaScript modules
 
 ### Registered languages
 
