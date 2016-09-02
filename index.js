@@ -8,6 +8,8 @@ var amdLookup = require('module-lookup-amd');
 var stylusLookup = require('stylus-lookup');
 var sassLookup = require('sass-lookup');
 
+var resolveDependencyPath = require('resolve-dependency-path');
+
 var appModulePath = require('app-module-path');
 
 var webpackResolve = require('enhanced-resolve');
