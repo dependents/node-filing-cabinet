@@ -80,9 +80,9 @@ describe('filing-cabinet', function() {
     });
 
     describe('es6', function() {
-      it('uses a generic resolver', function() {
+      it('assumes commonjs for es6 modules with no requirejs/webpack config', function() {
         var stub = sinon.stub();
-        var revert = cabinet.__set__('resolveDependencyPath', stub);
+        var revert = cabinet.__set__('commonJSLookup', stub);
 
         cabinet({
           partial: './bar',
@@ -110,24 +110,6 @@ describe('filing-cabinet', function() {
         assert.ok(spy.called);
         assert.equal(result, 'js/es6/bar.js');
         spy.restore();
-      });
-
-      it('falls back to commonjs when the es6 result does not exist', function() {
-        var revert = cabinet.__set__('resolveDependencyPath', sinon.stub().returns(''));
-
-        var stub = sinon.stub();
-        var revert2 = cabinet.__set__('commonJSLookup', stub);
-
-        cabinet({
-          partial: './bar',
-          filename: 'js/es6/foo.js',
-          directory: 'js/es6/'
-        });
-
-        assert.ok(stub.called);
-
-        revert();
-        revert2();
       });
     });
 
@@ -350,7 +332,7 @@ describe('filing-cabinet', function() {
 
   describe('.register', function() {
     it('registers a custom resolver for a given extension', function() {
-      var stub = sinon.stub().returns('foo');
+      var stub = sinon.stub().returns('foo.foobar');
       cabinet.register('.foobar', stub);
 
       var path = cabinet({
