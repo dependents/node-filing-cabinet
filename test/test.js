@@ -21,10 +21,26 @@ describe('filing-cabinet', function() {
     it('dangles off its supported file extensions', function() {
       assert.deepEqual(cabinet.supportedFileExtensions, [
         '.js',
+        '.jsx',
         '.scss',
         '.sass',
         '.styl'
       ]);
+    });
+
+    it('uses a generic resolve for unsupported file extensions', function() {
+      var stub = sinon.stub();
+      var revert = cabinet.__set__('resolveDependencyPath', stub);
+
+      cabinet({
+        partial: './bar',
+        filename: 'js/commonjs/foo.baz',
+        directory: 'js/commonjs/'
+      });
+
+      assert.ok(stub.called);
+
+      revert();
     });
 
     describe('when given an ast for a JS file', function() {
@@ -110,6 +126,18 @@ describe('filing-cabinet', function() {
         assert.ok(spy.called);
         assert.equal(result, 'js/es6/bar.js');
         spy.restore();
+      });
+    });
+
+    describe('jsx', function() {
+      it('resolves files with the .jsx extension', function() {
+        const result = cabinet({
+          partial: './bar',
+          filename: 'js/es6/foo.jsx',
+          directory: 'js/es6/'
+        });
+
+        assert.equal(result, `${path.join(__dirname, '../js/es6/bar.js')}`);
       });
     });
 

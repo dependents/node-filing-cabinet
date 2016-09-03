@@ -16,6 +16,7 @@ var webpackResolve = require('enhanced-resolve');
 
 var defaultLookups = {
   '.js': jsLookup,
+  '.jsx': jsLookup,
   '.scss': sassLookup,
   '.sass': sassLookup,
   '.styl': stylusLookup
