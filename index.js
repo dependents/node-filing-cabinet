@@ -185,11 +185,17 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
 
   try {
     var loadedConfig = require(webpackConfig);
-    var aliases = loadedConfig.resolve ? loadedConfig.resolve.alias : [];
+    var config = {
+      alias: [],
+    };
+    if (loadedConfig.resolve) {
+      config = {
+        alias: loadedConfig.resolve.alias,
+        extensions: loadedConfig.resolve.extensions,
+      };
+    }
 
-    var resolver = webpackResolve.create.sync({
-      alias: aliases
-    });
+    var resolver = webpackResolve.create.sync(config);
 
     // We don't care about what the loader resolves the partial to
     // we only wnat the path of the resolved file
