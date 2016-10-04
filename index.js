@@ -9,10 +9,9 @@ var stylusLookup = require('stylus-lookup');
 var sassLookup = require('sass-lookup');
 
 var resolveDependencyPath = require('resolve-dependency-path');
-
 var appModulePath = require('app-module-path');
-
 var webpackResolve = require('enhanced-resolve');
+var isRelative = require('is-relative-path');
 
 var defaultLookups = {
   '.js': jsLookup,
@@ -185,22 +184,15 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
 
   try {
     var loadedConfig = require(webpackConfig);
-    var config = {
-      alias: [],
-    };
-    if (loadedConfig.resolve) {
-      config = {
-        alias: loadedConfig.resolve.alias,
-        extensions: loadedConfig.resolve.extensions,
-      };
-    }
-
-    var resolver = webpackResolve.create.sync(config);
+    var resolver = webpackResolve.create.sync(loadedConfig.resolve || {});
 
     // We don't care about what the loader resolves the partial to
     // we only wnat the path of the resolved file
     partial = stripLoader(partial);
-    var resolvedPath = resolver(directory, partial);
+
+    var lookupPath = isRelative(partial) ? path.dirname(filename) : directory;
+
+    var resolvedPath = resolver(lookupPath, partial);
 
     return resolvedPath;
 

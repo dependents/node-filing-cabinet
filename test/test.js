@@ -440,9 +440,13 @@ describe('filing-cabinet', function() {
   });
 
   describe('webpack', function() {
-    function testResolution(partial) {
-      const directory = path.resolve(__dirname, '../');
+    let directory;
 
+    beforeEach(function() {
+      directory = path.resolve(__dirname, '../');
+    });
+
+    function testResolution(partial, expected) {
       const resolved = cabinet({
         partial,
         filename: `${directory}/index.js`,
@@ -450,20 +454,39 @@ describe('filing-cabinet', function() {
         webpackConfig: `${directory}/webpack.config.js`
       });
 
-      assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
+      assert.equal(resolved, expected);
     }
 
     it('resolves an aliased path', function() {
-      testResolution('R');
+      testResolution('R', `${directory}/node_modules/resolve/index.js`);
     });
 
     it('resolves a non-aliased path', function() {
-      testResolution('resolve');
+      testResolution('resolve', `${directory}/node_modules/resolve/index.js`);
+    });
+
+    it('resolves a relative path', function() {
+      testResolution('./test/ast', `${directory}/test/ast.js`);
+    });
+
+    it('resolves an absolute path from a file within a subdirectory', function() {
+      const resolved = cabinet({
+        partial: 'R',
+        filename: `${directory}/test/ast.js`,
+        directory,
+        webpackConfig: `${directory}/webpack.config.js`
+      });
+
+      assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
+    });
+
+    it('resolves files with a .jsx extension', function() {
+      testResolution('./test/foo.jsx', `${directory}/test/foo.jsx`);
     });
 
     describe('when the partial contains a loader', function() {
       it('still works', function() {
-        testResolution('hgn!resolve');
+        testResolution('hgn!resolve', `${directory}/node_modules/resolve/index.js`);
       });
     });
   });
