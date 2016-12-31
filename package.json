@@ -43,7 +43,7 @@
     "app-module-path": "~1.0.4",
     "commander": "~2.8.1",
     "debug": "~2.2.0",
-    "enhanced-resolve": "~2.2.2",
+    "enhanced-resolve": "^3.0.2",
     "is-relative-path": "^1.0.1",
     "module-definition": "^2.2.3",
     "module-lookup-amd": "^4.0.2",
