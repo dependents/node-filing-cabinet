@@ -480,6 +480,39 @@ describe('filing-cabinet', function() {
       assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
     });
 
+    it('resolves a path using resolve.root', function() {
+      const resolved = cabinet({
+        partial: 'mod1',
+        filename: `${directory}/index.js`,
+        directory,
+        webpackConfig: `${directory}/webpack-root.config.js`
+      });
+
+      assert.equal(resolved, `${directory}/test/root1/mod1.js`);
+    });
+
+    it('resolves NPM module when using resolve.root', function() {
+      const resolved = cabinet({
+        partial: 'resolve',
+        filename: `${directory}/index.js`,
+        directory,
+        webpackConfig: `${directory}/webpack-root.config.js`
+      });
+
+      assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
+    });
+
+    it('resolves a path using resolve.modulesDirectories', function() {
+      const resolved = cabinet({
+        partial: 'mod2',
+        filename: `${directory}/index.js`,
+        directory,
+        webpackConfig: `${directory}/webpack-root.config.js`
+      });
+
+      assert.equal(resolved, `${directory}/test/root2/mod2.js`);
+    });
+
     it('resolves files with a .jsx extension', function() {
       testResolution('./test/foo.jsx', `${directory}/test/foo.jsx`);
     });
