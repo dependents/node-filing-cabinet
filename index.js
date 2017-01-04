@@ -185,6 +185,14 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
 
   try {
     var loadedConfig = require(webpackConfig);
+  } catch (e) {
+    debug('error loading the webpack config at ' + webpackConfig);
+    debug(e.message);
+    debug(e.stack);
+    return '';
+  }
+
+  try {
     var resolveConfig = objectAssign({}, loadedConfig.resolve);
 
     resolveConfig.modules = [];
@@ -213,17 +221,13 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
 
     var lookupPath = isRelative(partial) ? path.dirname(filename) : directory;
 
-    var resolvedPath = resolver(lookupPath, partial);
-
-    return resolvedPath;
-
+    return resolver(lookupPath, partial);
   } catch (e) {
-    debug('error loading the webpack config at ' + webpackConfig);
+    debug('error when resolving ' + partial);
     debug(e.message);
     debug(e.stack);
+    return '';
   }
-
-  return '';
 }
 
 function stripLoader(partial) {
