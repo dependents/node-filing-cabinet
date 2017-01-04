@@ -12,6 +12,7 @@ var resolveDependencyPath = require('resolve-dependency-path');
 var appModulePath = require('app-module-path');
 var webpackResolve = require('enhanced-resolve');
 var isRelative = require('is-relative-path');
+var objectAssign = require('object-assign');
 
 var defaultLookups = {
   '.js': jsLookup,
@@ -184,7 +185,27 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
 
   try {
     var loadedConfig = require(webpackConfig);
-    var resolver = webpackResolve.create.sync(loadedConfig.resolve || {});
+    var resolveConfig = objectAssign({}, loadedConfig.resolve);
+
+    resolveConfig.modules = [];
+
+    if (resolveConfig.root) {
+      resolveConfig.modules = resolveConfig.modules.concat(resolveConfig.root);
+    }
+
+    if (resolveConfig.modulesDirectories) {
+      resolveConfig.modules = resolveConfig.modules.concat(resolveConfig.modulesDirectories);
+    }
+
+    var foundNodeModulesInPaths = resolveConfig.modules.some(function(dir) {
+      return dir.match('node_modules');
+    });
+
+    if (!foundNodeModulesInPaths) {
+      resolveConfig.modules.push('node_modules');
+    }
+
+    var resolver = webpackResolve.create.sync(resolveConfig);
 
     // We don't care about what the loader resolves the partial to
     // we only wnat the path of the resolved file
