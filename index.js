@@ -192,9 +192,9 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
     return '';
   }
 
-  try {
-    var resolveConfig = objectAssign({}, loadedConfig.resolve);
+  var resolveConfig = objectAssign({}, loadedConfig.resolve);
 
+  if (!resolveConfig.modules && (resolveConfig.root || resolveConfig.modulesDirectories)) {
     resolveConfig.modules = [];
 
     if (resolveConfig.root) {
@@ -204,15 +204,9 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
     if (resolveConfig.modulesDirectories) {
       resolveConfig.modules = resolveConfig.modules.concat(resolveConfig.modulesDirectories);
     }
+  }
 
-    var foundNodeModulesInPaths = resolveConfig.modules.some(function(dir) {
-      return dir.match('node_modules');
-    });
-
-    if (!foundNodeModulesInPaths) {
-      resolveConfig.modules.push('node_modules');
-    }
-
+  try {
     var resolver = webpackResolve.create.sync(resolveConfig);
 
     // We don't care about what the loader resolves the partial to

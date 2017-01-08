@@ -502,6 +502,17 @@ describe('filing-cabinet', function() {
       assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
     });
 
+    it('resolves NPM module when using resolve.modulesDirectories', function() {
+      const resolved = cabinet({
+        partial: 'resolve',
+        filename: `${directory}/index.js`,
+        directory,
+        webpackConfig: `${directory}/webpack-root.config.js`
+      });
+
+      assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
+    });
+
     it('resolves a path using resolve.modulesDirectories', function() {
       const resolved = cabinet({
         partial: 'mod2',
