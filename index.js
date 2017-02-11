@@ -19,7 +19,9 @@ var defaultLookups = {
   '.jsx': jsLookup,
   '.scss': sassLookup,
   '.sass': sassLookup,
-  '.styl': stylusLookup
+  '.styl': stylusLookup,
+  // Less and Sass imports are very similar
+  '.less': sassLookup
 };
 
 module.exports = function cabinet(options) {
