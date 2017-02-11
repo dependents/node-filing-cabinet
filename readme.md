@@ -1,6 +1,6 @@
 ### filing-cabinet [![npm](http://img.shields.io/npm/v/filing-cabinet.svg)](https://npmjs.org/package/filing-cabinet) [![npm](http://img.shields.io/npm/dm/filing-cabinet.svg)](https://npmjs.org/package/filing-cabinet)
 
-> Look up a filename based on a partial path
+> Get the file associated with a dependency/partial's path
 
 `npm install --save filing-cabinet`
 
@@ -37,8 +37,7 @@ console.log(result); // /absolute/path/to/somePartialPath
 By default, filing-cabinet provides support for the following languages:
 
 * JavaScript (all files with the `.js` extension)
-* Sass (`.scss` and `.sass`)
-* Stylus (`.styl`)
+* CSS Preprocessors: Sass (`.scss` and `.sass`), Stylus (`.styl`), and Less (`.less`)
 
 You can register resolvers for new languages via `cabinet.register(extension, resolver)`.
 

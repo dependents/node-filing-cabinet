@@ -24,7 +24,8 @@ describe('filing-cabinet', function() {
         '.jsx',
         '.scss',
         '.sass',
-        '.styl'
+        '.styl',
+        '.less'
       ]);
     });
 
@@ -313,6 +314,11 @@ describe('filing-cabinet', function() {
           'bar.scss': '',
           'foo.sass': '',
           'bar.sass': ''
+        },
+        less: {
+          'foo.less': '',
+          'bar.less': '',
+          'bar.css': ''
         }
       });
 
@@ -354,6 +360,38 @@ describe('filing-cabinet', function() {
         });
 
         assert.equal(result, `${this._directory}/stylus/bar.styl`);
+      });
+    });
+
+    describe('less', function() {
+      it('resolves extensionless partials', function() {
+        const result = cabinet({
+          partial: 'bar',
+          filename: 'less/foo.less',
+          directory: 'less/'
+        });
+
+        assert.equal(result, `${this._directory}/less/bar.less`);
+      });
+
+      it('resolves partials with a less extension', function() {
+        const result = cabinet({
+          partial: 'bar.less',
+          filename: 'less/foo.less',
+          directory: 'less/'
+        });
+
+        assert.equal(result, `${this._directory}/less/bar.less`);
+      });
+
+      it('resolves partials with a css extension', function() {
+        const result = cabinet({
+          partial: 'bar.css',
+          filename: 'less/foo.less',
+          directory: 'less/'
+        });
+
+        assert.equal(result, `${this._directory}/less/bar.css`);
       });
     });
   });
