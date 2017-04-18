@@ -187,6 +187,10 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
 
   try {
     var loadedConfig = require(webpackConfig);
+
+    if (typeof loadedConfig === 'function') {
+      loadedConfig = loadedConfig();
+    }
   } catch (e) {
     debug('error loading the webpack config at ' + webpackConfig);
     debug(e.message);

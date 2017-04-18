@@ -562,6 +562,17 @@ describe('filing-cabinet', function() {
       assert.equal(resolved, `${directory}/test/root2/mod2.js`);
     });
 
+    it('resolves a path using webpack config that exports a function', function() {
+      const resolved = cabinet({
+        partial: 'R',
+        filename: `${directory}/index.js`,
+        directory,
+        webpackConfig: `${directory}/webpack-env.config.js`
+      });
+
+      assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
+    });
+
     it('resolves files with a .jsx extension', function() {
       testResolution('./test/foo.jsx', `${directory}/test/foo.jsx`);
     });
