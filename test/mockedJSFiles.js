@@ -5,6 +5,10 @@ module.exports = {
       'foo.jsx': 'import React from "react"; export default () => { return (<div></div>); }',
       'bar.js': 'export default function() {};'
     },
+    'ts': {
+      'index.ts': 'import foo from "./foo";',
+      'foo.ts': 'export default 1;'
+    },
     'amd': {
       'foo.js': 'define(["./bar"], function(bar){ return bar; });',
       'bar.js': 'define({});'
