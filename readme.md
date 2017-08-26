@@ -36,7 +36,8 @@ console.log(result); // /absolute/path/to/somePartialPath
 
 By default, filing-cabinet provides support for the following languages:
 
-* JavaScript (all files with the `.js` extension)
+* JavaScript: CommonJS, AMD, ES6
+* TypeScript
 * CSS Preprocessors: Sass (`.scss` and `.sass`), Stylus (`.styl`), and Less (`.less`)
 
 You can register resolvers for new languages via `cabinet.register(extension, resolver)`.

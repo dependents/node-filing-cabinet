@@ -7,6 +7,7 @@ var resolve = require('resolve');
 var amdLookup = require('module-lookup-amd');
 var stylusLookup = require('stylus-lookup');
 var sassLookup = require('sass-lookup');
+var ts = require('typescript');
 
 var resolveDependencyPath = require('resolve-dependency-path');
 var appModulePath = require('app-module-path');
@@ -17,6 +18,7 @@ var objectAssign = require('object-assign');
 var defaultLookups = {
   '.js': jsLookup,
   '.jsx': jsLookup,
+  '.ts': tsLookup,
   '.scss': sassLookup,
   '.sass': sassLookup,
   '.styl': stylusLookup,
@@ -141,6 +143,23 @@ function jsLookup(partial, filename, directory, config, webpackConfig, configPat
       debug('using commonjs resolver for es6');
       return commonJSLookup(partial, filename, directory);
   }
+}
+
+function tsLookup(partial, filename, directory) {
+  debug('performing a typescript lookup');
+
+  var options = {
+    module: ts.ModuleKind.AMD
+  };
+
+  var host = ts.createCompilerHost({});
+  debug('with options: ', options);
+  var resolvedModule = ts.resolveModuleName(partial, filename, options, host).resolvedModule;
+  debug('ts resolved module: ', resolvedModule);
+  var result = resolvedModule ? resolvedModule.resolvedFileName : '';
+
+  debug('result: ' + result);
+  return result ? path.resolve(result) : '';
 }
 
 /**

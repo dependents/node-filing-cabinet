@@ -22,6 +22,7 @@ describe('filing-cabinet', function() {
       assert.deepEqual(cabinet.supportedFileExtensions, [
         '.js',
         '.jsx',
+        '.ts',
         '.scss',
         '.sass',
         '.styl',
@@ -298,6 +299,39 @@ describe('filing-cabinet', function() {
           result,
           path.resolve(directory) + '/subdir/index.js'
         );
+      });
+    });
+
+    describe('typescript', function() {
+      it('resolves an import', function() {
+        var directory = 'js/ts';
+        var filename = directory + '/index.ts';
+
+        var result = cabinet({
+          partial: './foo',
+          filename,
+          directory
+        });
+
+        assert.equal(
+          result,
+          path.join(path.resolve(directory), 'foo.ts')
+        );
+      });
+
+      describe('when a partial does not exist', function() {
+        it('returns an empty result', function() {
+          var directory = 'js/ts';
+          var filename = directory + '/index.ts';
+
+          var result = cabinet({
+            partial: './barbar',
+            filename,
+            directory
+          });
+
+          assert.equal(result, '');
+        });
       });
     });
   });

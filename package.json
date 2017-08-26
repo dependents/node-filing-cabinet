@@ -41,17 +41,18 @@
     "sinon": "~1.15.4"
   },
   "dependencies": {
-    "app-module-path": "~1.1.0",
-    "commander": "~2.8.1",
-    "debug": "~2.2.0",
+    "app-module-path": "^1.1.0",
+    "commander": "^2.8.1",
+    "debug": "^2.2.0",
     "enhanced-resolve": "~3.0.3",
     "is-relative-path": "^1.0.1",
     "module-definition": "^2.2.4",
     "module-lookup-amd": "^4.0.2",
-    "object-assign": "~4.0.1",
-    "resolve": "~1.1.7",
-    "resolve-dependency-path": "~1.0.2",
-    "sass-lookup": "^1.0.2",
-    "stylus-lookup": "^1.0.1"
+    "object-assign": "^4.0.1",
+    "resolve": "^1.1.7",
+    "resolve-dependency-path": "^1.0.2",
+    "sass-lookup": "^1.1.0",
+    "stylus-lookup": "^1.0.1",
+    "typescript": "^2.4.2"
   }
 }
