@@ -19,6 +19,7 @@ var defaultLookups = {
   '.js': jsLookup,
   '.jsx': jsLookup,
   '.ts': tsLookup,
+  '.tsx': tsLookup,
   '.scss': sassLookup,
   '.sass': sassLookup,
   '.styl': stylusLookup,
@@ -149,7 +150,7 @@ function tsLookup(partial, filename, directory) {
   debug('performing a typescript lookup');
 
   var options = {
-    module: ts.ModuleKind.AMD
+    module: ts.ModuleKind.CommonJS
   };
 
   var host = ts.createCompilerHost({});
