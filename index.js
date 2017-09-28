@@ -147,6 +147,9 @@ function jsLookup(partial, filename, directory, config, webpackConfig, configPat
 }
 
 function tsLookup(partial, filename, directory) {
+  if (partial[0] !== '.') { // when a path is not relative, use the standard commonJS lookup
+    return commonJSLookup(partial, filename, directory);
+  }
   debug('performing a typescript lookup');
 
   var options = {
