@@ -159,6 +159,12 @@ function tsLookup(partial, filename, directory) {
   var host = ts.createCompilerHost({});
   debug('with options: ', options);
   var resolvedModule = ts.resolveModuleName(partial, filename, options, host).resolvedModule;
+  if (!resolvedModule) {
+    // for some reason, on Windows, ts.resolveModuleName method tries to find the module in the
+    // root directory. For example, it searches for module './bar', in 'c:\bar.ts'.
+    var fallbackModule = path.resolve(path.dirname(filename), partial);
+    resolvedModule = ts.resolveModuleName(fallbackModule, filename, options, host).resolvedModule;
+  }
   debug('ts resolved module: ', resolvedModule);
   var result = resolvedModule ? resolvedModule.resolvedFileName : '';
 
