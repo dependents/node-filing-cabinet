@@ -18,7 +18,7 @@ var result = cabinet({
   // Only for JavaScript files
   config: 'path/to/requirejs/config',
   webpackConfig: 'path/to/webpack/config',
-  webpackConfig: {
+  nodeModulesConfig: {
       entry: 'module'
   }
 });
