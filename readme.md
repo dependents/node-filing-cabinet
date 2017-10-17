@@ -17,7 +17,10 @@ var result = cabinet({
   ast: {}, // an optional AST representation of `filename`
   // Only for JavaScript files
   config: 'path/to/requirejs/config',
-  webpackConfig: 'path/to/webpack/config'
+  webpackConfig: 'path/to/webpack/config',
+  webpackConfig: {
+      entry: 'module'
+  }
 });
 
 console.log(result); // /absolute/path/to/somePartialPath
@@ -31,6 +34,7 @@ console.log(result); // /absolute/path/to/somePartialPath
  * Useful optimization for avoiding a parse of filename
 * `config`: (optional) requirejs config for resolving aliased JavaScript modules
 * `webpackConfig`: (optional) webpack config for resolving aliased JavaScript modules
+* `nodeModulesConfig`: (optional) config for resolving entry file for node_modules
 
 ### Registered languages
 
