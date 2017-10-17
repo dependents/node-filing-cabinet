@@ -272,6 +272,31 @@ describe('filing-cabinet', function() {
         assert.equal(result, path.join(path.resolve(directory), 'subdir/index.js'));
       });
 
+      it('resolves a node module with module entry in package.json', function() {
+        var directory = 'js/commonjs/';
+        var filename = directory + 'module.entry.js';
+
+        var result = cabinet({
+          partial: 'module.entry',
+          filename: filename,
+          directory: directory,
+          nodeModulesConfig: {
+            entry: 'module'
+          }
+        });
+
+        assert.equal(
+          result,
+          path.join(
+            path.resolve(directory),
+            '..',
+            'node_modules',
+            'module.entry',
+            'index.module.js'
+          )
+        );
+      });
+
       it('resolves a nested module', function() {
         var directory = 'js/node_modules/nested/';
         var filename = directory + 'index.js';

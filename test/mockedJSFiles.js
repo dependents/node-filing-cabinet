@@ -18,6 +18,7 @@ module.exports = {
       'bar.js': 'module.exports = function() {};',
       'foo.baz': 'module.exports = "yo";',
       'index.js': '',
+      'module.entry.js': 'import * as module from "module.entry"',
       'subdir': {
         'module.js': 'var entry = require("../");',
         'index.js': ''
@@ -29,6 +30,11 @@ module.exports = {
     'node_modules': {
       'lodash.assign': {
         'index.js': 'module.exports = function() {};'
+      },
+      'module.entry': {
+        'index.main.js': 'module.exports = function() {};',
+        'index.module.js': 'module.exports = function() {};',
+        'package.json': '{ "main": "index.main.js", "module": "index.module.js" }'
       },
       'nested': {
         'index.js': 'require("lodash.assign")',
