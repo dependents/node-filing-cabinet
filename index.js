@@ -1,6 +1,12 @@
 var path = require('path');
 var debug = require('debug')('cabinet');
 
+/*
+ * most js resolver are lazy-loaded (only required when needed)
+ * e.g. dont load requirejs when we only have commonjs modules to resolve
+ * this makes testing your code using this lib much easier
+ */
+
 var getModuleType;
 var resolve;
 
