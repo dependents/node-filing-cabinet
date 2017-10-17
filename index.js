@@ -1,17 +1,17 @@
 var path = require('path');
 var debug = require('debug')('cabinet');
 
-var getModuleType = require('module-definition');
-var resolve = require('resolve');
+var getModuleType;
+var resolve;
 
-var amdLookup = require('module-lookup-amd');
+var amdLookup;
 var stylusLookup = require('stylus-lookup');
 var sassLookup = require('sass-lookup');
-var ts = require('typescript');
+var ts;
 
-var resolveDependencyPath = require('resolve-dependency-path');
+var resolveDependencyPath;
 var appModulePath = require('app-module-path');
-var webpackResolve = require('enhanced-resolve');
+var webpackResolve;
 var isRelative = require('is-relative-path');
 var objectAssign = require('object-assign');
 
@@ -41,6 +41,10 @@ module.exports = function cabinet(options) {
 
   if (!resolver) {
     debug('using generic resolver');
+    if (!resolveDependencyPath) {
+      resolveDependencyPath = require('resolve-dependency-path');
+    }
+
     resolver = resolveDependencyPath;
   }
 
@@ -80,6 +84,10 @@ module.exports.register = function(extension, lookupStrategy) {
  * @return {String}
  */
 module.exports._getJSType = function(options) {
+  if (!getModuleType) {
+    getModuleType = require('module-definition');
+  }
+
   options = options || {};
 
   if (options.config) {
@@ -121,6 +129,10 @@ function jsLookup(partial, filename, directory, config, webpackConfig, configPat
   switch (type) {
     case 'amd':
       debug('using amd resolver');
+      if (!amdLookup) {
+        amdLookup = require('module-lookup-amd');
+      }
+
       return amdLookup({
         config: config,
         // Optional in case a pre-parsed config is being passed in
@@ -148,6 +160,10 @@ function jsLookup(partial, filename, directory, config, webpackConfig, configPat
 function tsLookup(partial, filename, directory) {
   debug('performing a typescript lookup');
 
+  if (!ts) {
+    ts = require('typescript');
+  }
+
   var options = {
     module: ts.ModuleKind.AMD
   };
@@ -172,6 +188,9 @@ function tsLookup(partial, filename, directory) {
  * @return {String}
  */
 function commonJSLookup(partial, filename, directory) {
+  if (!resolve) {
+    resolve = require('resolve');
+  }
   // Need to resolve partials within the directory of the module, not filing-cabinet
   var moduleLookupDir = path.join(directory, 'node_modules');
 
@@ -202,6 +221,9 @@ function commonJSLookup(partial, filename, directory) {
 }
 
 function resolveWebpackPath(partial, filename, directory, webpackConfig) {
+  if (!webpackResolve) {
+    webpackResolve = require('enhanced-resolve');
+  }
   webpackConfig = path.resolve(webpackConfig);
 
   try {
