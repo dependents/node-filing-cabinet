@@ -31,6 +31,7 @@ module.exports = function cabinet(options) {
   var filename = options.filename;
   var directory = options.directory;
   var config = options.config;
+  var nodeModulesConfig = options.nodeModulesConfig;
   var webpackConfig = options.webpackConfig;
   var configPath = options.configPath;
   var ast = options.ast;
@@ -47,7 +48,7 @@ module.exports = function cabinet(options) {
   debug('found a resolver for ' + ext);
 
   // TODO: Change all resolvers to accept an options argument
-  var result = resolver(partial, filename, directory, config, webpackConfig, configPath, ast);
+  var result = resolver(partial, filename, directory, config, webpackConfig, configPath, nodeModulesConfig, ast);
 
   debug('resolved path for ' + partial + ': ' + result);
   return result;
@@ -107,10 +108,11 @@ module.exports._getJSType = function(options) {
  * @param  {String} [config]
  * @param  {String} [webpackConfig]
  * @param  {String} [configPath]
+ * @param  {Object} [nodeModulesConfig]
  * @param  {Object} [ast]
  * @return {String}
  */
-function jsLookup(partial, filename, directory, config, webpackConfig, configPath, ast) {
+function jsLookup(partial, filename, directory, config, webpackConfig, configPath, nodeModulesConfig, ast) {
   var type = module.exports._getJSType({
     config: config,
     webpackConfig: webpackConfig,
@@ -132,7 +134,7 @@ function jsLookup(partial, filename, directory, config, webpackConfig, configPat
 
     case 'commonjs':
       debug('using commonjs resolver');
-      return commonJSLookup(partial, filename, directory);
+      return commonJSLookup(partial, filename, directory, nodeModulesConfig);
 
     case 'webpack':
       debug('using webpack resolver for es6');
@@ -141,7 +143,7 @@ function jsLookup(partial, filename, directory, config, webpackConfig, configPat
     case 'es6':
     default:
       debug('using commonjs resolver for es6');
-      return commonJSLookup(partial, filename, directory);
+      return commonJSLookup(partial, filename, directory, nodeModulesConfig);
   }
 }
 
@@ -171,7 +173,7 @@ function tsLookup(partial, filename, directory) {
  * @param  {String} directory
  * @return {String}
  */
-function commonJSLookup(partial, filename, directory) {
+function commonJSLookup(partial, filename, directory, nodeModulesConfig) {
   // Need to resolve partials within the directory of the module, not filing-cabinet
   var moduleLookupDir = path.join(directory, 'node_modules');
 
@@ -190,6 +192,10 @@ function commonJSLookup(partial, filename, directory) {
   try {
     result = resolve.sync(partial, {
       basedir: directory,
+      packageFilter: nodeModulesConfig  && nodeModulesConfig.entry ? function(obj) {
+        obj.main = obj[nodeModulesConfig.entry] ? obj[nodeModulesConfig.entry] : obj.main;
+        return obj;
+      } : undefined,
       // Add fileDir to resolve index.js files in that dir
       moduleDirectory: ['node_modules', directory]
     });
