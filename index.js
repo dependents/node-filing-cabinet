@@ -49,7 +49,14 @@ module.exports = function cabinet(options) {
 
   // TODO: Change all resolvers to accept an options argument
   var result = resolver(partial, filename, directory, config, webpackConfig, configPath, ast);
-
+  var partialExt = path.extname(partial);
+  if (!result && partialExt && partialExt !== ext) {
+    resolver = defaultLookups[partialExt];
+    if (resolver) {
+      debug('dependency has a different extension (' + partialExt + ') than the original file (' + ext + '), trying to use its resolver instead');
+      result = resolver(partial, filename, directory, config, webpackConfig, configPath, ast);
+    }
+  }
   debug('resolved path for ' + partial + ': ' + result);
   return result;
 };
