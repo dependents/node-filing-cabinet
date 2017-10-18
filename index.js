@@ -220,6 +220,7 @@ function commonJSLookup(partial, filename, directory, nodeModulesConfig) {
 
   try {
     result = resolve.sync(partial, {
+      extensions: ['.js', '.jsx'],
       basedir: directory,
       packageFilter: nodeModulesConfig && nodeModulesConfig.entry ? packageFilter : undefined,
       // Add fileDir to resolve index.js files in that dir

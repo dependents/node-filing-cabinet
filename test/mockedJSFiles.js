@@ -5,6 +5,10 @@ module.exports = {
       'foo.jsx': 'import React from "react"; export default () => { return (<div></div>); }',
       'bar.js': 'export default function() {};'
     },
+    'cjs': {
+      'foo.js': 'module.exports = 1;',
+      'bar.jsx': 'var React = require("react"); module.exports = function() { return (<div></div>); };'
+    },
     'ts': {
       'index.ts': 'import foo from "./foo";',
       'foo.ts': 'export default 1;'

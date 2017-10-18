@@ -333,6 +333,16 @@ describe('filing-cabinet', function() {
           path.resolve(directory) + '/subdir/index.js'
         );
       });
+
+      it('resolves implicit .jsx requires', function() {
+        const result = cabinet({
+          partial: './bar',
+          filename: 'js/cjs/foo.js',
+          directory: 'js/cjs/'
+        });
+
+        assert.equal(result, `${path.join(__dirname, '../js/cjs/bar.jsx')}`);
+      });
     });
 
     describe('typescript', function() {
