@@ -172,6 +172,11 @@ function tsLookup(partial, filename, directory) {
     var fallbackModule = path.resolve(path.dirname(filename), partial);
     resolvedModule = ts.resolveModuleName(fallbackModule, filename, options, host).resolvedModule;
   }
+  if (!resolvedModule) {
+    // ts.resolveModuleName doesn't always work, fallback to commonJSLookup
+    debug('failed resolving with tsLookup, trying commonJSLookup');
+    return commonJSLookup(partial, filename, directory);
+  }
   debug('ts resolved module: ', resolvedModule);
   var result = resolvedModule ? resolvedModule.resolvedFileName : '';
 
