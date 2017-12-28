@@ -200,6 +200,7 @@ function tsLookup(partial, filename, directory) {
  * @return {String}
  */
 function commonJSLookup(partial, filename, directory) {
+  directory = path.dirname(filename); // node_modules should be propagated from the file location backwards
   // Need to resolve partials within the directory of the module, not filing-cabinet
   var moduleLookupDir = path.join(directory, 'node_modules');
 
