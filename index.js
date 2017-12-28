@@ -40,6 +40,12 @@ module.exports = function cabinet(options) {
 
   var resolver = defaultLookups[ext];
 
+  if ((ext === '.css' || ext === '.sass' || ext === '.less') && partial.startsWith('~')) {
+    // webpack syntax for resolving a module
+    partial = partial.replace('~', '');
+    resolver = jsLookup;
+  }
+
   if (!resolver) {
     debug('using generic resolver');
     resolver = resolveDependencyPath;
