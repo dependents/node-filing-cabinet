@@ -19,7 +19,6 @@ var resolveDependencyPath;
 var appModulePath = require('app-module-path');
 var webpackResolve;
 var isRelative = require('is-relative-path');
-var objectAssign = require('object-assign');
 
 var defaultLookups = {
   '.js': jsLookup,
@@ -253,7 +252,7 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
     return '';
   }
 
-  var resolveConfig = objectAssign({}, loadedConfig.resolve);
+  var resolveConfig = Object.assign({}, loadedConfig.resolve);
 
   if (!resolveConfig.modules && (resolveConfig.root || resolveConfig.modulesDirectories)) {
     resolveConfig.modules = [];
