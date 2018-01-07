@@ -31,6 +31,9 @@
     "url": "https://github.com/mrjoelkemp/node-filing-cabinet/issues"
   },
   "homepage": "https://github.com/mrjoelkemp/node-filing-cabinet",
+  "engines": {
+    "node": ">=6.0.0"
+  },
   "devDependencies": {
     "babel": "~5.8.38",
     "jscs": "~2.11.0",
