@@ -7,7 +7,7 @@
     "filing-cabinet": "bin/cli.js"
   },
   "scripts": {
-    "test": "jscs index.js test/test.js && ./node_modules/.bin/mocha --compilers js:babel/register test/test.js"
+    "test": "jscs index.js test/test.js && ./node_modules/.bin/mocha --require babel/register test/test.js"
   },
   "repository": {
     "type": "git",
