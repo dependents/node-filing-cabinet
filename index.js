@@ -15,6 +15,8 @@ var webpackResolve = require('enhanced-resolve');
 var isRelative = require('is-relative-path');
 var objectAssign = require('object-assign');
 
+var vueLookUp = require('vue-lookup');
+
 var defaultLookups = {
   '.js': jsLookup,
   '.jsx': jsLookup,
@@ -24,7 +26,8 @@ var defaultLookups = {
   '.sass': sassLookup,
   '.styl': stylusLookup,
   // Less and Sass imports are very similar
-  '.less': sassLookup
+  '.less': sassLookup,
+  '.vue': vueLookUp
 };
 
 module.exports = function cabinet(options) {
@@ -35,8 +38,9 @@ module.exports = function cabinet(options) {
   var webpackConfig = options.webpackConfig;
   var configPath = options.configPath;
   var ast = options.ast;
-
   var ext = path.extname(filename);
+  const type = options.type;
+  const content = options.content;
 
   var resolver = defaultLookups[ext];
 
@@ -54,13 +58,13 @@ module.exports = function cabinet(options) {
   debug('found a resolver for ' + ext);
 
   // TODO: Change all resolvers to accept an options argument
-  var result = resolver(partial, filename, directory, config, webpackConfig, configPath, ast);
+  var result = resolver(partial, filename, directory, config, webpackConfig, configPath, ast, type, content);
   var partialExt = path.extname(partial);
   if (!result && partialExt && partialExt !== ext) {
     resolver = defaultLookups[partialExt];
     if (resolver) {
       debug('dependency has a different extension (' + partialExt + ') than the original file (' + ext + '), trying to use its resolver instead');
-      result = resolver(partial, filename, directory, config, webpackConfig, configPath, ast);
+      result = resolver(partial, filename, directory, config, webpackConfig, configPath, ast, type, content);
     }
   }
   debug('resolved path for ' + partial + ': ' + result);
@@ -109,6 +113,11 @@ module.exports._getJSType = function(options) {
     return getModuleType.fromSource(options.ast);
   }
 
+  if (options.content) {
+    debug('using content');
+    return getModuleType.fromSource(options.content);
+  }
+
   debug('using the filename to find the module type');
   return getModuleType.sync(options.filename);
 };
@@ -124,12 +133,14 @@ module.exports._getJSType = function(options) {
  * @param  {Object} [ast]
  * @return {String}
  */
-function jsLookup(partial, filename, directory, config, webpackConfig, configPath, ast) {
+function jsLookup(partial, filename, directory, config, webpackConfig, configPath, ast, type, content) {
   var type = module.exports._getJSType({
     config: config,
     webpackConfig: webpackConfig,
     filename: filename,
-    ast: ast
+    ast: ast,
+    type,
+    content
   });
 
   switch (type) {
