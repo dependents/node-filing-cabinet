@@ -54,7 +54,7 @@
     "module-lookup-amd": "^5.0.1",
     "resolve": "^1.5.0",
     "resolve-dependency-path": "^1.0.2",
-    "sass-lookup": "^1.1.0",
+    "sass-lookup": "^2.0.0",
     "stylus-lookup": "^2.0.0",
     "typescript": "^2.4.2"
   }
