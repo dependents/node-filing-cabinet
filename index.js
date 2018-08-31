@@ -1,5 +1,7 @@
-var path = require('path');
-var debug = require('debug')('cabinet');
+'use strict';
+
+const path = require('path');
+const debug = require('debug')('cabinet');
 
 /*
  * most js resolver are lazy-loaded (only required when needed)
@@ -7,20 +9,20 @@ var debug = require('debug')('cabinet');
  * this makes testing your code using this lib much easier
  */
 
-var getModuleType;
-var resolve;
+let getModuleType;
+let resolve;
 
-var amdLookup;
-var stylusLookup = require('stylus-lookup');
-var sassLookup = require('sass-lookup');
-var ts;
+let amdLookup;
+const stylusLookup = require('stylus-lookup');
+const sassLookup = require('sass-lookup');
+let ts;
 
-var resolveDependencyPath;
-var appModulePath = require('app-module-path');
-var webpackResolve;
-var isRelative = require('is-relative-path');
+let resolveDependencyPath;
+const appModulePath = require('app-module-path');
+let webpackResolve;
+const isRelative = require('is-relative-path');
 
-var defaultLookups = {
+const defaultLookups = {
   '.js': jsLookup,
   '.jsx': jsLookup,
   '.ts': tsLookup,
@@ -32,18 +34,18 @@ var defaultLookups = {
 };
 
 module.exports = function cabinet(options) {
-  var partial = options.partial;
-  var filename = options.filename;
-  var directory = options.directory;
-  var config = options.config;
-  var nodeModulesConfig = options.nodeModulesConfig;
-  var webpackConfig = options.webpackConfig;
-  var configPath = options.configPath;
-  var ast = options.ast;
-
-  var ext = path.extname(filename);
-
-  var resolver = defaultLookups[ext];
+  const {
+    partial,
+    filename,
+    directory,
+    config,
+    nodeModulesConfig,
+    webpackConfig,
+    configPath,
+    ast
+  } = options;
+  const ext = path.extname(filename);
+  const resolver = defaultLookups[ext];
 
   if (!resolver) {
     debug('using generic resolver');
@@ -54,12 +56,12 @@ module.exports = function cabinet(options) {
     resolver = resolveDependencyPath;
   }
 
-  debug('found a resolver for ' + ext);
+  debug(`found a resolver for ${ext}`);
 
   // TODO: Change all resolvers to accept an options argument
-  var result = resolver(partial, filename, directory, config, webpackConfig, configPath, nodeModulesConfig, ast);
+  const result = resolver(partial, filename, directory, config, webpackConfig, configPath, nodeModulesConfig, ast);
 
-  debug('resolved path for ' + partial + ': ' + result);
+  debug(`resolved path for ${partial}: ${result}`);
   return result;
 };
 
@@ -74,7 +76,7 @@ module.exports.supportedFileExtensions = Object.keys(defaultLookups);
 module.exports.register = function(extension, lookupStrategy) {
   defaultLookups[extension] = lookupStrategy;
 
-  if (this.supportedFileExtensions.indexOf(extension) === -1) {
+  if (!this.supportedFileExtensions.includes(extension)) {
     this.supportedFileExtensions.push(extension);
   }
 };
@@ -89,12 +91,10 @@ module.exports.register = function(extension, lookupStrategy) {
  * @param  {Object} options.ast
  * @return {String}
  */
-module.exports._getJSType = function(options) {
+module.exports._getJSType = function(options = {}) {
   if (!getModuleType) {
     getModuleType = require('module-definition');
   }
-
-  options = options || {};
 
   if (options.config) {
     return 'amd';
@@ -126,7 +126,7 @@ module.exports._getJSType = function(options) {
  * @return {String}
  */
 function jsLookup(partial, filename, directory, config, webpackConfig, configPath, nodeModulesConfig, ast) {
-  var type = module.exports._getJSType({
+  const type = module.exports._getJSType({
     config: config,
     webpackConfig: webpackConfig,
     filename: filename,
@@ -171,15 +171,15 @@ function tsLookup(partial, filename, directory) {
     ts = require('typescript');
   }
 
-  var options = {
+  const options = {
     module: ts.ModuleKind.AMD
   };
 
-  var host = ts.createCompilerHost({});
+  const host = ts.createCompilerHost({});
   debug('with options: ', options);
-  var resolvedModule = ts.resolveModuleName(partial, filename, options, host).resolvedModule;
+  const resolvedModule = ts.resolveModuleName(partial, filename, options, host).resolvedModule;
   debug('ts resolved module: ', resolvedModule);
-  var result = resolvedModule ? resolvedModule.resolvedFileName : '';
+  const result = resolvedModule ? resolvedModule.resolvedFileName : '';
 
   debug('result: ' + result);
   return result ? path.resolve(result) : '';
@@ -197,7 +197,7 @@ function commonJSLookup(partial, filename, directory, nodeModulesConfig) {
     resolve = require('resolve');
   }
   // Need to resolve partials within the directory of the module, not filing-cabinet
-  var moduleLookupDir = path.join(directory, 'node_modules');
+  const moduleLookupDir = path.join(directory, 'node_modules');
 
   debug('adding ' + moduleLookupDir + ' to the require resolution paths');
 
@@ -209,7 +209,7 @@ function commonJSLookup(partial, filename, directory, nodeModulesConfig) {
     partial = path.resolve(path.dirname(filename), partial);
   }
 
-  var result = '';
+  let result = '';
 
   // Allows us to configure what is used as the "main" entry point
   function packageFilter(packageJson) {
@@ -238,9 +238,10 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
     webpackResolve = require('enhanced-resolve');
   }
   webpackConfig = path.resolve(webpackConfig);
+  let loadedConfig;
 
   try {
-    var loadedConfig = require(webpackConfig);
+    loadedConfig = require(webpackConfig);
 
     if (typeof loadedConfig === 'function') {
       loadedConfig = loadedConfig();
@@ -252,7 +253,7 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
     return '';
   }
 
-  var resolveConfig = Object.assign({}, loadedConfig.resolve);
+  const resolveConfig = Object.assign({}, loadedConfig.resolve);
 
   if (!resolveConfig.modules && (resolveConfig.root || resolveConfig.modulesDirectories)) {
     resolveConfig.modules = [];
@@ -267,13 +268,13 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
   }
 
   try {
-    var resolver = webpackResolve.create.sync(resolveConfig);
+    const resolver = webpackResolve.create.sync(resolveConfig);
 
     // We don't care about what the loader resolves the partial to
     // we only wnat the path of the resolved file
     partial = stripLoader(partial);
 
-    var lookupPath = isRelative(partial) ? path.dirname(filename) : directory;
+    const lookupPath = isRelative(partial) ? path.dirname(filename) : directory;
 
     return resolver(lookupPath, partial);
   } catch (e) {
@@ -285,7 +286,7 @@ function resolveWebpackPath(partial, filename, directory, webpackConfig) {
 }
 
 function stripLoader(partial) {
-  var exclamationLocation = partial.indexOf('!');
+  const exclamationLocation = partial.indexOf('!');
 
   if (exclamationLocation === -1) { return partial; }
 
