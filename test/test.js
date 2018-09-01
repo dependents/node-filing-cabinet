@@ -63,7 +63,7 @@ describe('filing-cabinet', function() {
         });
         const ast = {};
 
-        const result = cabinet({
+        cabinet({
           partial: './bar',
           filename: 'js/es6/foo.js',
           directory: 'js/es6/',
@@ -100,7 +100,7 @@ describe('filing-cabinet', function() {
           directory: 'js/es6/'
         };
 
-        const result = cabinet(options);
+        cabinet(options);
 
         assert.deepEqual(stub.args[0][0], options.filename);
         revert();
@@ -224,7 +224,7 @@ describe('filing-cabinet', function() {
 
       it('adds the directory to the require resolution paths', function() {
         const directory = 'js/commonjs/';
-        const result = cabinet({
+        cabinet({
           partial: 'foobar',
           filename: 'js/commonjs/foo.js',
           directory: directory
