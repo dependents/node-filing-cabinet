@@ -7,7 +7,7 @@
     "filing-cabinet": "bin/cli.js"
   },
   "scripts": {
-    "test": "jscs index.js test/test.js && ./node_modules/.bin/mocha test/test.js"
+    "test": "jscs index.js test/test.js && eslint index.js test/test.js && ./node_modules/.bin/mocha test/test.js"
   },
   "repository": {
     "type": "git",
@@ -35,6 +35,7 @@
     "node": ">=6.0.0"
   },
   "devDependencies": {
+    "eslint": "^5.5.0",
     "jscs": "^3.0.7",
     "jscs-preset-mrjoelkemp": "^2.0.0",
     "mocha": "^5.0.0",

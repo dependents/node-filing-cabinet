@@ -45,7 +45,7 @@ module.exports = function cabinet(options) {
     ast
   } = options;
   const ext = path.extname(filename);
-  const resolver = defaultLookups[ext];
+  let resolver = defaultLookups[ext];
 
   if (!resolver) {
     debug('using generic resolver');
@@ -164,7 +164,7 @@ function jsLookup(partial, filename, directory, config, webpackConfig, configPat
   }
 }
 
-function tsLookup(partial, filename, directory) {
+function tsLookup(partial, filename) {
   debug('performing a typescript lookup');
 
   if (!ts) {
