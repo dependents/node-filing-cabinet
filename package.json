@@ -55,6 +55,6 @@
     "resolve-dependency-path": "^1.0.2",
     "sass-lookup": "^2.0.0",
     "stylus-lookup": "^2.0.0",
-    "typescript": "^2.4.2"
+    "typescript": "^3.0.3"
   }
 }
