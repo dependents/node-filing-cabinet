@@ -34,7 +34,7 @@ console.log(result); // /absolute/path/to/somePartialPath
  * Useful optimization for avoiding a parse of filename
 * `config`: (optional) requirejs config for resolving aliased JavaScript modules
 * `webpackConfig`: (optional) webpack config for resolving aliased JavaScript modules
-* `nodeModulesConfig`: (optional) config for resolving entry file for node_modules
+* `nodeModulesConfig`: (optional) config for resolving entry file for node_modules. This value overrides the `main` attribute in the package.json file; used in conjunction with the [packageFilter](https://github.com/browserify/resolve#resolveid-opts-cb) of the `resolve` package.
 
 ### Registered languages
 
