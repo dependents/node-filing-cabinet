@@ -5,6 +5,7 @@ const sinon = require('sinon');
 const rewire = require('rewire');
 const mock = require('mock-fs');
 const path = require('path');
+const fs = require('fs');
 
 const cabinet = rewire('../');
 //manually add dynamic imports to rewired app
@@ -348,8 +349,9 @@ describe('filing-cabinet', function() {
     });
 
     describe('typescript', function() {
+      const directory = 'js/ts';
+
       it('resolves an import', function() {
-        const directory = 'js/ts';
         const filename = directory + '/index.ts';
 
         const result = cabinet({
@@ -366,7 +368,6 @@ describe('filing-cabinet', function() {
 
       describe('when a partial does not exist', function() {
         it('returns an empty result', function() {
-          const directory = 'js/ts';
           const filename = directory + '/index.ts';
 
           const result = cabinet({
@@ -376,6 +377,103 @@ describe('filing-cabinet', function() {
           });
 
           assert.equal(result, '');
+        });
+      });
+
+      describe('when given a tsconfig', function() {
+        describe('as an object', function() {
+          it('uses the defined module kind', function() {
+            const mockTs = {
+              ModuleKind: {
+                AMD: 'amd'
+              },
+              createCompilerHost: sinon.stub(),
+              resolveModuleName: sinon.stub().returns({
+                resolvedModule: ''
+              }),
+            };
+
+            const revert = cabinet.__set__('ts', mockTs);
+
+            const filename = directory + '/index.ts';
+
+            const tsConfigPath = path.join(path.resolve(directory), '.tsconfig');
+            const parsedConfig = JSON.parse(fs.readFileSync(tsConfigPath, 'utf8'));
+
+            cabinet({
+              partial: './foo',
+              filename,
+              directory,
+              tsConfig: parsedConfig
+            });
+
+            assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
+              module: 'commonjs'
+            });
+
+            revert();
+          });
+        });
+
+        describe('as a string', function() {
+          it('parses the string into an object', function() {
+            const mockTs = {
+              ModuleKind: {
+                AMD: 'amd'
+              },
+              createCompilerHost: sinon.stub(),
+              resolveModuleName: sinon.stub().returns({
+                resolvedModule: ''
+              }),
+            };
+
+            const revert = cabinet.__set__('ts', mockTs);
+
+            const filename = directory + '/index.ts';
+
+            cabinet({
+              partial: './foo',
+              filename,
+              directory,
+              tsConfig: path.join(path.resolve(directory), '.tsconfig')
+            });
+
+            assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
+              module: 'commonjs'
+            });
+
+            revert();
+          });
+        });
+      });
+
+      describe('when not given a tsconfig', function() {
+        it('defaults the module kind to AMD for backcompat', function() {
+          const mockTs = {
+            ModuleKind: {
+              AMD: 'amd'
+            },
+            createCompilerHost: sinon.stub(),
+            resolveModuleName: sinon.stub().returns({
+              resolvedModule: ''
+            }),
+          };
+
+          const revert = cabinet.__set__('ts', mockTs);
+
+          const filename = directory + '/index.ts';
+
+          cabinet({
+            partial: './foo',
+            filename,
+            directory
+          });
+
+          assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
+            module: mockTs.ModuleKind.AMD
+          });
+
+          revert();
         });
       });
     });

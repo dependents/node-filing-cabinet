@@ -2,6 +2,7 @@
 
 const path = require('path');
 const debug = require('debug')('cabinet');
+const fs = require('fs');
 
 /*
  * most js resolver are lazy-loaded (only required when needed)
@@ -43,6 +44,7 @@ const defaultLookups = {
  * @param {String} [options.nodeModulesConfig.entry] The new value for "main" in package json
  * @param {String} [options.webpackConfig] Path to the webpack config
  * @param {Object} [options.ast] A preparsed AST for the file identified by filename.
+ * @param {Object} [options.tsconfig] Path to a typescript config file
  */
 module.exports = function cabinet(options) {
   const {
@@ -171,16 +173,44 @@ function jsLookup({dependency, filename, directory, config, webpackConfig, confi
   }
 }
 
-function tsLookup({dependency, filename}) {
+function tsLookup({dependency, filename, tsConfig}) {
   debug('performing a typescript lookup');
+
+  const defaultTsConfig = {
+    compilerOptions: {}
+  };
 
   if (!ts) {
     ts = require('typescript');
   }
 
-  const options = {
-    module: ts.ModuleKind.AMD
-  };
+  debug('given typescript config: ', tsConfig);
+
+  if (!tsConfig) {
+    tsConfig = defaultTsConfig;
+    debug('no tsconfig given, defaulting');
+
+  } else if (typeof tsConfig === 'string') {
+    debug('string tsconfig given, parsing');
+
+    try {
+      tsConfig = JSON.parse(fs.readFileSync(tsConfig, 'utf8'));
+      debug('successfully parsed tsconfig');
+    } catch (e) {
+      debug('could not parse tsconfig');
+      throw new Error('could not read tsconfig');
+    }
+  }
+
+  debug('processed typescript config: ', tsConfig);
+  debug('processed typescript config type: ', typeof tsConfig);
+
+  const options = tsConfig.compilerOptions;
+
+  // Preserve for backcompat. Consider removing this as a breaking change.
+  if (!options.module) {
+    options.module = ts.ModuleKind.AMD;
+  }
 
   const host = ts.createCompilerHost({});
   debug('with options: ', options);
