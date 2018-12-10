@@ -45,6 +45,7 @@ const defaultLookups = {
  * @param {String} [options.webpackConfig] Path to the webpack config
  * @param {Object} [options.ast] A preparsed AST for the file identified by filename.
  * @param {Object} [options.tsconfig] Path to a typescript config file
+ * @param {Object} [options.fileSystem] An alternative filesystem / fs implementation to use for locating files.
  */
 module.exports = function cabinet(options) {
   const {
@@ -173,7 +174,7 @@ function jsLookup({dependency, filename, directory, config, webpackConfig, confi
   }
 }
 
-function tsLookup({dependency, filename, tsConfig}) {
+function tsLookup({dependency, filename, tsConfig, fileSystem}) {
   debug('performing a typescript lookup');
 
   const defaultTsConfig = {
@@ -186,15 +187,16 @@ function tsLookup({dependency, filename, tsConfig}) {
 
   debug('given typescript config: ', tsConfig);
 
+  var fileSystem = fileSystem || fs;
+
   if (!tsConfig) {
     tsConfig = defaultTsConfig;
     debug('no tsconfig given, defaulting');
 
   } else if (typeof tsConfig === 'string') {
     debug('string tsconfig given, parsing');
-
     try {
-      tsConfig = JSON.parse(fs.readFileSync(tsConfig, 'utf8'));
+      tsConfig = JSON.parse(fileSystem.readFileSync(tsConfig, 'utf8'));
       debug('successfully parsed tsconfig');
     } catch (e) {
       debug('could not parse tsconfig');
@@ -212,7 +214,17 @@ function tsLookup({dependency, filename, tsConfig}) {
     options.module = ts.ModuleKind.AMD;
   }
 
-  const host = ts.createCompilerHost({});
+  var host = ts.createCompilerHost({});
+
+  // Override host methods, to support finding files in provided fs.
+  const isDirectory = dirPath => fileSystem.lstatSync(dirPath).isDirectory();
+  const getDirectories = dirPath => fileSystem.readdirSync(dirPath).map(name => path.join(dirPath, name)).filter(isDirectory);
+  const pathExists = filePath => fileSystem.existsSync(filePath);
+
+  host.getDirectories = getDirectories;
+  host.fileExists = pathExists;
+  host.directoryExists = pathExists;
+
   debug('with options: ', options);
   const resolvedModule = ts.resolveModuleName(dependency, filename, options, host).resolvedModule;
   debug('ts resolved module: ', resolvedModule);

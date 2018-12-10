@@ -369,6 +369,31 @@ describe('filing-cabinet', function() {
         );
       });
 
+      it('resolves an import using an alternative fs', function() {
+        mock.restore();
+        const volumeDir = 'app';
+        const filename = volumeDir + '/index.ts';
+
+        const unionfs = require('unionfs');
+        const memfs = require('memfs');
+
+        // mount files specified by "mockedFiles.js.ts" to "app" base directory.
+        var vol = memfs.Volume.fromJSON(mockedFiles.js.ts, `${volumeDir}`);
+        var ufs = unionfs.ufs.use(vol);
+
+        const result = cabinet({
+          partial: './foo',
+          filename,
+          directory,
+          fileSystem: ufs
+        });
+        //directory
+        assert.equal(
+          result,
+          path.join(path.resolve('app'), 'foo.ts')
+        );
+      });
+
       describe('when a partial does not exist', function() {
         it('returns an empty result', function() {
           const filename = directory + '/index.ts';
@@ -390,7 +415,9 @@ describe('filing-cabinet', function() {
               ModuleKind: {
                 AMD: 'amd'
               },
-              createCompilerHost: sinon.stub(),
+              createCompilerHost: sinon.stub().returns({
+                getDirectories: null
+              }),
               resolveModuleName: sinon.stub().returns({
                 resolvedModule: ''
               }),
@@ -424,7 +451,9 @@ describe('filing-cabinet', function() {
               ModuleKind: {
                 AMD: 'amd'
               },
-              createCompilerHost: sinon.stub(),
+              createCompilerHost: sinon.stub().returns({
+                getDirectories: null
+              }),
               resolveModuleName: sinon.stub().returns({
                 resolvedModule: ''
               }),
@@ -456,7 +485,9 @@ describe('filing-cabinet', function() {
             ModuleKind: {
               AMD: 'amd'
             },
-            createCompilerHost: sinon.stub(),
+            createCompilerHost: sinon.stub().returns({
+              getDirectories: null
+            }),
             resolveModuleName: sinon.stub().returns({
               resolvedModule: ''
             }),

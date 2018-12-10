@@ -41,7 +41,9 @@
     "mocha": "^5.0.0",
     "mock-fs": "^4.4.2",
     "rewire": "^4.0.1",
-    "sinon": "^4.1.6"
+    "sinon": "^4.1.6",
+    "unionfs": "^3.0.2",
+    "memfs": "^2.14.1"
   },
   "dependencies": {
     "app-module-path": "^2.2.0",

@@ -12,7 +12,7 @@ module.exports = {
     'ts': {
       'index.ts': 'import foo from "./foo";',
       'foo.ts': 'export default 1;',
-      '.tsconfig': '{ "version": "1.0.0", "compilerOptions": { "module": "commonjs" } }'
+      '.tsconfig': '{ "version": "1.0.0", "compilerOptions": { "module": "commonjs" } }',
     },
     'amd': {
       'foo.js': 'define(["./bar"], function(bar){ return bar; });',
