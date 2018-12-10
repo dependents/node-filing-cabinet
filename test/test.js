@@ -137,7 +137,8 @@ describe('filing-cabinet', function() {
         });
 
         assert.ok(spy.called);
-        assert.equal(result, 'js/es6/bar.js');
+        var expected = path.normalize('js/es6/bar.js');
+        assert.equal(result, expected);
         spy.restore();
       });
     });
@@ -232,7 +233,8 @@ describe('filing-cabinet', function() {
         });
 
         assert.ok(require.main.paths.some(function(p) {
-          return p.indexOf(directory) !== -1;
+          var expected = path.normalize(directory);
+          return p.indexOf(expected) !== -1;
         }));
       });
 
@@ -331,9 +333,10 @@ describe('filing-cabinet', function() {
           directory: directory
         });
 
+        var expected = path.normalize(path.resolve(directory) + '/subdir/index.js');
         assert.equal(
           result,
-          path.resolve(directory) + '/subdir/index.js'
+          expected
         );
       });
 
@@ -514,7 +517,8 @@ describe('filing-cabinet', function() {
           directory: 'sass/'
         });
 
-        assert.equal(result, `${this._directory}/sass/bar.scss`);
+        var expected = path.normalize(`${this._directory}/sass/bar.scss`);
+        assert.equal(result, expected);
       });
 
       it('uses the sass resolver for .sass files', function() {
@@ -524,7 +528,8 @@ describe('filing-cabinet', function() {
           directory: 'sass/'
         });
 
-        assert.equal(result, `${this._directory}/sass/bar.sass`);
+        var expected = path.normalize(`${this._directory}/sass/bar.sass`);
+        assert.equal(result, expected);
       });
     });
 
@@ -536,7 +541,8 @@ describe('filing-cabinet', function() {
           directory: 'stylus/'
         });
 
-        assert.equal(result, `${this._directory}/stylus/bar.styl`);
+        var expected = path.normalize(`${this._directory}/stylus/bar.styl`);
+        assert.equal(result, expected);
       });
     });
 
@@ -547,8 +553,8 @@ describe('filing-cabinet', function() {
           filename: 'less/foo.less',
           directory: 'less/'
         });
-
-        assert.equal(result, `${this._directory}/less/bar.less`);
+        var expected = path.normalize(`${this._directory}/less/bar.less`);
+        assert.equal(result, expected);
       });
 
       it('resolves partials with a less extension', function() {
@@ -557,8 +563,8 @@ describe('filing-cabinet', function() {
           filename: 'less/foo.less',
           directory: 'less/'
         });
-
-        assert.equal(result, `${this._directory}/less/bar.less`);
+        var expected = path.normalize(`${this._directory}/less/bar.less`);
+        assert.equal(result, expected);
       });
 
       it('resolves partials with a css extension', function() {
@@ -567,8 +573,8 @@ describe('filing-cabinet', function() {
           filename: 'less/foo.less',
           directory: 'less/'
         });
-
-        assert.equal(result, `${this._directory}/less/bar.css`);
+        var expected = path.normalize(`${this._directory}/less/bar.css`);
+        assert.equal(result, expected);
       });
     });
   });
@@ -668,8 +674,8 @@ describe('filing-cabinet', function() {
         directory,
         webpackConfig: `${directory}/webpack.config.js`
       });
-
-      assert.equal(resolved, expected);
+      var normalisedExpected = path.normalize(expected);
+      assert.equal(resolved, normalisedExpected);
     }
 
     it('resolves an aliased path', function() {
@@ -692,7 +698,8 @@ describe('filing-cabinet', function() {
         webpackConfig: `${directory}/webpack.config.js`
       });
 
-      assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
+      var expected = path.normalize(`${directory}/node_modules/resolve/index.js`);
+      assert.equal(resolved, expected);
     });
 
     it('resolves a path using resolve.root', function() {
@@ -702,8 +709,8 @@ describe('filing-cabinet', function() {
         directory,
         webpackConfig: `${directory}/webpack-root.config.js`
       });
-
-      assert.equal(resolved, `${directory}/test/root1/mod1.js`);
+      var expected = path.normalize(`${directory}/test/root1/mod1.js`);
+      assert.equal(resolved, expected);
     });
 
     it('resolves NPM module when using resolve.root', function() {
@@ -714,7 +721,8 @@ describe('filing-cabinet', function() {
         webpackConfig: `${directory}/webpack-root.config.js`
       });
 
-      assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
+      var expected = path.normalize(`${directory}/node_modules/resolve/index.js`);
+      assert.equal(resolved, expected);
     });
 
     it('resolves NPM module when using resolve.modulesDirectories', function() {
@@ -724,8 +732,8 @@ describe('filing-cabinet', function() {
         directory,
         webpackConfig: `${directory}/webpack-root.config.js`
       });
-
-      assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
+      var expected = path.normalize(`${directory}/node_modules/resolve/index.js`);
+      assert.equal(resolved, expected);
     });
 
     it('resolves a path using resolve.modulesDirectories', function() {
@@ -735,8 +743,8 @@ describe('filing-cabinet', function() {
         directory,
         webpackConfig: `${directory}/webpack-root.config.js`
       });
-
-      assert.equal(resolved, `${directory}/test/root2/mod2.js`);
+      var expected = path.normalize(`${directory}/test/root2/mod2.js`);
+      assert.equal(resolved, expected);
     });
 
     it('resolves a path using webpack config that exports a function', function() {
@@ -746,8 +754,8 @@ describe('filing-cabinet', function() {
         directory,
         webpackConfig: `${directory}/webpack-env.config.js`
       });
-
-      assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
+      var expected = path.normalize(`${directory}/node_modules/resolve/index.js`);
+      assert.equal(resolved, expected);
     });
 
     it('resolves files with a .jsx extension', function() {
