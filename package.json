@@ -46,7 +46,7 @@
   "dependencies": {
     "app-module-path": "^2.2.0",
     "commander": "^2.13.0",
-    "debug": "^3.1.0",
+    "debug": "^4.1.0",
     "enhanced-resolve": "^4.1.0",
     "is-relative-path": "^1.0.2",
     "module-definition": "^3.0.0",
