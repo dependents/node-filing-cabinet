@@ -56,6 +56,16 @@ describe('filing-cabinet', function() {
       revert();
     });
 
+    it('does not throw a runtime exception when using resolve dependency path (#71)', function() {
+      assert.doesNotThrow(function() {
+        cabinet({
+          partial: './bar',
+          filename: 'js/commonjs/foo.baz',
+          directory: 'js/commonjs/'
+        });
+      });
+    });
+
     describe('when given an ast for a JS file', function() {
       it('reuses the ast when trying to determine the module type', function() {
         const stub = sinon.stub();
