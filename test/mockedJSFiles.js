@@ -11,6 +11,7 @@ module.exports = {
     },
     'ts': {
       'index.ts': 'import foo from "./foo";',
+      'module.tsx': 'import Foo from "./foo"; <Foo />;',
       'foo.ts': 'export default 1;',
       '.tsconfig': '{ "version": "1.0.0", "compilerOptions": { "module": "commonjs" } }'
     },
