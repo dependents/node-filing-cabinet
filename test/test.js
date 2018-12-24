@@ -34,6 +34,7 @@ describe('filing-cabinet', function() {
         '.js',
         '.jsx',
         '.ts',
+        '.tsx',
         '.scss',
         '.sass',
         '.styl',
@@ -366,6 +367,21 @@ describe('filing-cabinet', function() {
 
       it('resolves an import', function() {
         const filename = directory + '/index.ts';
+
+        const result = cabinet({
+          partial: './foo',
+          filename,
+          directory
+        });
+
+        assert.equal(
+          result,
+          path.join(path.resolve(directory), 'foo.ts')
+        );
+      });
+
+      it('resolves the import within a tsx file', function() {
+        const filename = directory + '/module.tsx';
 
         const result = cabinet({
           partial: './foo',

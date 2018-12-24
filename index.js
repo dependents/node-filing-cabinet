@@ -27,6 +27,7 @@ const defaultLookups = {
   '.js': jsLookup,
   '.jsx': jsLookup,
   '.ts': tsLookup,
+  '.tsx': tsLookup,
   '.scss': sassLookup,
   '.sass': sassLookup,
   '.styl': stylusLookup,
@@ -52,7 +53,11 @@ module.exports = function cabinet(options) {
     filename,
   } = options;
 
+  debug('Given filename: ' + filename);
+
   const ext = path.extname(filename);
+  debug('which has the extension: ' + ext);
+
   let resolver = defaultLookups[ext];
 
   if (!resolver) {
