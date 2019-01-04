@@ -210,7 +210,7 @@ function tsLookup({dependency, filename, tsConfig}) {
   debug('processed typescript config: ', tsConfig);
   debug('processed typescript config type: ', typeof tsConfig);
 
-  const options = tsConfig.compilerOptions;
+  const {options} = ts.convertCompilerOptionsFromJson(tsConfig.compilerOptions);
 
   // Preserve for backcompat. Consider removing this as a breaking change.
   if (!options.module) {
