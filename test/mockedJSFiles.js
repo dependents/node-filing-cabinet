@@ -13,7 +13,11 @@ module.exports = {
       'index.ts': 'import foo from "./foo";',
       'module.tsx': 'import Foo from "./foo"; <Foo />;',
       'foo.ts': 'export default 1;',
-      '.tsconfig': '{ "version": "1.0.0", "compilerOptions": { "module": "commonjs" } }'
+      'check-nested.ts': 'import {Child} from "./subdir";',
+      '.tsconfig': '{ "version": "1.0.0", "compilerOptions": { "module": "commonjs" } }',
+      'subdir': {
+        'index.tsx': 'export Child = () => { return (<div></div>); );'
+      },
     },
     'amd': {
       'foo.js': 'define(["./bar"], function(bar){ return bar; });',

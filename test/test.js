@@ -6,6 +6,7 @@ const rewire = require('rewire');
 const mock = require('mock-fs');
 const path = require('path');
 const fs = require('fs');
+const ts = require('typescript');
 
 const cabinet = rewire('../');
 //manually add dynamic imports to rewired app
@@ -412,15 +413,9 @@ describe('filing-cabinet', function() {
       describe('when given a tsconfig', function() {
         describe('as an object', function() {
           it('uses the defined module kind', function() {
-            const mockTs = {
-              ModuleKind: {
-                AMD: 'amd'
-              },
-              createCompilerHost: sinon.stub(),
-              resolveModuleName: sinon.stub().returns({
-                resolvedModule: ''
-              }),
-            };
+            const mockTs = Object.assign({}, ts, {
+              resolveModuleName: sinon.spy(ts.resolveModuleName),
+            });
 
             const revert = cabinet.__set__('ts', mockTs);
 
@@ -437,24 +432,36 @@ describe('filing-cabinet', function() {
             });
 
             assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
-              module: 'commonjs'
+              module: ts.ModuleKind.CommonJS,
             });
 
             revert();
+          });
+
+          it('finds import from child subdirectories when using node module resolution', function() {
+            const filename = directory + '/check-nested.ts';
+
+            const result = cabinet({
+              partial: './subdir',
+              filename,
+              directory,
+              tsConfig: {
+                compilerOptions: {module: 'commonjs', moduleResolution: 'node'}
+              }
+            });
+
+            assert.equal(
+              result,
+              path.join(path.resolve(directory), '/subdir/index.tsx')
+            );
           });
         });
 
         describe('as a string', function() {
           it('parses the string into an object', function() {
-            const mockTs = {
-              ModuleKind: {
-                AMD: 'amd'
-              },
-              createCompilerHost: sinon.stub(),
-              resolveModuleName: sinon.stub().returns({
-                resolvedModule: ''
-              }),
-            };
+            const mockTs = Object.assign({}, ts, {
+              resolveModuleName: sinon.spy(ts.resolveModuleName),
+            });
 
             const revert = cabinet.__set__('ts', mockTs);
 
@@ -468,7 +475,7 @@ describe('filing-cabinet', function() {
             });
 
             assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
-              module: 'commonjs'
+              module: ts.ModuleKind.CommonJS,
             });
 
             revert();
@@ -478,15 +485,9 @@ describe('filing-cabinet', function() {
 
       describe('when not given a tsconfig', function() {
         it('defaults the module kind to AMD for backcompat', function() {
-          const mockTs = {
-            ModuleKind: {
-              AMD: 'amd'
-            },
-            createCompilerHost: sinon.stub(),
-            resolveModuleName: sinon.stub().returns({
-              resolvedModule: ''
-            }),
-          };
+          const mockTs = Object.assign({}, ts, {
+            resolveModuleName: sinon.spy(ts.resolveModuleName),
+          });
 
           const revert = cabinet.__set__('ts', mockTs);
 
