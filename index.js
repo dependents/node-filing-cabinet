@@ -45,7 +45,7 @@ const defaultLookups = {
  * @param {String} [options.nodeModulesConfig.entry] The new value for "main" in package json
  * @param {String} [options.webpackConfig] Path to the webpack config
  * @param {Object} [options.ast] A preparsed AST for the file identified by filename.
- * @param {Object} [options.tsconfig] Path to a typescript config file
+ * @param {Object} [options.tsConfig] Path to a typescript config file
  */
 module.exports = function cabinet(options) {
   const {
