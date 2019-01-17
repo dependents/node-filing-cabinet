@@ -219,9 +219,20 @@ function tsLookup({dependency, filename, tsConfig}) {
 
   const host = ts.createCompilerHost({});
   debug('with options: ', options);
-  const resolvedModule = ts.resolveModuleName(dependency, filename, options, host).resolvedModule;
-  debug('ts resolved module: ', resolvedModule);
-  const result = resolvedModule ? resolvedModule.resolvedFileName : '';
+
+  const namedModule = ts.resolveModuleName(dependency, filename, options, host);
+  let result = '';
+
+  if (namedModule.resolvedModule) {
+    result = namedModule.resolvedModule.resolvedFileName;
+  } else {
+    const suffix = '.d.ts';
+    const lookUpLocations = namedModule.failedLookupLocations
+      .filter((string) => string.endsWith(suffix))
+      .map((string) => string.substr(0, string.length - suffix.length));
+
+    result = lookUpLocations.find(ts.sys.fileExists) || '';
+  }
 
   debug('result: ' + result);
   return result ? path.resolve(result) : '';

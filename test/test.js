@@ -455,6 +455,63 @@ describe('filing-cabinet', function() {
               path.join(path.resolve(directory), '/subdir/index.tsx')
             );
           });
+
+          it('finds imports of non-typescript files', function() {
+            const filename = directory + '/index.ts';
+
+            const result = cabinet({
+              partial: './image.svg',
+              filename,
+              directory
+            });
+
+            assert.equal(
+              result,
+              path.join(path.resolve(directory), '/image.svg')
+            );
+          });
+
+          it('finds imports of non-typescript files using custom import paths', function() {
+            const filename = directory + '/index.ts';
+
+            const result = cabinet({
+              partial: '@shortcut/subimage.svg',
+              filename,
+              directory,
+              tsConfig: {
+                compilerOptions: {
+                  moduleResolution: 'node',
+                  baseUrl: directory,
+                  paths: {
+                    '@shortcut/*': ['subdir/*'],
+                  }
+                }
+              }
+            });
+
+            assert.equal(
+              result,
+              path.join(path.resolve(directory), '/subdir/subimage.svg')
+            );
+          });
+
+          it('finds imports of non-typescript files from node_modules', function() {
+            const filename = directory + '/index.ts';
+
+            const result = cabinet({
+              partial: 'image/npm-image.svg',
+              filename,
+              directory,
+              tsConfig: {
+                compilerOptions: {moduleResolution: 'node'}
+              }
+            });
+
+            assert.equal(
+              result,
+              path.join(path.resolve(directory), '../node_modules/image/npm-image.svg')
+            );
+          });
         });
 
         describe('as a string', function() {

@@ -14,10 +14,12 @@ module.exports = {
       'module.tsx': 'import Foo from "./foo"; <Foo />;',
       'foo.ts': 'export default 1;',
       'check-nested.ts': 'import {Child} from "./subdir";',
+      'image.svg': '<svg></svg>',
       '.tsconfig': '{ "version": "1.0.0", "compilerOptions": { "module": "commonjs" } }',
       'subdir': {
-        'index.tsx': 'export Child = () => { return (<div></div>); );'
-      },
+        'index.tsx': 'export Child = () => { return (<div></div>); );',
+        'subimage.svg': '<svg></svg>'
+      }
     },
     'amd': {
       'foo.js': 'define(["./bar"], function(bar){ return bar; });',
@@ -38,6 +40,9 @@ module.exports = {
       }
     },
     'node_modules': {
+      'image': {
+        'npm-image.svg': '<svg></svg>'
+      },
       'lodash.assign': {
         'index.js': 'module.exports = function() {};'
       },
