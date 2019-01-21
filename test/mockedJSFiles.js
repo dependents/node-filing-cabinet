@@ -3,7 +3,8 @@ module.exports = {
     'es6': {
       'foo.js': 'import bar from "./bar";',
       'foo.jsx': 'import React from "react"; export default () => { return (<div></div>); }',
-      'bar.js': 'export default function() {};'
+      'bar.js': 'export default function() {};',
+      'lazy.js': 'localizedModule(app, "modulename", locale => import(`modulename/locales/${locale}`));'
     },
     'cjs': {
       'foo.js': 'module.exports = 1;',
