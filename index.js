@@ -242,6 +242,12 @@ function commonJSLookup({dependency, filename, directory, nodeModulesConfig}) {
   if (!resolve) {
     resolve = require('resolve');
   }
+
+  if (!dependency) {
+    debug('blank dependency given. Returning early.');
+    return '';
+  }
+
   // Need to resolve partials within the directory of the module, not filing-cabinet
   const moduleLookupDir = path.join(directory, 'node_modules');
 

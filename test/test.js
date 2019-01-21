@@ -153,6 +153,30 @@ describe('filing-cabinet', function() {
         assert.equal(result, expected);
         spy.restore();
       });
+
+      describe('when given a lazy import with interpolation', function() {
+        it('does not throw', function() {
+          assert.doesNotThrow(() => {
+            cabinet({
+              partial: '`modulename/locales/${locale}`',
+              filename: 'js/es6/lazy.js',
+              directory: 'js/es6/'
+            });
+          });
+        });
+      });
+
+      describe('when given an undefined dependency', function() {
+        it('does not throw', function() {
+          assert.doesNotThrow(() => {
+            cabinet({
+              partial: undefined,
+              filename: 'js/es6/lazy.js',
+              directory: 'js/es6/'
+            });
+          });
+        });
+      });
     });
 
     describe('jsx', function() {
