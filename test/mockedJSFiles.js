@@ -21,6 +21,7 @@ module.exports = {
         'index.tsx': 'export Child = () => { return (<div></div>); );',
         'subimage.svg': '<svg></svg>'
       },
+      'withOnlyTypeDef.d.ts': 'export default 1;',
       'withTypeDef.d.ts': 'export default 1;',
       'withTypeDef.js': 'module.exports = {default: 1};',
     },

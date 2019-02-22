@@ -450,6 +450,22 @@ describe('filing-cabinet', function() {
             path.join(path.resolve(directory), 'withTypeDef.js')
           );
         });
+
+        it('still returns the .d.ts file if no JS file is found', function() {
+          const filename = directory + '/index.ts';
+
+          const result = cabinet({
+            partial: './withOnlyTypeDef.d.ts',
+            filename,
+            directory,
+            noTypeDefinitions: true
+          });
+
+          assert.equal(
+            result,
+            path.join(path.resolve(directory), 'withOnlyTypeDef.d.ts')
+          );
+        });
       });
 
       describe('when a partial does not exist', function() {
