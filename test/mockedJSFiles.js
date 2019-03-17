@@ -3,7 +3,8 @@ module.exports = {
     'es6': {
       'foo.js': 'import bar from "./bar";',
       'foo.jsx': 'import React from "react"; export default () => { return (<div></div>); }',
-      'bar.js': 'export default function() {};'
+      'bar.js': 'export default function() {};',
+      'lazy.js': 'localizedModule(app, "modulename", locale => import(`modulename/locales/${locale}`));'
     },
     'cjs': {
       'foo.js': 'module.exports = 1;',
@@ -11,8 +12,15 @@ module.exports = {
     },
     'ts': {
       'index.ts': 'import foo from "./foo";',
+      'module.tsx': 'import Foo from "./foo"; <Foo />;',
       'foo.ts': 'export default 1;',
       '.tsconfig': '{ "version": "1.0.0", "compilerOptions": { "module": "commonjs" } }',
+      'check-nested.ts': 'import {Child} from "./subdir";',
+      'image.svg': '<svg></svg>',
+      'subdir': {
+        'index.tsx': 'export Child = () => { return (<div></div>); );',
+        'subimage.svg': '<svg></svg>'
+      }
     },
     'amd': {
       'foo.js': 'define(["./bar"], function(bar){ return bar; });',
@@ -33,6 +41,9 @@ module.exports = {
       }
     },
     'node_modules': {
+      'image': {
+        'npm-image.svg': '<svg></svg>'
+      },
       'lodash.assign': {
         'index.js': 'module.exports = function() {};'
       },

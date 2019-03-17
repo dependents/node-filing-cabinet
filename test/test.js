@@ -6,6 +6,7 @@ const rewire = require('rewire');
 const mock = require('mock-fs');
 const path = require('path');
 const fs = require('fs');
+const ts = require('typescript');
 
 const cabinet = rewire('../');
 //manually add dynamic imports to rewired app
@@ -34,6 +35,7 @@ describe('filing-cabinet', function() {
         '.js',
         '.jsx',
         '.ts',
+        '.tsx',
         '.scss',
         '.sass',
         '.styl',
@@ -54,6 +56,16 @@ describe('filing-cabinet', function() {
       assert.ok(stub.called);
 
       revert();
+    });
+
+    it('does not throw a runtime exception when using resolve dependency path (#71)', function() {
+      assert.doesNotThrow(function() {
+        cabinet({
+          partial: './bar',
+          filename: 'js/commonjs/foo.baz',
+          directory: 'js/commonjs/'
+        });
+      });
     });
 
     describe('when given an ast for a JS file', function() {
@@ -140,6 +152,30 @@ describe('filing-cabinet', function() {
         var expected = path.normalize('js/es6/bar.js');
         assert.equal(result, expected);
         spy.restore();
+      });
+
+      describe('when given a lazy import with interpolation', function() {
+        it('does not throw', function() {
+          assert.doesNotThrow(() => {
+            cabinet({
+              partial: '`modulename/locales/${locale}`',
+              filename: 'js/es6/lazy.js',
+              directory: 'js/es6/'
+            });
+          });
+        });
+      });
+
+      describe('when given an undefined dependency', function() {
+        it('does not throw', function() {
+          assert.doesNotThrow(() => {
+            cabinet({
+              partial: undefined,
+              filename: 'js/es6/lazy.js',
+              directory: 'js/es6/'
+            });
+          });
+        });
       });
     });
 
@@ -394,6 +430,20 @@ describe('filing-cabinet', function() {
         );
       });
 
+      it('resolves the import within a tsx file', function() {
+          const filename = directory + '/module.tsx';
+          const result = cabinet({
+            partial: './foo',
+            filename,
+            directory
+          });
+
+          assert.equal(
+          result,
+          path.join(path.resolve(directory), 'foo.ts')
+        );
+        });
+
       describe('when a partial does not exist', function() {
         it('returns an empty result', function() {
           const filename = directory + '/index.ts';
@@ -411,17 +461,15 @@ describe('filing-cabinet', function() {
       describe('when given a tsconfig', function() {
         describe('as an object', function() {
           it('uses the defined module kind', function() {
-            const mockTs = {
+            const mockTs = Object.assign({}, ts, {
+              resolveModuleName: sinon.spy(ts.resolveModuleName),
               ModuleKind: {
                 AMD: 'amd'
               },
               createCompilerHost: sinon.stub().returns({
                 getDirectories: null
               }),
-              resolveModuleName: sinon.stub().returns({
-                resolvedModule: ''
-              }),
-            };
+            });
 
             const revert = cabinet.__set__('ts', mockTs);
 
@@ -438,27 +486,100 @@ describe('filing-cabinet', function() {
             });
 
             assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
-              module: 'commonjs'
+              module: ts.ModuleKind.CommonJS,
             });
 
             revert();
+          });
+
+          it('finds import from child subdirectories when using node module resolution', function() {
+            const filename = directory + '/check-nested.ts';
+
+            const result = cabinet({
+              partial: './subdir',
+              filename,
+              directory,
+              tsConfig: {
+                compilerOptions: {module: 'commonjs', moduleResolution: 'node'}
+              }
+            });
+
+            assert.equal(
+              result,
+              path.join(path.resolve(directory), '/subdir/index.tsx')
+            );
+          });
+
+          it('finds imports of non-typescript files', function() {
+            const filename = directory + '/index.ts';
+
+            const result = cabinet({
+              partial: './image.svg',
+              filename,
+              directory
+            });
+
+            assert.equal(
+              result,
+              path.join(path.resolve(directory), '/image.svg')
+            );
+          });
+
+          it('finds imports of non-typescript files using custom import paths', function() {
+            const filename = directory + '/index.ts';
+
+            const result = cabinet({
+              partial: '@shortcut/subimage.svg',
+              filename,
+              directory,
+              tsConfig: {
+                compilerOptions: {
+                  moduleResolution: 'node',
+                  baseUrl: directory,
+                  paths: {
+                    '@shortcut/*': ['subdir/*'],
+                  }
+                }
+              }
+            });
+
+            assert.equal(
+              result,
+              path.join(path.resolve(directory), '/subdir/subimage.svg')
+            );
+          });
+
+          it('finds imports of non-typescript files from node_modules', function() {
+            const filename = directory + '/index.ts';
+
+            const result = cabinet({
+              partial: 'image/npm-image.svg',
+              filename,
+              directory,
+              tsConfig: {
+                compilerOptions: {moduleResolution: 'node'}
+              }
+            });
+
+            assert.equal(
+              result,
+              path.join(path.resolve(directory), '../node_modules/image/npm-image.svg')
+            );
           });
         });
 
         describe('as a string', function() {
           it('parses the string into an object', function() {
-            const mockTs = {
+
+            const mockTs = Object.assign({}, ts, {
+              resolveModuleName: sinon.spy(ts.resolveModuleName),
               ModuleKind: {
                 AMD: 'amd'
               },
               createCompilerHost: sinon.stub().returns({
                 getDirectories: null
               }),
-              resolveModuleName: sinon.stub().returns({
-                resolvedModule: ''
-              }),
-            };
-
+            });
             const revert = cabinet.__set__('ts', mockTs);
 
             const filename = directory + '/index.ts';
@@ -471,7 +592,7 @@ describe('filing-cabinet', function() {
             });
 
             assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
-              module: 'commonjs'
+              module: ts.ModuleKind.CommonJS,
             });
 
             revert();
@@ -481,17 +602,15 @@ describe('filing-cabinet', function() {
 
       describe('when not given a tsconfig', function() {
         it('defaults the module kind to AMD for backcompat', function() {
-          const mockTs = {
+          const mockTs = Object.assign({}, ts, {
+            resolveModuleName: sinon.spy(ts.resolveModuleName),
             ModuleKind: {
               AMD: 'amd'
             },
             createCompilerHost: sinon.stub().returns({
               getDirectories: null
             }),
-            resolveModuleName: sinon.stub().returns({
-              resolvedModule: ''
-            }),
-          };
+          });
 
           const revert = cabinet.__set__('ts', mockTs);
 

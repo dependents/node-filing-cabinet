@@ -1,6 +1,6 @@
 {
   "name": "filing-cabinet",
-  "version": "2.1.0",
+  "version": "2.3.2",
   "description": "Find files based on partial paths",
   "main": "index.js",
   "bin": {
@@ -35,26 +35,26 @@
     "node": ">=6.0.0"
   },
   "devDependencies": {
-    "eslint": "^5.5.0",
+    "eslint": "^5.11.0",
     "jscs": "^3.0.7",
     "jscs-preset-mrjoelkemp": "^2.0.0",
     "mocha": "^5.0.0",
     "mock-fs": "^4.4.2",
     "rewire": "^4.0.1",
-    "sinon": "^4.1.6",
+    "sinon": "^7.2.2",
     "unionfs": "^3.0.2",
     "memfs": "^2.14.1"
   },
   "dependencies": {
     "app-module-path": "^2.2.0",
     "commander": "^2.13.0",
-    "debug": "^3.1.0",
+    "debug": "^4.1.1",
     "enhanced-resolve": "^4.1.0",
     "is-relative-path": "^1.0.2",
     "module-definition": "^3.0.0",
-    "module-lookup-amd": "^5.0.1",
-    "resolve": "^1.5.0",
-    "resolve-dependency-path": "^1.0.2",
+    "module-lookup-amd": "^6.1.0",
+    "resolve": "^1.9.0",
+    "resolve-dependency-path": "^2.0.0",
     "sass-lookup": "^3.0.0",
     "stylus-lookup": "^3.0.1",
     "typescript": "^3.0.3"

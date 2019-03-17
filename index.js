@@ -27,6 +27,7 @@ const defaultLookups = {
   '.js': jsLookup,
   '.jsx': jsLookup,
   '.ts': tsLookup,
+  '.tsx': tsLookup,
   '.scss': sassLookup,
   '.sass': sassLookup,
   '.styl': stylusLookup,
@@ -53,7 +54,11 @@ module.exports = function cabinet(options) {
     filename,
   } = options;
 
+  debug('Given filename: ' + filename);
+
   const ext = path.extname(filename);
+  debug('which has the extension: ' + ext);
+
   let resolver = defaultLookups[ext];
 
   if (!resolver) {
@@ -207,7 +212,7 @@ function tsLookup({dependency, filename, tsConfig, fileSystem}) {
   debug('processed typescript config: ', tsConfig);
   debug('processed typescript config type: ', typeof tsConfig);
 
-  const options = tsConfig.compilerOptions;
+  const {options} = ts.convertCompilerOptionsFromJson(tsConfig.compilerOptions);
 
   // Preserve for backcompat. Consider removing this as a breaking change.
   if (!options.module) {
@@ -226,9 +231,20 @@ function tsLookup({dependency, filename, tsConfig, fileSystem}) {
   host.directoryExists = pathExists;
 
   debug('with options: ', options);
-  const resolvedModule = ts.resolveModuleName(dependency, filename, options, host).resolvedModule;
-  debug('ts resolved module: ', resolvedModule);
-  const result = resolvedModule ? resolvedModule.resolvedFileName : '';
+
+  const namedModule = ts.resolveModuleName(dependency, filename, options, host);
+  let result = '';
+
+  if (namedModule.resolvedModule) {
+    result = namedModule.resolvedModule.resolvedFileName;
+  } else {
+    const suffix = '.d.ts';
+    const lookUpLocations = namedModule.failedLookupLocations
+      .filter((string) => string.endsWith(suffix))
+      .map((string) => string.substr(0, string.length - suffix.length));
+
+    result = lookUpLocations.find(ts.sys.fileExists) || '';
+  }
 
   debug('result: ' + result);
   return result ? path.resolve(result) : '';
@@ -238,6 +254,12 @@ function commonJSLookup({dependency, filename, directory, nodeModulesConfig}) {
   if (!resolve) {
     resolve = require('resolve');
   }
+
+  if (!dependency) {
+    debug('blank dependency given. Returning early.');
+    return '';
+  }
+
   // Need to resolve partials within the directory of the module, not filing-cabinet
   const moduleLookupDir = path.join(directory, 'node_modules');
 
