@@ -24,7 +24,8 @@ module.exports = {
     },
     'amd': {
       'foo.js': 'define(["./bar"], function(bar){ return bar; });',
-      'bar.js': 'define({});'
+      'bar.js': 'define({});',
+      'config.js': '{};'
     },
     'commonjs': {
       'foo.js': 'var bar = require("./bar");',

@@ -166,7 +166,8 @@ function jsLookup({dependency, filename, directory, config, webpackConfig, confi
         configPath: configPath,
         partial: dependency,
         directory: directory,
-        filename: filename
+        filename: filename,
+        fileSystem: fileSystem
       });
 
     case 'commonjs':
