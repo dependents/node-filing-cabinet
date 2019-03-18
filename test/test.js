@@ -405,7 +405,7 @@ describe('filing-cabinet', function() {
         );
       });
 
-      it('resolves an import using an alternative fs', function() {
+      it('resolves a .ts import using an alternative fs', function() {
         mock.restore();
         const volumeDir = 'app';
         const filename = volumeDir + '/index.ts';
@@ -419,6 +419,31 @@ describe('filing-cabinet', function() {
 
         const result = cabinet({
           partial: './foo',
+          filename,
+          directory,
+          fileSystem: ufs
+        });
+        //directory
+        assert.equal(
+          result,
+          path.join(path.resolve('app'), 'foo.ts')
+        );
+      });
+
+      it('resolves a commonjs import using an alternative fs', function() {
+        mock.restore();
+        const volumeDir = 'commonjs';
+        const filename = volumeDir + '/index.js';
+
+        const unionfs = require('unionfs');
+        const memfs = require('memfs');
+
+        // mount files specified by "mockedFiles.js.ts" to "app" base directory.
+        var vol = memfs.Volume.fromJSON(mockedFiles.js.commonjs, `${volumeDir}`);
+        var ufs = unionfs.ufs.use(vol);
+
+        const result = cabinet({
+          partial: './bar',
           filename,
           directory,
           fileSystem: ufs

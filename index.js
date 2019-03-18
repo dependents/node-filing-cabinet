@@ -54,6 +54,7 @@ module.exports = function cabinet(options) {
     filename,
   } = options;
 
+  options.fileSystem = options.fileSystem || fs;
   debug('Given filename: ' + filename);
 
   const ext = path.extname(filename);
@@ -124,7 +125,9 @@ module.exports._getJSType = function(options = {}) {
   }
 
   debug('using the filename to find the module type');
-  return getModuleType.sync(options.filename);
+  // options.fileSystem will be supported after `module-definition` depedendency has this PR merged and is then consumed in package.json:
+  // https://github.com/dependents/module-definition/pull/28
+  return getModuleType.sync(options.filename, options.fileSystem);
 };
 
 /**
@@ -138,14 +141,16 @@ module.exports._getJSType = function(options = {}) {
  * @param  {String} [options.configPath]
  * @param  {Object} [options.nodeModulesConfig]
  * @param  {Object} [options.ast]
+ * @param  {Object} [options.fileSystem]
  * @return {String}
  */
-function jsLookup({dependency, filename, directory, config, webpackConfig, configPath, nodeModulesConfig, ast}) {
+function jsLookup({dependency, filename, directory, config, webpackConfig, configPath, nodeModulesConfig, ast, fileSystem}) {
   const type = module.exports._getJSType({
     config: config,
     webpackConfig: webpackConfig,
     filename: filename,
-    ast: ast
+    ast: ast,
+    fileSystem: fileSystem
   });
 
   switch (type) {
@@ -166,7 +171,7 @@ function jsLookup({dependency, filename, directory, config, webpackConfig, confi
 
     case 'commonjs':
       debug('using commonjs resolver');
-      return commonJSLookup({dependency, filename, directory, nodeModulesConfig});
+      return commonJSLookup({dependency, filename, directory, nodeModulesConfig, fileSystem});
 
     case 'webpack':
       debug('using webpack resolver for es6');
@@ -175,7 +180,7 @@ function jsLookup({dependency, filename, directory, config, webpackConfig, confi
     case 'es6':
     default:
       debug('using commonjs resolver for es6');
-      return commonJSLookup({dependency, filename, directory, nodeModulesConfig});
+      return commonJSLookup({dependency, filename, directory, nodeModulesConfig, fileSystem});
   }
 }
 
@@ -191,8 +196,6 @@ function tsLookup({dependency, filename, tsConfig, fileSystem}) {
   }
 
   debug('given typescript config: ', tsConfig);
-
-  var fileSystem = fileSystem || fs;
 
   if (!tsConfig) {
     tsConfig = defaultTsConfig;
@@ -250,7 +253,7 @@ function tsLookup({dependency, filename, tsConfig, fileSystem}) {
   return result ? path.resolve(result) : '';
 }
 
-function commonJSLookup({dependency, filename, directory, nodeModulesConfig}) {
+function commonJSLookup({dependency, filename, directory, nodeModulesConfig, fileSystem}) {
   if (!resolve) {
     resolve = require('resolve');
   }
@@ -287,7 +290,19 @@ function commonJSLookup({dependency, filename, directory, nodeModulesConfig}) {
       basedir: directory,
       packageFilter: nodeModulesConfig && nodeModulesConfig.entry ? packageFilter : undefined,
       // Add fileDir to resolve index.js files in that dir
-      moduleDirectory: ['node_modules', directory]
+      moduleDirectory: ['node_modules', directory],
+      readFile: fileSystem.readFile,
+      isFile: function isFile(file) {
+          try {
+            var stat = fileSystem.statSync(file);
+          } catch (e) {
+            if (e && (e.code === 'ENOENT' || e.code === 'ENOTDIR')){
+              return false;
+            }
+            throw e;
+          }
+          return stat.isFile() || stat.isFIFO();
+      }
     });
     debug('resolved path: ' + result);
   } catch (e) {

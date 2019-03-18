@@ -53,7 +53,7 @@
     "is-relative-path": "^1.0.2",
     "module-definition": "^3.0.0",
     "module-lookup-amd": "^6.1.0",
-    "resolve": "^1.9.0",
+    "resolve": "^1.10.0",
     "resolve-dependency-path": "^2.0.0",
     "sass-lookup": "^3.0.0",
     "stylus-lookup": "^3.0.1",
