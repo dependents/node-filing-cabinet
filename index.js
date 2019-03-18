@@ -127,7 +127,7 @@ module.exports._getJSType = function(options = {}) {
   debug('using the filename to find the module type');
   // options.fileSystem will be supported after `module-definition` depedendency has this PR merged and is then consumed in package.json:
   // https://github.com/dependents/module-definition/pull/28
-  return getModuleType.sync(options.filename, options.fileSystem);
+  return getModuleType.sync(options.filename, options);
 };
 
 /**

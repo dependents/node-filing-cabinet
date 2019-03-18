@@ -451,7 +451,7 @@ describe('filing-cabinet', function() {
         //directory
         assert.equal(
           result,
-          path.join(path.resolve('app'), 'foo.ts')
+          path.join(path.resolve('commonjs'), 'bar.js')
         );
       });
 
