@@ -14,9 +14,9 @@ module.exports = {
       'index.ts': 'import foo from "./foo";',
       'module.tsx': 'import Foo from "./foo"; <Foo />;',
       'foo.ts': 'export default 1;',
+      '.tsconfig': '{ "version": "1.0.0", "compilerOptions": { "module": "commonjs" } }',
       'check-nested.ts': 'import {Child} from "./subdir";',
       'image.svg': '<svg></svg>',
-      '.tsconfig': '{ "version": "1.0.0", "compilerOptions": { "module": "commonjs" } }',
       'subdir': {
         'index.tsx': 'export Child = () => { return (<div></div>); );',
         'subimage.svg': '<svg></svg>'
@@ -24,7 +24,8 @@ module.exports = {
     },
     'amd': {
       'foo.js': 'define(["./bar"], function(bar){ return bar; });',
-      'bar.js': 'define({});'
+      'bar.js': 'define({});',
+      'config.js': '{};'
     },
     'commonjs': {
       'foo.js': 'var bar = require("./bar");',

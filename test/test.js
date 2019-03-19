@@ -207,6 +207,28 @@ describe('filing-cabinet', function() {
         revert();
       });
 
+      it('uses the amd resolver with alternative fs', function() {
+        mock.restore();
+        const volumeDir = 'app';
+        const unionfs = require('unionfs');
+        const memfs = require('memfs');
+
+        // mount files specified by "mockedFiles.js.amd" to "app" base directory.
+        var vol = memfs.Volume.fromJSON(mockedFiles.js.amd, `${volumeDir}`);
+        var ufs = unionfs.ufs.use(vol);
+        const result = cabinet({
+          partial: './bar',
+          filename: 'app/foo.js',
+          directory: '',
+          fileSystem: ufs,
+          configPath: 'app/config.js'
+        });
+
+        var expected = path.normalize('app/bar.js');
+        assert.equal(result, expected);
+
+      });
+
       it('passes along arguments', function() {
         const stub = sinon.stub();
         const revert = cabinet.__set__('amdLookup', stub);
@@ -405,20 +427,69 @@ describe('filing-cabinet', function() {
         );
       });
 
-      it('resolves the import within a tsx file', function() {
-        const filename = directory + '/module.tsx';
+      it('resolves a .ts import using an alternative fs', function() {
+        mock.restore();
+        const volumeDir = 'app';
+        const filename = volumeDir + '/index.ts';
+
+        const unionfs = require('unionfs');
+        const memfs = require('memfs');
+
+        // mount files specified by "mockedFiles.js.ts" to "app" base directory.
+        var vol = memfs.Volume.fromJSON(mockedFiles.js.ts, `${volumeDir}`);
+        var ufs = unionfs.ufs.use(vol);
 
         const result = cabinet({
           partial: './foo',
           filename,
-          directory
+          directory,
+          fileSystem: ufs
         });
-
+        //directory
         assert.equal(
+          result,
+          path.join(path.resolve('app'), 'foo.ts')
+        );
+      });
+
+      it('resolves a commonjs import using an alternative fs', function() {
+        mock.restore();
+        const volumeDir = 'commonjs';
+        const filename = volumeDir + '/index.js';
+
+        const unionfs = require('unionfs');
+        const memfs = require('memfs');
+
+        // mount files specified by "mockedFiles.js.ts" to "app" base directory.
+        var vol = memfs.Volume.fromJSON(mockedFiles.js.commonjs, `${volumeDir}`);
+        var ufs = unionfs.ufs.use(vol);
+
+        const result = cabinet({
+          partial: './bar',
+          filename,
+          directory,
+          fileSystem: ufs
+        });
+        //directory
+        assert.equal(
+          result,
+          path.join(path.resolve('commonjs'), 'bar.js')
+        );
+      });
+
+      it('resolves the import within a tsx file', function() {
+          const filename = directory + '/module.tsx';
+          const result = cabinet({
+            partial: './foo',
+            filename,
+            directory
+          });
+
+          assert.equal(
           result,
           path.join(path.resolve(directory), 'foo.ts')
         );
-      });
+        });
 
       describe('when a partial does not exist', function() {
         it('returns an empty result', function() {
@@ -439,6 +510,12 @@ describe('filing-cabinet', function() {
           it('uses the defined module kind', function() {
             const mockTs = Object.assign({}, ts, {
               resolveModuleName: sinon.spy(ts.resolveModuleName),
+              ModuleKind: {
+                AMD: 'amd'
+              },
+              createCompilerHost: sinon.stub().returns({
+                getDirectories: null
+              }),
             });
 
             const revert = cabinet.__set__('ts', mockTs);
@@ -540,10 +617,16 @@ describe('filing-cabinet', function() {
 
         describe('as a string', function() {
           it('parses the string into an object', function() {
+
             const mockTs = Object.assign({}, ts, {
               resolveModuleName: sinon.spy(ts.resolveModuleName),
+              ModuleKind: {
+                AMD: 'amd'
+              },
+              createCompilerHost: sinon.stub().returns({
+                getDirectories: null
+              }),
             });
-
             const revert = cabinet.__set__('ts', mockTs);
 
             const filename = directory + '/index.ts';
@@ -568,6 +651,12 @@ describe('filing-cabinet', function() {
         it('defaults the module kind to AMD for backcompat', function() {
           const mockTs = Object.assign({}, ts, {
             resolveModuleName: sinon.spy(ts.resolveModuleName),
+            ModuleKind: {
+              AMD: 'amd'
+            },
+            createCompilerHost: sinon.stub().returns({
+              getDirectories: null
+            }),
           });
 
           const revert = cabinet.__set__('ts', mockTs);
