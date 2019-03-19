@@ -297,13 +297,13 @@ function commonJSLookup({dependency, filename, directory, nodeModulesConfig, fil
           try {
             var stat = fileSystem.statSync(file);
           } catch (e) {
-            if (e && (e.code === 'ENOENT' || e.code === 'ENOTDIR')){
+            if (e && (e.code === 'ENOENT' || e.code === 'ENOTDIR')) {
               return false;
             }
             throw e;
           }
           return stat.isFile() || stat.isFIFO();
-      }
+        }
     });
     debug('resolved path: ' + result);
   } catch (e) {
