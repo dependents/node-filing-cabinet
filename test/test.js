@@ -213,26 +213,19 @@ describe('filing-cabinet', function() {
         const unionfs = require('unionfs');
         const memfs = require('memfs');
 
-        // mount files specified by "mockedFiles.js.ts" to "app" base directory.
-        var vol = memfs.Volume.fromJSON(mockedFiles.js.es6, `${volumeDir}`);
+        // mount files specified by "mockedFiles.js.amd" to "app" base directory.
+        var vol = memfs.Volume.fromJSON(mockedFiles.js.amd, `${volumeDir}`);
         var ufs = unionfs.ufs.use(vol);
         const result = cabinet({
           partial: './bar',
           filename: 'app/foo.js',
-          directory: 'app',
-          config: {
-            baseUrl: './'
-          }
+          directory: '',
+          fileSystem: ufs,
+          configPath: 'app/config.js'
         });
 
-        // var result = cabinet({
-        //   partial: './bar',
-        //   configPath: 'amd/config.js',
-        //   filename: 'amd/foo.js',
-        //   fileSystem: ufs
-        // });
-
-        assert.equal(result, `${path.join(__dirname, 'amd/bar.js')}`);
+        var expected = path.normalize('app/bar.js');
+        assert.equal(result, expected);
 
       });
 
