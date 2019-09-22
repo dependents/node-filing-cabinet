@@ -3,6 +3,7 @@
 const path = require('path');
 const debug = require('debug')('cabinet');
 const fs = require('fs');
+const decomment = require('decomment');
 
 /*
  * most js resolver are lazy-loaded (only required when needed)
@@ -199,7 +200,7 @@ function tsLookup({dependency, filename, tsConfig}) {
     debug('string tsconfig given, parsing');
 
     try {
-      tsConfig = JSON.parse(fs.readFileSync(tsConfig, 'utf8'));
+      tsConfig = JSON.parse(decomment(fs.readFileSync(tsConfig, 'utf8')));
       debug('successfully parsed tsconfig');
     } catch (e) {
       debug('could not parse tsconfig');

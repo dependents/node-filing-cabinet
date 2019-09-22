@@ -16,7 +16,7 @@ module.exports = {
       'foo.ts': 'export default 1;',
       'check-nested.ts': 'import {Child} from "./subdir";',
       'image.svg': '<svg></svg>',
-      '.tsconfig': '{ "version": "1.0.0", "compilerOptions": { "module": "commonjs" } }',
+      '.tsconfig': '{ "version": "1.0.0", "compilerOptions": { "module": "commonjs" }\n // comments\n }',
       'subdir': {
         'index.tsx': 'export Child = () => { return (<div></div>); );',
         'subimage.svg': '<svg></svg>'
