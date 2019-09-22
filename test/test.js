@@ -7,6 +7,7 @@ const mock = require('mock-fs');
 const path = require('path');
 const fs = require('fs');
 const ts = require('typescript');
+const decomment = require('decomment');
 
 const cabinet = rewire('../');
 //manually add dynamic imports to rewired app
@@ -446,7 +447,7 @@ describe('filing-cabinet', function() {
             const filename = directory + '/index.ts';
 
             const tsConfigPath = path.join(path.resolve(directory), '.tsconfig');
-            const parsedConfig = JSON.parse(fs.readFileSync(tsConfigPath, 'utf8'));
+            const parsedConfig = JSON.parse(decomment(fs.readFileSync(tsConfigPath, 'utf8')));
 
             cabinet({
               partial: './foo',
