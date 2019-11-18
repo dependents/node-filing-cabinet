@@ -2,8 +2,6 @@
 
 const path = require('path');
 const debug = require('debug')('cabinet');
-const fs = require('fs');
-const decomment = require('decomment');
 
 /*
  * most js resolver are lazy-loaded (only required when needed)

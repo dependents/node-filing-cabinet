@@ -483,7 +483,6 @@ describe('filing-cabinet', function() {
             const filename = directory + '/check-nested.ts';
 
             const tsConfigPath = path.join(path.resolve(directory), '.tsconfigExtending');
-            const parsedConfig = JSON.parse(decomment(fs.readFileSync(tsConfigPath, 'utf8')));
 
             const result = cabinet({
               partial: './subdir',
