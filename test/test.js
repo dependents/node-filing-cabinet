@@ -456,9 +456,7 @@ describe('filing-cabinet', function() {
               tsConfig: parsedConfig
             });
 
-            assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
-              module: ts.ModuleKind.CommonJS,
-            });
+            assert.equal(mockTs.resolveModuleName.args[0][2].module, ts.ModuleKind.CommonJS);
 
             revert();
           });
@@ -491,7 +489,7 @@ describe('filing-cabinet', function() {
               partial: './subdir',
               filename,
               directory,
-              tsConfig: parsedConfig
+              tsConfig: tsConfigPath
             });
 
             assert.equal(
@@ -575,9 +573,7 @@ describe('filing-cabinet', function() {
               tsConfig: path.join(path.resolve(directory), '.tsconfig')
             });
 
-            assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
-              module: ts.ModuleKind.CommonJS,
-            });
+            assert.equal(mockTs.resolveModuleName.args[0][2].module, ts.ModuleKind.CommonJS);
 
             revert();
           });
@@ -600,9 +596,7 @@ describe('filing-cabinet', function() {
             directory
           });
 
-          assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
-            module: mockTs.ModuleKind.AMD
-          });
+          assert.deepEqual(mockTs.resolveModuleName.args[0][2].module, mockTs.ModuleKind.AMD);
 
           revert();
         });
