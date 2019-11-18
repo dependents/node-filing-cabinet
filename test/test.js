@@ -481,6 +481,25 @@ describe('filing-cabinet', function() {
             );
           });
 
+          it('finds import from child subdirectories when using node module resolution in extended config', function() {
+            const filename = directory + '/check-nested.ts';
+
+            const tsConfigPath = path.join(path.resolve(directory), '.tsconfigExtending');
+            const parsedConfig = JSON.parse(decomment(fs.readFileSync(tsConfigPath, 'utf8')));
+
+            const result = cabinet({
+              partial: './subdir',
+              filename,
+              directory,
+              tsConfig: parsedConfig
+            });
+
+            assert.equal(
+                result,
+                path.join(path.resolve(directory), '/subdir/index.tsx')
+            );
+          });
+
           it('finds imports of non-typescript files', function() {
             const filename = directory + '/index.ts';
 

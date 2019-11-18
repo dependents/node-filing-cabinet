@@ -17,6 +17,8 @@ module.exports = {
       'check-nested.ts': 'import {Child} from "./subdir";',
       'image.svg': '<svg></svg>',
       '.tsconfig': '{ "version": "1.0.0", "compilerOptions": { "module": "commonjs" }\n // comments\n }',
+      '.tsconfigSpecificModuleResolution': '{ "version": "1.0.0", "compilerOptions": { "module": "commonjs", "moduleResolution": "node" }\n // comments\n }',
+      '.tsconfigExtending': '{ "extends": "./.tsconfigSpecificModuleResolution" }',
       'subdir': {
         'index.tsx': 'export Child = () => { return (<div></div>); );',
         'subimage.svg': '<svg></svg>'
