@@ -456,9 +456,7 @@ describe('filing-cabinet', function() {
               tsConfig: parsedConfig
             });
 
-            assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
-              module: ts.ModuleKind.CommonJS,
-            });
+            assert.equal(mockTs.resolveModuleName.args[0][2].module, ts.ModuleKind.CommonJS);
 
             revert();
           });
@@ -478,6 +476,24 @@ describe('filing-cabinet', function() {
             assert.equal(
               result,
               path.join(path.resolve(directory), '/subdir/index.tsx')
+            );
+          });
+
+          it('finds import from child subdirectories when using node module resolution in extended config', function() {
+            const filename = directory + '/check-nested.ts';
+
+            const tsConfigPath = path.join(path.resolve(directory), '.tsconfigExtending');
+
+            const result = cabinet({
+              partial: './subdir',
+              filename,
+              directory,
+              tsConfig: tsConfigPath
+            });
+
+            assert.equal(
+                result,
+                path.join(path.resolve(directory), '/subdir/index.tsx')
             );
           });
 
@@ -556,9 +572,7 @@ describe('filing-cabinet', function() {
               tsConfig: path.join(path.resolve(directory), '.tsconfig')
             });
 
-            assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
-              module: ts.ModuleKind.CommonJS,
-            });
+            assert.equal(mockTs.resolveModuleName.args[0][2].module, ts.ModuleKind.CommonJS);
 
             revert();
           });
@@ -581,9 +595,7 @@ describe('filing-cabinet', function() {
             directory
           });
 
-          assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
-            module: mockTs.ModuleKind.AMD
-          });
+          assert.deepEqual(mockTs.resolveModuleName.args[0][2].module, mockTs.ModuleKind.AMD);
 
           revert();
         });
