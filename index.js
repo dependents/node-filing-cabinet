@@ -45,6 +45,7 @@ const defaultLookups = {
  * @param {String} [options.webpackConfig] Path to the webpack config
  * @param {Object} [options.ast] A preparsed AST for the file identified by filename.
  * @param {Object} [options.tsConfig] Path to a typescript config file
+ * @param {boolean} [options.noTypeDefinitions] Whether to return '.d.ts' files or '.js' files for a dependency
  */
 module.exports = function cabinet(options) {
   const {
@@ -177,7 +178,7 @@ function jsLookup({dependency, filename, directory, config, webpackConfig, confi
   }
 }
 
-function tsLookup({dependency, filename, tsConfig}) {
+function tsLookup({dependency, filename, tsConfig, noTypeDefinitions}) {
   debug('performing a typescript lookup');
 
   let compilerOptions = {};
@@ -222,6 +223,9 @@ function tsLookup({dependency, filename, tsConfig}) {
 
   if (namedModule.resolvedModule) {
     result = namedModule.resolvedModule.resolvedFileName;
+    if (namedModule.resolvedModule.extension === '.d.ts' && noTypeDefinitions) {
+      result = ts.resolveJSModule(dependency, path.dirname(filename), host) || result;
+    }
   } else {
     const suffix = '.d.ts';
     const lookUpLocations = namedModule.failedLookupLocations

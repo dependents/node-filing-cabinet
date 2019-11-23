@@ -421,6 +421,54 @@ describe('filing-cabinet', function() {
         );
       });
 
+      it('resolves the import of a file with type-definition', function() {
+        const filename = directory + '/index.ts';
+
+        const result = cabinet({
+          partial: './withTypeDef',
+          filename,
+          directory
+        });
+
+        assert.equal(
+          result,
+          path.join(path.resolve(directory), 'withTypeDef.d.ts')
+        );
+      });
+      describe('when noTypeDefinitions is set', () => {
+        it('resolves the import of a file with type-definition to the JS file', function() {
+          const filename = directory + '/index.ts';
+
+          const result = cabinet({
+            partial: './withTypeDef',
+            filename,
+            directory,
+            noTypeDefinitions: true
+          });
+
+          assert.equal(
+            result,
+            path.join(path.resolve(directory), 'withTypeDef.js')
+          );
+        });
+
+        it('still returns the .d.ts file if no JS file is found', function() {
+          const filename = directory + '/index.ts';
+
+          const result = cabinet({
+            partial: './withOnlyTypeDef.d.ts',
+            filename,
+            directory,
+            noTypeDefinitions: true
+          });
+
+          assert.equal(
+            result,
+            path.join(path.resolve(directory), 'withOnlyTypeDef.d.ts')
+          );
+        });
+      });
+
       describe('when a partial does not exist', function() {
         it('returns an empty result', function() {
           const filename = directory + '/index.ts';
