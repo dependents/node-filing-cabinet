@@ -2,7 +2,6 @@
 
 const path = require('path');
 const debug = require('debug')('cabinet');
-const fs = require('fs');
 
 /*
  * most js resolver are lazy-loaded (only required when needed)
@@ -46,6 +45,7 @@ const defaultLookups = {
  * @param {String} [options.webpackConfig] Path to the webpack config
  * @param {Object} [options.ast] A preparsed AST for the file identified by filename.
  * @param {Object} [options.tsConfig] Path to a typescript config file
+ * @param {boolean} [options.noTypeDefinitions] Whether to return '.d.ts' files or '.js' files for a dependency
  */
 module.exports = function cabinet(options) {
   const {
@@ -178,12 +178,10 @@ function jsLookup({dependency, filename, directory, config, webpackConfig, confi
   }
 }
 
-function tsLookup({dependency, filename, tsConfig}) {
+function tsLookup({dependency, filename, tsConfig, noTypeDefinitions}) {
   debug('performing a typescript lookup');
 
-  const defaultTsConfig = {
-    compilerOptions: {}
-  };
+  let compilerOptions = {};
 
   if (!ts) {
     ts = require('typescript');
@@ -192,39 +190,42 @@ function tsLookup({dependency, filename, tsConfig}) {
   debug('given typescript config: ', tsConfig);
 
   if (!tsConfig) {
-    tsConfig = defaultTsConfig;
     debug('no tsconfig given, defaulting');
 
   } else if (typeof tsConfig === 'string') {
     debug('string tsconfig given, parsing');
 
     try {
-      tsConfig = JSON.parse(fs.readFileSync(tsConfig, 'utf8'));
+      const tsParsedConfig = ts.readJsonConfigFile(tsConfig, ts.sys.readFile);
+      compilerOptions = ts.parseJsonSourceFileConfigFileContent(tsParsedConfig, ts.sys, path.dirname(tsConfig)).options;
       debug('successfully parsed tsconfig');
     } catch (e) {
       debug('could not parse tsconfig');
       throw new Error('could not read tsconfig');
     }
+  } else {
+    compilerOptions = ts.convertCompilerOptionsFromJson(tsConfig.compilerOptions).options;
   }
 
   debug('processed typescript config: ', tsConfig);
   debug('processed typescript config type: ', typeof tsConfig);
 
-  const {options} = ts.convertCompilerOptionsFromJson(tsConfig.compilerOptions);
-
   // Preserve for backcompat. Consider removing this as a breaking change.
-  if (!options.module) {
-    options.module = ts.ModuleKind.AMD;
+  if (!compilerOptions.module) {
+    compilerOptions.module = ts.ModuleKind.AMD;
   }
 
   const host = ts.createCompilerHost({});
-  debug('with options: ', options);
+  debug('with options: ', compilerOptions);
 
-  const namedModule = ts.resolveModuleName(dependency, filename, options, host);
+  const namedModule = ts.resolveModuleName(dependency, filename, compilerOptions, host);
   let result = '';
 
   if (namedModule.resolvedModule) {
     result = namedModule.resolvedModule.resolvedFileName;
+    if (namedModule.resolvedModule.extension === '.d.ts' && noTypeDefinitions) {
+      result = ts.resolveJSModule(dependency, path.dirname(filename), host) || result;
+    }
   } else {
     const suffix = '.d.ts';
     const lookUpLocations = namedModule.failedLookupLocations

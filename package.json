@@ -1,6 +1,6 @@
 {
   "name": "filing-cabinet",
-  "version": "2.3.2",
+  "version": "2.5.1",
   "description": "Find files based on partial paths",
   "main": "index.js",
   "bin": {
@@ -47,11 +47,12 @@
     "app-module-path": "^2.2.0",
     "commander": "^2.13.0",
     "debug": "^4.1.1",
+    "decomment": "^0.9.2",
     "enhanced-resolve": "^4.1.0",
     "is-relative-path": "^1.0.2",
     "module-definition": "^3.0.0",
     "module-lookup-amd": "^6.1.0",
-    "resolve": "^1.9.0",
+    "resolve": "^1.11.1",
     "resolve-dependency-path": "^2.0.0",
     "sass-lookup": "^3.0.0",
     "stylus-lookup": "^3.0.1",

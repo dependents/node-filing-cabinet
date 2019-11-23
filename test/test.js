@@ -7,6 +7,7 @@ const mock = require('mock-fs');
 const path = require('path');
 const fs = require('fs');
 const ts = require('typescript');
+const decomment = require('decomment');
 
 const cabinet = rewire('../');
 //manually add dynamic imports to rewired app
@@ -420,6 +421,54 @@ describe('filing-cabinet', function() {
         );
       });
 
+      it('resolves the import of a file with type-definition', function() {
+        const filename = directory + '/index.ts';
+
+        const result = cabinet({
+          partial: './withTypeDef',
+          filename,
+          directory
+        });
+
+        assert.equal(
+          result,
+          path.join(path.resolve(directory), 'withTypeDef.d.ts')
+        );
+      });
+      describe('when noTypeDefinitions is set', () => {
+        it('resolves the import of a file with type-definition to the JS file', function() {
+          const filename = directory + '/index.ts';
+
+          const result = cabinet({
+            partial: './withTypeDef',
+            filename,
+            directory,
+            noTypeDefinitions: true
+          });
+
+          assert.equal(
+            result,
+            path.join(path.resolve(directory), 'withTypeDef.js')
+          );
+        });
+
+        it('still returns the .d.ts file if no JS file is found', function() {
+          const filename = directory + '/index.ts';
+
+          const result = cabinet({
+            partial: './withOnlyTypeDef.d.ts',
+            filename,
+            directory,
+            noTypeDefinitions: true
+          });
+
+          assert.equal(
+            result,
+            path.join(path.resolve(directory), 'withOnlyTypeDef.d.ts')
+          );
+        });
+      });
+
       describe('when a partial does not exist', function() {
         it('returns an empty result', function() {
           const filename = directory + '/index.ts';
@@ -446,7 +495,7 @@ describe('filing-cabinet', function() {
             const filename = directory + '/index.ts';
 
             const tsConfigPath = path.join(path.resolve(directory), '.tsconfig');
-            const parsedConfig = JSON.parse(fs.readFileSync(tsConfigPath, 'utf8'));
+            const parsedConfig = JSON.parse(decomment(fs.readFileSync(tsConfigPath, 'utf8')));
 
             cabinet({
               partial: './foo',
@@ -455,9 +504,7 @@ describe('filing-cabinet', function() {
               tsConfig: parsedConfig
             });
 
-            assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
-              module: ts.ModuleKind.CommonJS,
-            });
+            assert.equal(mockTs.resolveModuleName.args[0][2].module, ts.ModuleKind.CommonJS);
 
             revert();
           });
@@ -477,6 +524,24 @@ describe('filing-cabinet', function() {
             assert.equal(
               result,
               path.join(path.resolve(directory), '/subdir/index.tsx')
+            );
+          });
+
+          it('finds import from child subdirectories when using node module resolution in extended config', function() {
+            const filename = directory + '/check-nested.ts';
+
+            const tsConfigPath = path.join(path.resolve(directory), '.tsconfigExtending');
+
+            const result = cabinet({
+              partial: './subdir',
+              filename,
+              directory,
+              tsConfig: tsConfigPath
+            });
+
+            assert.equal(
+                result,
+                path.join(path.resolve(directory), '/subdir/index.tsx')
             );
           });
 
@@ -555,9 +620,7 @@ describe('filing-cabinet', function() {
               tsConfig: path.join(path.resolve(directory), '.tsconfig')
             });
 
-            assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
-              module: ts.ModuleKind.CommonJS,
-            });
+            assert.equal(mockTs.resolveModuleName.args[0][2].module, ts.ModuleKind.CommonJS);
 
             revert();
           });
@@ -580,9 +643,7 @@ describe('filing-cabinet', function() {
             directory
           });
 
-          assert.deepEqual(mockTs.resolveModuleName.args[0][2], {
-            module: mockTs.ModuleKind.AMD
-          });
+          assert.deepEqual(mockTs.resolveModuleName.args[0][2].module, mockTs.ModuleKind.AMD);
 
           revert();
         });
