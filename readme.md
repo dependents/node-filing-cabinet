@@ -37,6 +37,7 @@ console.log(result); // /absolute/path/to/somePartialPath
 * `webpackConfig`: (optional) webpack config for resolving aliased JavaScript modules
 * `nodeModulesConfig`: (optional) config for resolving entry file for node_modules. This value overrides the `main` attribute in the package.json file; used in conjunction with the [packageFilter](https://github.com/browserify/resolve#resolveid-opts-cb) of the `resolve` package.
 * `tsConfig`: (optional) path to a typescript configuration. Could also be an object representing a pre-parsed typescript config.
+* `noTypeDefinitions`: (optional) For typescript files, whether to prefer `*.js` over `*.d.ts`.
 
 ### Registered languages
 
