@@ -345,3 +345,13 @@ function stripLoader(dependency) {
 
   return dependency.slice(exclamationLocation + 1);
 }
+
+module.exports.resolveWebpackPath = resolveWebpackPath;
+module.exports.stripLoader = stripLoader;
+module.exports._innerCache = {webpackResolve};
+module.exports.dumpLookups = function() {
+  return this.supportedFileExtensions.reduce(function(result, key) {
+    result[key] = defaultLookups[key];
+    return result;
+  }, {});
+};
