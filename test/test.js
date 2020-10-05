@@ -601,6 +601,22 @@ describe('filing-cabinet', function() {
               path.join(path.resolve(directory), '../node_modules/image/npm-image.svg')
             );
           });
+
+          it('finds imports of typescript files from non-typescript files with allowJs option (#89)', function() {
+            const filename = directory + '/bar.js';
+            const result = cabinet({
+              partial: './foo',
+              filename,
+              directory,
+              tsConfig: {
+                compilerOptions: {allowJs: true}
+              }
+            });
+            assert.equal(
+              result,
+              path.join(path.resolve(directory), '/foo.ts')
+            );
+          });
         });
 
         describe('as a string', function() {

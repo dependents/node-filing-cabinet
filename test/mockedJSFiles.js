@@ -14,6 +14,7 @@ module.exports = {
       'index.ts': 'import foo from "./foo";',
       'module.tsx': 'import Foo from "./foo"; <Foo />;',
       'foo.ts': 'export default 1;',
+      'bar.js': 'import foo from "./foo";',
       'check-nested.ts': 'import {Child} from "./subdir";',
       'image.svg': '<svg></svg>',
       '.tsconfig': '{ "version": "1.0.0", "compilerOptions": { "module": "commonjs" }\n // comments\n }',
