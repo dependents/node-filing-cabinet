@@ -126,6 +126,39 @@ module.exports._getJSType = function(options = {}) {
   return getModuleType.sync(options.filename);
 };
 
+function getCompilerOptionsFromTsConfig(tsConfig) {
+  if (!ts) {
+    ts = require('typescript');
+  }
+
+  let compilerOptions = {};
+
+  debug('given typescript config: ', tsConfig);
+
+  if (!tsConfig) {
+    debug('no tsconfig given, defaulting');
+
+  } else if (typeof tsConfig === 'string') {
+    debug('string tsconfig given, parsing');
+
+    try {
+      const tsParsedConfig = ts.readJsonConfigFile(tsConfig, ts.sys.readFile);
+      compilerOptions = ts.parseJsonSourceFileConfigFileContent(tsParsedConfig, ts.sys, path.dirname(tsConfig)).options;
+      debug('successfully parsed tsconfig');
+    } catch (e) {
+      debug('could not parse tsconfig');
+      throw new Error('could not read tsconfig');
+    }
+  } else {
+    compilerOptions = ts.convertCompilerOptionsFromJson(tsConfig.compilerOptions).options;
+  }
+
+  debug('processed typescript config: ', tsConfig);
+  debug('processed typescript config type: ', typeof tsConfig);
+
+  return compilerOptions;
+}
+
 /**
  * @private
  * @param {Object} options
@@ -139,7 +172,7 @@ module.exports._getJSType = function(options = {}) {
  * @param  {Object} [options.ast]
  * @return {String}
  */
-function jsLookup({dependency, filename, directory, config, webpackConfig, configPath, nodeModulesConfig, ast}) {
+function jsLookup({dependency, filename, directory, config, webpackConfig, configPath, nodeModulesConfig, ast, tsConfig}) {
   const type = module.exports._getJSType({
     config: config,
     webpackConfig: webpackConfig,
@@ -165,7 +198,7 @@ function jsLookup({dependency, filename, directory, config, webpackConfig, confi
 
     case 'commonjs':
       debug('using commonjs resolver');
-      return commonJSLookup({dependency, filename, directory, nodeModulesConfig});
+      return commonJSLookup({dependency, filename, directory, nodeModulesConfig, tsConfig});
 
     case 'webpack':
       debug('using webpack resolver for es6');
@@ -174,41 +207,14 @@ function jsLookup({dependency, filename, directory, config, webpackConfig, confi
     case 'es6':
     default:
       debug('using commonjs resolver for es6');
-      return commonJSLookup({dependency, filename, directory, nodeModulesConfig});
+      return commonJSLookup({dependency, filename, directory, nodeModulesConfig, tsConfig});
   }
 }
 
 function tsLookup({dependency, filename, tsConfig, noTypeDefinitions}) {
   debug('performing a typescript lookup');
 
-  let compilerOptions = {};
-
-  if (!ts) {
-    ts = require('typescript');
-  }
-
-  debug('given typescript config: ', tsConfig);
-
-  if (!tsConfig) {
-    debug('no tsconfig given, defaulting');
-
-  } else if (typeof tsConfig === 'string') {
-    debug('string tsconfig given, parsing');
-
-    try {
-      const tsParsedConfig = ts.readJsonConfigFile(tsConfig, ts.sys.readFile);
-      compilerOptions = ts.parseJsonSourceFileConfigFileContent(tsParsedConfig, ts.sys, path.dirname(tsConfig)).options;
-      debug('successfully parsed tsconfig');
-    } catch (e) {
-      debug('could not parse tsconfig');
-      throw new Error('could not read tsconfig');
-    }
-  } else {
-    compilerOptions = ts.convertCompilerOptionsFromJson(tsConfig.compilerOptions).options;
-  }
-
-  debug('processed typescript config: ', tsConfig);
-  debug('processed typescript config type: ', typeof tsConfig);
+  let compilerOptions = getCompilerOptionsFromTsConfig(tsConfig);
 
   // Preserve for backcompat. Consider removing this as a breaking change.
   if (!compilerOptions.module) {
@@ -239,7 +245,7 @@ function tsLookup({dependency, filename, tsConfig, noTypeDefinitions}) {
   return result ? path.resolve(result) : '';
 }
 
-function commonJSLookup({dependency, filename, directory, nodeModulesConfig}) {
+function commonJSLookup({dependency, filename, directory, nodeModulesConfig, tsConfig}) {
   if (!resolve) {
     resolve = require('resolve');
   }
@@ -270,9 +276,16 @@ function commonJSLookup({dependency, filename, directory, nodeModulesConfig}) {
     return packageJson;
   }
 
+  const tsCompilerOptions = getCompilerOptionsFromTsConfig(tsConfig);
+  const allowMIxedJsAndTs = tsCompilerOptions.allowJs;
+  let extensions = ['.js', '.jsx'];
+  if (allowMIxedJsAndTs) {
+    extensions = extensions.concat(['.ts', '.tsx']);
+  }
+
   try {
     result = resolve.sync(dependency, {
-      extensions: ['.js', '.jsx'],
+      extensions,
       basedir: directory,
       packageFilter: nodeModulesConfig && nodeModulesConfig.entry ? packageFilter : undefined,
       // Add fileDir to resolve index.js files in that dir
