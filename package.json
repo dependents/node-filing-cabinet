@@ -35,13 +35,13 @@
     "node": ">=6.0.0"
   },
   "devDependencies": {
-    "eslint": "^5.11.0",
+    "eslint": "^5.16.0",
     "jscs": "^3.0.7",
     "jscs-preset-mrjoelkemp": "^2.0.0",
     "mocha": "^5.0.0",
-    "mock-fs": "^4.4.2",
+    "mock-fs": "^4.13.0",
     "rewire": "^4.0.1",
-    "sinon": "^7.2.2"
+    "sinon": "^7.5.0"
   },
   "dependencies": {
     "app-module-path": "^2.2.0",
