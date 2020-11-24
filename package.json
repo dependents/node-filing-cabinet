@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/mrjoelkemp/node-filing-cabinet",
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=10.13.0"
   },
   "devDependencies": {
     "eslint": "^5.11.0",
