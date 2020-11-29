@@ -6,6 +6,10 @@
   "bin": {
     "filing-cabinet": "bin/cli.js"
   },
+  "files": [
+    "bin",
+    "index.js"
+  ],
   "scripts": {
     "test": "jscs index.js test/test.js && eslint index.js test/test.js && ./node_modules/.bin/mocha test/test.js"
   },
