@@ -45,17 +45,17 @@
   },
   "dependencies": {
     "app-module-path": "^2.2.0",
-    "commander": "^2.13.0",
-    "debug": "^4.1.1",
-    "decomment": "^0.9.2",
-    "enhanced-resolve": "^4.1.0",
+    "commander": "^2.20.3",
+    "debug": "^4.3.1",
+    "decomment": "^0.9.3",
+    "enhanced-resolve": "^4.3.0",
     "is-relative-path": "^1.0.2",
-    "module-definition": "^3.0.0",
-    "module-lookup-amd": "^6.1.0",
-    "resolve": "^1.11.1",
+    "module-definition": "^3.3.1",
+    "module-lookup-amd": "^6.2.0",
+    "resolve": "^1.19.0",
     "resolve-dependency-path": "^2.0.0",
     "sass-lookup": "^3.0.0",
     "stylus-lookup": "^3.0.1",
-    "typescript": "^3.0.3"
+    "typescript": "^3.9.7"
   }
 }
