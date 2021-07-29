@@ -312,6 +312,9 @@ function resolveWebpackPath({dependency, filename, directory, webpackConfig}) {
     if (typeof loadedConfig === 'function') {
       loadedConfig = loadedConfig();
     }
+    if (Array.isArray(loadedConfig)) {
+      loadedConfig = loadedConfig[0];
+    }
   } catch (e) {
     debug('error loading the webpack config at ' + webpackConfig);
     debug(e.message);

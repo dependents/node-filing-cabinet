@@ -943,6 +943,17 @@ describe('filing-cabinet', function() {
       assert.equal(resolved, expected);
     });
 
+    it('resolves a path using a first configuration', function() {
+      const resolved = cabinet({
+        partial: 'mod1',
+        filename: `${directory}/index.js`,
+        directory,
+        webpackConfig: `${directory}/webpack-multiple.config.js`
+      });
+      var expected = path.normalize(`${directory}/test/root1/mod1.js`);
+      assert.equal(resolved, expected);
+    });
+
     it('resolves files with a .jsx extension', function() {
       testResolution('./test/foo.jsx', `${directory}/test/foo.jsx`);
     });
