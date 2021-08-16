@@ -27,7 +27,6 @@ var result = cabinet({
 console.log(result); // /absolute/path/to/somePartialPath
 ```
 
-<<<<<<< HEAD
 * `partial`: the dependency path
  * This could be in any of the registered languages
 * `directory`: the path to all files
