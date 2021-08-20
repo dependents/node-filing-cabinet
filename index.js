@@ -258,48 +258,48 @@ function tsLookup({dependency, filename, tsConfig, tsConfigPath, noTypeDefinitio
     result = lookUpLocations.find(ts.sys.fileExists) || '';
   }
 
-  // if (!result && tsConfigPath && compilerOptions.baseUrl && compilerOptions.paths) {
-  //   const absoluteBaseUrl = path.join(path.dirname(tsConfigPath), compilerOptions.baseUrl);
-  //   // REF: https://github.com/dividab/tsconfig-paths#creatematchpath
-  //   const tsMatchPath = createMatchPath(absoluteBaseUrl, compilerOptions.paths);
-  //   // REF: https://github.com/dividab/tsconfig-paths#creatematchpath
-  //   // Get absolute path by ts path mapping. `undefined` if non-existent
-  //   const resolvedTsAliasPath = tsMatchPath(dependency);
-  //   if (resolvedTsAliasPath) {
-  //     const stat = (() => {
-  //       try {
-  //         // fs.statSync throws an error if path is non-existent
-  //         return fs.statSync(resolvedTsAliasPath);
-  //       } catch (error) {
-  //         return undefined;
-  //       }
-  //     })();
-  //     if (stat) {
-  //       if (stat.isDirectory()) {
-  //         // When directory is imported, index file is resolved
-  //         for (const indexFile of ['index.ts', 'index.tsx', 'index.js', 'index.jsx']) {
-  //           const filename = path.join(resolvedTsAliasPath, indexFile);
-  //           if (fs.existsSync(filename)) {
-  //             result = filename;
-  //             break;
-  //           }
-  //         }
-  //       } else {
-  //         // if the path is complete filename
-  //         result = resolvedTsAliasPath;
-  //       }
-  //     } else {
-  //       // For cases a file extension is omitted when being imported
-  //       for (const ext of ['.ts', '.tsx', '.js', '.jsx']) {
-  //         const filenameWithExt = resolvedTsAliasPath + ext;
-  //         if (fs.existsSync(filenameWithExt)) {
-  //           result = filenameWithExt;
-  //           break;
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
+  if (!result && tsConfigPath && compilerOptions.baseUrl && compilerOptions.paths) {
+    const absoluteBaseUrl = path.join(path.dirname(tsConfigPath), compilerOptions.baseUrl);
+    // REF: https://github.com/dividab/tsconfig-paths#creatematchpath
+    const tsMatchPath = createMatchPath(absoluteBaseUrl, compilerOptions.paths);
+    const extensions = ['.ts', '.tsx', '.d.ts', '.js', '.jsx', '.json', '.node'];
+    // REF: https://github.com/dividab/tsconfig-paths#creatematchpath
+    const resolvedTsAliasPath = tsMatchPath(dependency, undefined, undefined, extensions); // Get absolute path by ts path mapping. `undefined` if non-existent
+    if (resolvedTsAliasPath) {
+      const stat = (() => {
+        try {
+          // fs.statSync throws an error if path is non-existent
+          return fs.statSync(resolvedTsAliasPath);
+        } catch (error) {
+          return undefined;
+        }
+      })();
+      if (stat) {
+        if (stat.isDirectory()) {
+          // When directory is imported, index file is resolved
+          for (const ext of extensions) {
+            const filename = path.join(resolvedTsAliasPath, 'index' + ext);
+            if (fs.existsSync(filename)) {
+              result = filename;
+              break;
+            }
+          }
+        } else {
+          // if the path is complete filename
+          result = resolvedTsAliasPath;
+        }
+      } else {
+        // For cases a file extension is omitted when being imported
+        for (const ext of extensions) {
+          const filenameWithExt = resolvedTsAliasPath + ext;
+          if (fs.existsSync(filenameWithExt)) {
+            result = filenameWithExt;
+            break;
+          }
+        }
+      }
+    }
+  }
 
   debug('result: ' + result);
   return result ? path.resolve(result) : '';
