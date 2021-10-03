@@ -34,7 +34,7 @@ console.log(result); // /absolute/path/to/somePartialPath
 * `ast`: (optional) the parsed AST for `filename`.
  * Useful optimization for avoiding a parse of filename
 * `config`: (optional) requirejs config for resolving aliased JavaScript modules
-* `webpackConfig`: (optional) webpack config for resolving aliased JavaScript modules
+* `webpackConfig`: (optional) webpack config for resolving aliased JavaScript modules. If exporting multiple configurations, the first configuration is used.
 * `nodeModulesConfig`: (optional) config for resolving entry file for node_modules. This value overrides the `main` attribute in the package.json file; used in conjunction with the [packageFilter](https://github.com/browserify/resolve#resolveid-opts-cb) of the `resolve` package.
 * `tsConfig`: (optional) path to a typescript configuration. Could also be an object representing a pre-parsed typescript config.
 * `noTypeDefinitions`: (optional) For typescript files, whether to prefer `*.js` over `*.d.ts`.
