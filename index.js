@@ -172,7 +172,8 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
  * @param  {Object} [options.ast]
  * @return {String}
  */
-function jsLookup({dependency, filename, directory, config, webpackConfig, configPath, nodeModulesConfig, ast, tsConfig}) {
+function jsLookup(options) {
+  const {dependency, filename, directory, config, webpackConfig, configPath, ast} = options;
   const type = module.exports._getJSType({
     config: config,
     webpackConfig: webpackConfig,
@@ -198,7 +199,7 @@ function jsLookup({dependency, filename, directory, config, webpackConfig, confi
 
     case 'commonjs':
       debug('using commonjs resolver');
-      return commonJSLookup({dependency, filename, directory, nodeModulesConfig, tsConfig});
+      return commonJSLookup(options);
 
     case 'webpack':
       debug('using webpack resolver for es6');
@@ -207,7 +208,7 @@ function jsLookup({dependency, filename, directory, config, webpackConfig, confi
     case 'es6':
     default:
       debug('using commonjs resolver for es6');
-      return commonJSLookup({dependency, filename, directory, nodeModulesConfig, tsConfig});
+      return commonJSLookup(options);
   }
 }
 
@@ -245,7 +246,9 @@ function tsLookup({dependency, filename, tsConfig, noTypeDefinitions}) {
   return result ? path.resolve(result) : '';
 }
 
-function commonJSLookup({dependency, filename, directory, nodeModulesConfig, tsConfig}) {
+function commonJSLookup(options) {
+  const {filename, directory, nodeModulesConfig, tsConfig} = options;
+  let {dependency} = options;
   if (!resolve) {
     resolve = require('resolve');
   }
@@ -277,9 +280,17 @@ function commonJSLookup({dependency, filename, directory, nodeModulesConfig, tsC
   }
 
   const tsCompilerOptions = getCompilerOptionsFromTsConfig(tsConfig);
-  const allowMIxedJsAndTs = tsCompilerOptions.allowJs;
+  const allowMixedJsAndTs = tsCompilerOptions.allowJs;
   let extensions = ['.js', '.jsx'];
-  if (allowMIxedJsAndTs) {
+  if (allowMixedJsAndTs) {
+    // Let the typescript engine take a stab at resolving this one. This lookup will
+    // respect any custom paths in tsconfig.json
+    result = tsLookup(options);
+    if (result) {
+      debug('typescript successfully resolved commonjs module: ', result);
+      return result;
+    }
+    // Otherwise, let the commonJS resolver look for plain .ts file imports.
     extensions = extensions.concat(['.ts', '.tsx']);
   }
 

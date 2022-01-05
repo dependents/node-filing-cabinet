@@ -617,6 +617,31 @@ describe('filing-cabinet', function() {
               path.join(path.resolve(directory), '/foo.ts')
             );
           });
+
+          it('finds imports using custom import paths from javascript files with allowJs option', function() {
+            const filename = directory + '/bar.js';
+
+            const result = cabinet({
+              partial: '@shortcut/subimage.svg',
+              filename,
+              directory,
+              tsConfig: {
+                compilerOptions: {
+                  allowJs: true,
+                  moduleResolution: 'node',
+                  baseUrl: directory,
+                  paths: {
+                    '@shortcut/*': ['subdir/*'],
+                  }
+                }
+              }
+            });
+
+            assert.equal(
+              result,
+              path.join(path.resolve(directory), '../node_modules/image/npm-image.svg')
+            );
+          });
         });
 
         describe('as a string', function() {
