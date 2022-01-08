@@ -45,7 +45,7 @@ const defaultLookups = {
  * @param {String} [options.webpackConfig] Path to the webpack config
  * @param {Object} [options.ast] A preparsed AST for the file identified by filename.
  * @param {Object} [options.tsConfig] Path to a typescript config file
- * @param {boolean} [options.noTypeDefinitions] Whether to return '.d.ts' files or '.js' files for a dependency
+ * @param {Boolean} [options.noTypeDefinitions] Whether to return '.d.ts' files or '.js' files for a dependency
  */
 module.exports = function cabinet(options) {
   const {
@@ -92,6 +92,16 @@ module.exports.register = function(extension, lookupStrategy) {
   if (!this.supportedFileExtensions.includes(extension)) {
     this.supportedFileExtensions.push(extension);
   }
+};
+
+/**
+ * Unregister a custom lookup resolver for a file extension
+ *
+ * @param  {String} extension - The file extension whose resolver should be removed
+ */
+module.exports.unregister = function(extension) {
+  delete defaultLookups[extension];
+  module.exports.supportedFileExtensions = Object.keys(defaultLookups);
 };
 
 /**

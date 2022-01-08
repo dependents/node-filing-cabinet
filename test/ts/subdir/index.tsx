@@ -1,0 +1,1 @@
+export Child = () => { return (<div></div>); );

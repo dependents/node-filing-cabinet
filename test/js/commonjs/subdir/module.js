@@ -1,0 +1,1 @@
+var entry = require("../");
