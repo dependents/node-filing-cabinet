@@ -1,0 +1,1 @@
+define(["./bar"], function(bar){ return bar; });

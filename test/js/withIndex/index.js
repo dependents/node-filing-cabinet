@@ -1,0 +1,1 @@
+var sub = require("./subdir");

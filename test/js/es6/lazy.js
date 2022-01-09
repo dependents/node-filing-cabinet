@@ -1,0 +1,1 @@
+localizedModule(app, "modulename", locale => import(`modulename/locales/${locale}`));
