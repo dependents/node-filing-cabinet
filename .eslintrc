@@ -1,6 +1,7 @@
 {
   "env": {
     "browser": true,
+    "node": true,
     "commonjs": true,
     "es2021": true
   },
@@ -13,5 +14,5 @@
     "no-unused-vars": 2,
     "no-const-assign": 2
   },
-  "ignorePatterns": ["test/**/*.js"]
+  "ignorePatterns": ["test/**/*.js", "!test/test.js"]
 }

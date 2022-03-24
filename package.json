@@ -11,7 +11,7 @@
     "index.js"
   ],
   "scripts": {
-    "test": "eslint && mocha"
+    "test": "eslint . && mocha"
   },
   "repository": {
     "type": "git",

@@ -1,6 +1,5 @@
 
-module.exports = function (w) {
-
+module.exports = function () {
   return {
     files: [
       'index.js',
