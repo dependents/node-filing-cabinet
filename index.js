@@ -223,11 +223,16 @@ function jsLookup(options) {
   }
 }
 
-function tsLookup({dependency, filename, tsConfig, tsConfigPath, noTypeDefinitions}) {
+function tsLookup({dependency, filename, directory, webpackConfig, tsConfig, tsConfigPath, noTypeDefinitions}) {
   debug('performing a typescript lookup');
 
   if (typeof tsConfig === 'string') {
     tsConfigPath = tsConfigPath || path.dirname(tsConfig);
+  }
+
+  if (!tsConfig && webpackConfig) {
+    debug('using webpack resolver for typescript');
+    return resolveWebpackPath({dependency, filename, directory, webpackConfig});
   }
 
   let compilerOptions = getCompilerOptionsFromTsConfig(tsConfig);

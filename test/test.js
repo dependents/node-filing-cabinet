@@ -518,6 +518,7 @@ describe('filing-cabinet', function() {
             assert.equal(result, path.join(directory, 'foo.ts'));
           });
         });
+
         describe(`when the typescript's path mapping is configured`, function() {
           it('should resolve the path', function() {
             const result = cabinet({
@@ -555,6 +556,23 @@ describe('filing-cabinet', function() {
           });
 
           assert.equal(result, path.join(directory, 'foo.ts'));
+        });
+      });
+
+      describe('when given a tsconfig and webpack config', function() {
+        it('resolves the module', function() {
+          const result = cabinet({
+            partial: './subdir',
+            filename: path.join(directory, 'check-nested.ts'),
+            directory,
+            tsConfig: path.join(directory, '.tsconfigExtending'),
+            webpackConfig: path.join(directory, 'webpack.config.js')
+          });
+
+          assert.equal(
+            result,
+            path.join(directory, 'subdir/index.tsx')
+          );
         });
       });
     });
@@ -829,6 +847,18 @@ describe('filing-cabinet', function() {
       it('still works', function() {
         testResolution('hgn!resolve', path.join(directory, 'node_modules/resolve/index.js'));
       });
+    });
+
+    it('resolves files with a .ts extension', function() {
+      const resolved = cabinet({
+        partial: 'R',
+        filename: path.join(directory, 'index.ts'),
+        directory,
+        webpackConfig: path.join(directory, 'webpack.config.js')
+      });
+
+      const expected = path.join(directory, 'node_modules/resolve/index.js');
+      assert.equal(resolved, expected);
     });
   });
 });
