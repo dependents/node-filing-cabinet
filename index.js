@@ -2,7 +2,8 @@
 
 const path = require('path');
 const debug = require('debug')('cabinet');
-
+const {createMatchPath} = require('tsconfig-paths');
+const fs = require('fs');
 /*
  * most js resolver are lazy-loaded (only required when needed)
  * e.g. dont load requirejs when we only have commonjs modules to resolve
@@ -44,7 +45,8 @@ const defaultLookups = {
  * @param {String} [options.nodeModulesConfig.entry] The new value for "main" in package json
  * @param {String} [options.webpackConfig] Path to the webpack config
  * @param {Object} [options.ast] A preparsed AST for the file identified by filename.
- * @param {Object} [options.tsConfig] Path to a typescript config file
+ * @param {String|Object} [options.tsConfig] Path to a typescript configuration or an object representing a pre-parsed typescript config.
+ * @param {String} [options.tsConfigPath] A (virtual) Path to typescript config file when options.tsConfig is given as an object. Needed to calculate [Path Mapping](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping). If not given when options.tsConfig is an object, Path Mapping is not considered.
  * @param {Boolean} [options.noTypeDefinitions] Whether to return '.d.ts' files or '.js' files for a dependency
  */
 module.exports = function cabinet(options) {
@@ -147,7 +149,6 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
 
   if (!tsConfig) {
     debug('no tsconfig given, defaulting');
-
   } else if (typeof tsConfig === 'string') {
     debug('string tsconfig given, parsing');
 
@@ -183,7 +184,7 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
  * @return {String}
  */
 function jsLookup(options) {
-  const {dependency, filename, directory, config, webpackConfig, configPath, ast} = options;
+  const {dependency, filename, directory, config, webpackConfig, configPath, nodeModulesConfig, ast, tsConfig} = options;
   const type = module.exports._getJSType({
     config: config,
     webpackConfig: webpackConfig,
@@ -222,8 +223,12 @@ function jsLookup(options) {
   }
 }
 
-function tsLookup({dependency, filename, tsConfig, noTypeDefinitions}) {
+function tsLookup({dependency, filename, tsConfig, tsConfigPath, noTypeDefinitions}) {
   debug('performing a typescript lookup');
+
+  if (typeof tsConfig === 'string') {
+    tsConfigPath = tsConfigPath || path.dirname(tsConfig);
+  }
 
   let compilerOptions = getCompilerOptionsFromTsConfig(tsConfig);
 
@@ -233,6 +238,7 @@ function tsLookup({dependency, filename, tsConfig, noTypeDefinitions}) {
   }
 
   const host = ts.createCompilerHost({});
+
   debug('with options: ', compilerOptions);
 
   const namedModule = ts.resolveModuleName(dependency, filename, compilerOptions, host);
@@ -252,6 +258,49 @@ function tsLookup({dependency, filename, tsConfig, noTypeDefinitions}) {
     result = lookUpLocations.find(ts.sys.fileExists) || '';
   }
 
+  if (!result && tsConfigPath && compilerOptions.baseUrl && compilerOptions.paths) {
+    const absoluteBaseUrl = path.join(path.dirname(tsConfigPath), compilerOptions.baseUrl);
+    // REF: https://github.com/dividab/tsconfig-paths#creatematchpath
+    const tsMatchPath = createMatchPath(absoluteBaseUrl, compilerOptions.paths);
+    const extensions = ['.ts', '.tsx', '.d.ts', '.js', '.jsx', '.json', '.node'];
+    // REF: https://github.com/dividab/tsconfig-paths#creatematchpath
+    const resolvedTsAliasPath = tsMatchPath(dependency, undefined, undefined, extensions); // Get absolute path by ts path mapping. `undefined` if non-existent
+    if (resolvedTsAliasPath) {
+      const stat = (() => {
+        try {
+          // fs.statSync throws an error if path is non-existent
+          return fs.statSync(resolvedTsAliasPath);
+        } catch (error) {
+          return undefined;
+        }
+      })();
+      if (stat) {
+        if (stat.isDirectory()) {
+          // When directory is imported, index file is resolved
+          for (const ext of extensions) {
+            const filename = path.join(resolvedTsAliasPath, 'index' + ext);
+            if (fs.existsSync(filename)) {
+              result = filename;
+              break;
+            }
+          }
+        } else {
+          // if the path is complete filename
+          result = resolvedTsAliasPath;
+        }
+      } else {
+        // For cases a file extension is omitted when being imported
+        for (const ext of extensions) {
+          const filenameWithExt = resolvedTsAliasPath + ext;
+          if (fs.existsSync(filenameWithExt)) {
+            result = filenameWithExt;
+            break;
+          }
+        }
+      }
+    }
+  }
+
   debug('result: ' + result);
   return result ? path.resolve(result) : '';
 }
@@ -259,6 +308,7 @@ function tsLookup({dependency, filename, tsConfig, noTypeDefinitions}) {
 function commonJSLookup(options) {
   const {filename, directory, nodeModulesConfig, tsConfig} = options;
   let {dependency} = options;
+
   if (!resolve) {
     resolve = require('resolve');
   }

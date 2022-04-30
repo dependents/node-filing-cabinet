@@ -518,6 +518,30 @@ describe('filing-cabinet', function() {
             assert.equal(result, path.join(directory, 'foo.ts'));
           });
         });
+        describe(`when the typescript's path mapping is configured`, function() {
+          it('should resolve the path', function() {
+            const result = cabinet({
+              partial: '#foo/hello',
+              filename: path.resolve(__dirname, 'root3', 'packages', 'foo', 'index.ts'),
+              directory: path.resolve(__dirname, 'root3'),
+              tsConfig: {
+                'compilerOptions': {
+                  'rootDir': '.',
+                  'baseUrl': 'packages',
+                  'paths': {
+                    '@monorepo/*': ['*'],
+                    '#foo/*': ['foo/*'],
+                    '#bar/*': ['bar/*'],
+                    '#*': ['*']
+                  },
+                },
+              },
+              tsConfigPath: path.resolve(__dirname, 'root3', 'tsconfig.json'),
+            });
+            const expected = path.resolve(__dirname, 'root3', 'packages', 'foo', 'hello.ts');
+            assert.equal(result, expected);
+          });
+        });
       });
 
       describe('when not given a tsconfig', function() {
