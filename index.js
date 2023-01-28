@@ -35,6 +35,8 @@ const defaultLookups = {
   '.less': sassLookup
 };
 
+const cachedParsedConfigs = new Map();
+
 /**
  * @param {Object} options
  * @param {String} options.partial The dependency being looked up
@@ -139,29 +141,40 @@ module.exports._getJSType = function(options = {}) {
 };
 
 function getCompilerOptionsFromTsConfig(tsConfig) {
-  if (!ts) {
-    ts = require('typescript');
-  }
-
   let compilerOptions = {};
 
   debug('given typescript config: ', tsConfig);
 
   if (!tsConfig) {
     debug('no tsconfig given, defaulting');
-  } else if (typeof tsConfig === 'string') {
-    debug('string tsconfig given, parsing');
-
-    try {
-      const tsParsedConfig = ts.readJsonConfigFile(tsConfig, ts.sys.readFile);
-      compilerOptions = ts.parseJsonSourceFileConfigFileContent(tsParsedConfig, ts.sys, path.dirname(tsConfig)).options;
-      debug('successfully parsed tsconfig');
-    } catch (e) {
-      debug('could not parse tsconfig');
-      throw new Error('could not read tsconfig');
-    }
   } else {
-    compilerOptions = ts.convertCompilerOptionsFromJson(tsConfig.compilerOptions).options;
+    // Check cache and return quickly if found
+    const cachedCompilerOptions = getParsedConfigFromCache(tsConfig);
+    if (cachedCompilerOptions) {
+      debug('found parsed tsconfig in cache');
+      return cachedCompilerOptions;
+    }
+
+    if (!ts) {
+      ts = require('typescript');
+    }
+
+    if (typeof tsConfig === 'string') {
+      debug('string tsconfig given, parsing');
+
+      try {
+        const tsParsedConfig = ts.readJsonConfigFile(tsConfig, ts.sys.readFile);
+        compilerOptions = ts.parseJsonSourceFileConfigFileContent(tsParsedConfig, ts.sys, path.dirname(tsConfig)).options;
+        debug('successfully parsed tsconfig');
+      } catch (e) {
+        debug('could not parse tsconfig');
+        throw new Error('could not read tsconfig');
+      }
+    } else {
+      compilerOptions = ts.convertCompilerOptionsFromJson(tsConfig.compilerOptions).options;
+    }
+
+    addParsedConfigToCache(tsConfig, compilerOptions);
   }
 
   debug('processed typescript config: ', tsConfig);
@@ -380,43 +393,55 @@ function resolveWebpackPath({dependency, filename, directory, webpackConfig}) {
     webpackResolve = require('enhanced-resolve');
   }
   webpackConfig = path.resolve(webpackConfig);
-  let loadedConfig;
 
-  try {
-    loadedConfig = require(webpackConfig);
+  let resolveConfig;
 
-    if (typeof loadedConfig === 'function') {
-      loadedConfig = loadedConfig();
+  // Check cache and use for `resolveConfig` if found
+  const cachedResolvedConfig = getParsedConfigFromCache(webpackConfig);
+  if (cachedResolvedConfig) {
+    debug('found resolved webpack config in cache');
+    resolveConfig = cachedResolvedConfig;
+  } else {
+    let loadedConfig;
+
+    try {
+      loadedConfig = require(webpackConfig);
+
+      if (typeof loadedConfig === 'function') {
+        loadedConfig = loadedConfig();
+      }
+      if (Array.isArray(loadedConfig)) {
+        loadedConfig = loadedConfig[0];
+      }
+    } catch (e) {
+      debug('error loading the webpack config at ' + webpackConfig);
+      debug(e.message);
+      debug(e.stack);
+      return '';
     }
-    if (Array.isArray(loadedConfig)) {
-      loadedConfig = loadedConfig[0];
-    }
-  } catch (e) {
-    debug('error loading the webpack config at ' + webpackConfig);
-    debug(e.message);
-    debug(e.stack);
-    return '';
-  }
 
-  const resolveConfig = Object.assign({}, loadedConfig.resolve);
+    resolveConfig = Object.assign({}, loadedConfig.resolve);
 
-  if (!resolveConfig.modules && (resolveConfig.root || resolveConfig.modulesDirectories)) {
-    resolveConfig.modules = [];
+    if (!resolveConfig.modules && (resolveConfig.root || resolveConfig.modulesDirectories)) {
+      resolveConfig.modules = [];
 
-    if (resolveConfig.root) {
-      resolveConfig.modules = resolveConfig.modules.concat(resolveConfig.root);
+      if (resolveConfig.root) {
+        resolveConfig.modules = resolveConfig.modules.concat(resolveConfig.root);
+      }
+
+      if (resolveConfig.modulesDirectories) {
+        resolveConfig.modules = resolveConfig.modules.concat(resolveConfig.modulesDirectories);
+      }
     }
 
-    if (resolveConfig.modulesDirectories) {
-      resolveConfig.modules = resolveConfig.modules.concat(resolveConfig.modulesDirectories);
-    }
+    addParsedConfigToCache(webpackConfig, resolveConfig);
   }
 
   try {
     const resolver = webpackResolve.create.sync(resolveConfig);
 
     // We don't care about what the loader resolves the dependency to
-    // we only wnat the path of the resolved file
+    // we only want the path of the resolved file
     dependency = stripLoader(dependency);
 
     const lookupPath = isRelative(dependency) ? path.dirname(filename) : directory;
@@ -436,4 +461,24 @@ function stripLoader(dependency) {
   if (exclamationLocation === -1) { return dependency; }
 
   return dependency.slice(exclamationLocation + 1);
+}
+
+function addParsedConfigToCache(key, value) {
+  const _key = typeof key === 'string' ? key : JSON.stringify(key);
+  cachedParsedConfigs.set(_key, value);
+}
+
+function getParsedConfigFromCache(key) {
+  const _key = typeof key === 'string' ? key : JSON.stringify(key);
+  return cachedParsedConfigs.get(_key);
+}
+
+/**
+ * Clear any caches of parsed tsConfig and webpackConfig
+ *
+ * @returns {void}
+ */
+
+module.exports.clearCachedConfigs = function() {
+  cachedParsedConfigs.clear();
 }
