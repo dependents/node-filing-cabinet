@@ -21,7 +21,8 @@ describe('filing-cabinet', function() {
         '.scss',
         '.sass',
         '.styl',
-        '.less'
+        '.less',
+        '.vue'
       ]);
     });
 

@@ -32,7 +32,8 @@ const defaultLookups = {
   '.sass': sassLookup,
   '.styl': stylusLookup,
   // Less and Sass imports are very similar
-  '.less': sassLookup
+  '.less': sassLookup,
+  '.vue': vueLookup
 };
 
 /**
@@ -373,6 +374,34 @@ function commonJSLookup(options) {
   }
 
   return result;
+}
+
+function vueLookup(options) {
+  const dependency = options.dependency;
+
+  if (!dependency) {
+    debug('blank dependency given. Returning early.');
+    return '';
+  }
+
+  if (dependency.endsWith('.js') || dependency.endsWith('.jsx')) {
+    return jsLookup(options);
+  }
+  if (dependency.endsWith('.ts') || dependency.endsWith('.tsx')) {
+    return tsLookup(options);
+  }
+  if (dependency.endsWith('.scss') || dependency.endsWith('.sass') || dependency.endsWith('.less')) {
+    return sassLookup(options);
+  }
+  if (dependency.endsWith('.styl')) {
+    return stylusLookup(options);
+  }
+
+  if (options.tsConfig || options.tsConfigPath) {
+    return tsLookup(options);
+  }
+
+  return jsLookup(options);
 }
 
 function resolveWebpackPath({dependency, filename, directory, webpackConfig}) {
