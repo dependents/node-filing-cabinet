@@ -252,7 +252,8 @@ function tsLookup({dependency, filename, directory, webpackConfig, tsConfig, tsC
   if (namedModule.resolvedModule) {
     result = namedModule.resolvedModule.resolvedFileName;
     if (namedModule.resolvedModule.extension === '.d.ts' && noTypeDefinitions) {
-      result = ts.resolveJSModule(dependency, path.dirname(filename), host) || result;
+      const resolvedFileNameWithoutExtension = result.replace(namedModule.resolvedModule.extension, '');
+      result = ts.resolveJSModule(resolvedFileNameWithoutExtension, path.dirname(filename), host) || result;
     }
   } else {
     const suffix = '.d.ts';
