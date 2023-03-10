@@ -323,6 +323,29 @@ describe('filing-cabinet', function() {
           );
         });
 
+        it('resolves the import of a file with type-definition to the JS file using custom import paths', function() {
+          const filename = path.join(directory, './index.ts');
+
+          const result = cabinet({
+            partial: '@test/withTypeDef',
+            filename,
+            directory,
+            tsConfig: {
+              compilerOptions: {
+                allowJs: true,
+                moduleResolution: 'node',
+                baseUrl: directory,
+                paths: {
+                  '@test/*': ['*'],
+                }
+              }
+            },
+            noTypeDefinitions: true,
+          });
+
+          assert.equal(result, path.join(directory, 'withTypeDef.js'));
+        });
+
         it('still returns the .d.ts file if no JS file is found', function() {
           const filename = path.join(directory, '/index.ts');
 
