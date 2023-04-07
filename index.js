@@ -242,6 +242,10 @@ function tsLookup({dependency, filename, directory, webpackConfig, tsConfig, tsC
     compilerOptions.module = ts.ModuleKind.AMD;
   }
 
+  if (!compilerOptions.moduleResolution) {
+    compilerOptions.moduleResolution = ts.ModuleResolutionKind.NodeJs;
+  }
+
   const host = ts.createCompilerHost({});
 
   debug('with options: ', compilerOptions);
