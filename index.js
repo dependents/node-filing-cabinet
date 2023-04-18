@@ -160,8 +160,12 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
       debug('could not parse tsconfig');
       throw new Error('could not read tsconfig');
     }
-  } else {
+  } else if ('compilerOptions' in tsConfig) {
+    debug('raw tsconfig json given, parsing');
     compilerOptions = ts.convertCompilerOptionsFromJson(tsConfig.compilerOptions).options;
+  } else {
+    debug('parsed tsconfig given, plucking options');
+    compilerOptions = tsConfig.options;
   }
 
   debug('processed typescript config: ', tsConfig);
