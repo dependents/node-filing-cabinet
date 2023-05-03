@@ -248,7 +248,9 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
       const resolvedFileNameWithoutExtension = result.replace(namedModule.resolvedModule.extension, '');
       try {
         result = ts.resolveJSModule(resolvedFileNameWithoutExtension, path.dirname(filename), host);
-      } catch {}
+      } catch (error) {
+        debug(`ts.resolveJSModule threw an Error: ${error.message}`);
+      }
     }
   } else {
     const suffix = '.d.ts';
