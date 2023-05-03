@@ -391,7 +391,7 @@ function commonJSLookup(options) {
 }
 
 function vueLookup(options) {
-  const dependency = options.dependency;
+  const { dependency } = options;
 
   if (!dependency) {
     debug('blank dependency given. Returning early.');
