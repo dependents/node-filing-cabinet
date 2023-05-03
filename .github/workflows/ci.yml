@@ -2,6 +2,9 @@ name: CI
 
 on:
   push:
+    branches:
+      - "**"
+      - "!dependabot/**"
   pull_request:
   workflow_dispatch:
 
@@ -13,12 +16,13 @@ permissions:
 
 jobs:
   test:
-    name: Node ${{ matrix.node }}
-    runs-on: ubuntu-latest
+    name: Node ${{ matrix.node }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest]
         node: [14, 16, 18, 20]
 
     steps:
