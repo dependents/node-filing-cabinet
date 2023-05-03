@@ -1,6 +1,6 @@
+'use strict';
 
-module.exports = function (w) {
-
+module.exports = function() {
   return {
     files: [
       'index.js',
@@ -9,7 +9,7 @@ module.exports = function (w) {
     ],
 
     tests: [
-      'test/test.js',
+      'test/test.js'
     ],
 
     env: {
