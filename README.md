@@ -1,4 +1,8 @@
-### filing-cabinet [![CI](https://img.shields.io/github/actions/workflow/status/dependents/node-filing-cabinet/ci.yml?branch=main&label=CI&logo=github)](https://github.com/dependents/node-filing-cabinet/actions/workflows/ci.yml?query=branch%3Amain) [![npm version](https://img.shields.io/npm/v/filing-cabinet?logo=npm&logoColor=fff)](https://www.npmjs.com/package/filing-cabinet) [![npm downloads](https://img.shields.io/npm/dm/filing-cabinet)](https://www.npmjs.com/package/filing-cabinet)
+# filing-cabinet
+
+[![CI](https://img.shields.io/github/actions/workflow/status/dependents/node-filing-cabinet/ci.yml?branch=main&label=CI&logo=github)](https://github.com/dependents/node-filing-cabinet/actions/workflows/ci.yml?query=branch%3Amain)
+[![npm version](https://img.shields.io/npm/v/filing-cabinet?logo=npm&logoColor=fff)](https://www.npmjs.com/package/filing-cabinet)
+[![npm downloads](https://img.shields.io/npm/dm/filing-cabinet)](https://www.npmjs.com/package/filing-cabinet)
 
 > Get the file associated with a dependency/partial's path
 
