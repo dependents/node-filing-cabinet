@@ -1,331 +1,298 @@
 'use strict';
 
-const assert = require('assert');
-const sinon = require('sinon');
-const path = require('path');
+const assert = require('assert').strict;
 const fs = require('fs');
-const ts = require('typescript');
+const path = require('path');
+const sinon = require('sinon');
+const cabinet = require('../index.js');
+const mockAST = require('./fixtures/ast.js');
 
-const mockAST = require('./ast');
-
-const cabinet = require('../index');
-
-describe('filing-cabinet', function() {
-  describe('JavaScript', function() {
-    it('dangles off its supported file extensions', function() {
-      assert.deepEqual(cabinet.supportedFileExtensions, [
+describe('filing-cabinet', () => {
+  describe('JavaScript', () => {
+    it('dangles off its supported file extensions', () => {
+      const actual = cabinet.supportedFileExtensions.sort();
+      const expected = [
         '.js',
         '.jsx',
-        '.ts',
-        '.tsx',
-        '.scss',
+        '.less',
         '.sass',
+        '.scss',
         '.styl',
-        '.less'
-      ]);
+        '.ts',
+        '.tsx'
+      ].sort();
+      assert.deepEqual(actual, expected);
     });
 
-    it('uses a generic resolve for unsupported file extensions', function() {
-      var result = cabinet({
+    it('uses a generic resolve for unsupported file extensions', () => {
+      const result = cabinet({
         partial: './bar',
-        filename: path.join(__dirname, 'js/commonjs/foo.baz'),
-        directory: path.join(__dirname, 'js/commonjs/')
+        filename: path.join(__dirname, 'fixtures/js/commonjs/foo.baz'),
+        directory: path.join(__dirname, 'fixtures/js/commonjs/')
       });
-
-      assert.equal(result, path.join(__dirname, 'js/commonjs/bar.baz'));
+      const expected = path.join(__dirname, 'fixtures/js/commonjs/bar.baz');
+      assert.equal(result, expected);
     });
 
-    it('does not throw a runtime exception when using resolve dependency path (#71)', function() {
-      assert.doesNotThrow(function() {
+    it('does not throw a runtime exception when using resolve dependency path (#71)', () => {
+      assert.doesNotThrow(() => {
         cabinet({
           partial: './bar',
-          filename: path.join(__dirname, 'js/commonjs/foo.baz'),
-          directory: path.join(__dirname, 'js/commonjs/')
+          filename: path.join(__dirname, 'fixtures/js/commonjs/foo.baz'),
+          directory: path.join(__dirname, 'fixtures/js/commonjs/')
         });
       });
     });
 
-    describe('when given an ast for a JS file', function() {
-      it('resolves the partial successfully', function() {
+    describe('when given an ast for a JS file', () => {
+      it('resolves the partial successfully', () => {
         const result = cabinet({
           partial: './bar',
-          filename: path.join(__dirname, 'js/es6/foo.js'),
-          directory: path.join(__dirname, 'js/es6/'),
+          filename: path.join(__dirname, 'fixtures/js/es6/foo.js'),
+          directory: path.join(__dirname, 'fixtures/js/es6/'),
           ast: mockAST
         });
-
-        assert.equal(result, path.join(__dirname, 'js/es6/bar.js'));
+        const expected = path.join(__dirname, 'fixtures/js/es6/bar.js');
+        assert.equal(result, expected);
       });
     });
 
-    describe('when not given an ast', function() {
-      it('uses the filename to look for the module type', function() {
-        const options = {
-          partial: './bar',
-          filename: path.join(__dirname, 'js/es6/foo.js'),
-          directory: path.join(__dirname, 'js/es6/')
-        };
-
-        const result = cabinet(options);
-
-        assert.equal(result, path.join(__dirname, 'js/es6/bar.js'));
-      });
-    });
-
-    describe('es6', function() {
-      it('assumes commonjs for es6 modules with no requirejs/webpack config', function() {
+    describe('when not given an ast', () => {
+      it('uses the filename to look for the module type', () => {
         const result = cabinet({
           partial: './bar',
-          filename: path.join(__dirname, 'js/es6/foo.js'),
-          directory: path.join(__dirname, 'js/es6/')
+          filename: path.join(__dirname, 'fixtures/js/es6/foo.js'),
+          directory: path.join(__dirname, 'fixtures/js/es6/')
         });
-
-        assert.equal(result, path.join(__dirname, 'js/es6/bar.js'));
+        const expected = path.join(__dirname, 'fixtures/js/es6/bar.js');
+        assert.equal(result, expected);
       });
+    });
 
-      it('assumes amd for es6 modules with a requirejs config', function() {
+    describe('es6', () => {
+      it('assumes commonjs for es6 modules with no requirejs/webpack config', () => {
         const result = cabinet({
           partial: './bar',
-          filename: path.join(__dirname, 'js/es6/foo.js'),
-          directory: path.join(__dirname, 'js/es6/'),
+          filename: path.join(__dirname, 'fixtures/js/es6/foo.js'),
+          directory: path.join(__dirname, 'fixtures/js/es6/')
+        });
+        const expected = path.join(__dirname, 'fixtures/js/es6/bar.js');
+        assert.equal(result, expected);
+      });
+
+      it('assumes amd for es6 modules with a requirejs config', () => {
+        const result = cabinet({
+          partial: './bar',
+          filename: path.join(__dirname, 'fixtures/js/es6/foo.js'),
+          directory: path.join(__dirname, 'fixtures/js/es6/'),
           config: {
             baseUrl: './'
           }
         });
-
-        assert.equal(result, path.join(__dirname, 'js/es6/bar.js'));
+        const expected = path.join(__dirname, 'fixtures/js/es6/bar.js');
+        assert.equal(path.normalize(result), expected);
       });
 
-      describe('when given a lazy import with interpolation', function() {
-        it('does not throw', function() {
+      describe('when given a lazy import with interpolation', () => {
+        it('does not throw', () => {
           assert.doesNotThrow(() => {
             cabinet({
+              // eslint-disable-next-line no-template-curly-in-string
               partial: '`modulename/locales/${locale}`',
-              filename: path.join(__dirname, 'js/es6/lazy.js'),
-              directory: path.join(__dirname, 'js/es6/')
+              filename: path.join(__dirname, 'fixtures/js/es6/lazy.js'),
+              directory: path.join(__dirname, 'fixtures/js/es6/')
             });
           });
         });
       });
 
-      describe('when given an undefined dependency', function() {
-        it('does not throw', function() {
+      describe('when given an undefined dependency', () => {
+        it('does not throw', () => {
           assert.doesNotThrow(() => {
             cabinet({
               partial: undefined,
-              filename: path.join(__dirname, 'js/es6/lazy.js'),
-              directory: path.join(__dirname, 'js/es6/')
+              filename: path.join(__dirname, 'fixtures/js/es6/lazy.js'),
+              directory: path.join(__dirname, 'fixtures/js/es6/')
             });
           });
         });
       });
     });
 
-    describe('jsx', function() {
-      it('resolves files with the .jsx extension', function() {
+    describe('jsx', () => {
+      it('resolves files with the .jsx extension', () => {
         const result = cabinet({
           partial: './bar',
-          filename: path.join(__dirname, 'js/es6/foo.jsx'),
-          directory: path.join(__dirname, 'js/es6/')
+          filename: path.join(__dirname, 'fixtures/js/es6/foo.jsx'),
+          directory: path.join(__dirname, 'fixtures/js/es6/')
         });
-
-        assert.equal(result, path.join(__dirname, 'js/es6/bar.js'));
+        const expected = path.join(__dirname, 'fixtures/js/es6/bar.js');
+        assert.equal(result, expected);
       });
     });
 
-    describe('amd', function() {
-      it('uses the amd resolver', function() {
+    describe('amd', () => {
+      it('uses the amd resolver', () => {
         const result = cabinet({
           partial: './bar',
-          filename: path.join(__dirname, 'js/amd/foo.js'),
-          directory: path.join(__dirname, 'js/amd/')
+          filename: path.join(__dirname, 'fixtures/js/amd/foo.js'),
+          directory: path.join(__dirname, 'fixtures/js/amd/')
         });
-
-        assert.equal(result, path.join(__dirname, 'js/amd/bar.js'));
+        const expected = path.join(__dirname, 'fixtures/js/amd/bar.js');
+        assert.equal(path.normalize(result), expected);
       });
 
-      it('passes along arguments', function() {
-        const config = {baseUrl: 'js'};
-
+      it('passes along arguments', () => {
+        const config = {
+          baseUrl: 'js'
+        };
         const result = cabinet({
           partial: './bar',
           config,
-          filename: path.join(__dirname, 'js/amd/foo.js'),
-          directory: path.join(__dirname, 'js/amd/')
+          filename: path.join(__dirname, 'fixtures/js/amd/foo.js'),
+          directory: path.join(__dirname, 'fixtures/js/amd/')
         });
-
-        assert.equal(result, path.join(__dirname, 'js/amd/bar.js'));
+        const expected = path.join(__dirname, 'fixtures/js/amd/bar.js');
+        assert.equal(path.normalize(result), expected);
       });
     });
 
-    describe('commonjs', function() {
-      it('resolves a relative partial about the filename', function() {
+    describe('commonjs', () => {
+      it('resolves a relative partial about the filename', () => {
         const result = cabinet({
           partial: './bar',
-          filename: path.join(__dirname, 'js/commonjs/foo.js'),
-          directory: path.join(__dirname, 'js/commonjs/')
+          filename: path.join(__dirname, 'fixtures/js/commonjs/foo.js'),
+          directory: path.join(__dirname, 'fixtures/js/commonjs/')
         });
-
-        assert.equal(result, path.join(__dirname, 'js/commonjs/bar.js'));
+        const expected = path.join(__dirname, 'fixtures/js/commonjs/bar.js');
+        assert.equal(result, expected);
       });
 
-      it('returns an empty string for an unresolved module', function() {
+      it('returns an empty string for an unresolved module', () => {
         const result = cabinet({
           partial: 'foobar',
-          filename: path.join(__dirname, 'js/commonjs/foo.js'),
-          directory: path.join(__dirname, 'js/commonjs/')
+          filename: path.join(__dirname, 'fixtures/js/commonjs/foo.js'),
+          directory: path.join(__dirname, 'fixtures/js/commonjs/')
         });
-
-        assert.equal(result, '');
+        const expected = '';
+        assert.equal(result, expected);
       });
 
-      it('resolves a .. partial to its parent directory\'s index.js file', function() {
+      it('resolves a .. partial to its parent directory\'s index.js file', () => {
         const result = cabinet({
           partial: '../',
-          filename: path.join(__dirname, 'js/commonjs/subdir/module.js'),
-          directory: path.join(__dirname, 'js/commonjs/')
+          filename: path.join(__dirname, 'fixtures/js/commonjs/subdir/module.js'),
+          directory: path.join(__dirname, 'fixtures/js/commonjs/')
         });
-
-        assert.equal(result, path.join(__dirname, 'js/commonjs/index.js'));
+        const expected = path.join(__dirname, 'fixtures/js/commonjs/index.js');
+        assert.equal(result, expected);
       });
 
-      it('resolves a partial within a directory outside of the given file', function() {
+      it('resolves a partial within a directory outside of the given file', () => {
         const result = cabinet({
           partial: 'subdir',
-          filename: path.join(__dirname, 'js/commonjs/test/index.spec.js'),
-          directory: path.join(__dirname, 'js/commonjs/')
+          filename: path.join(__dirname, 'fixtures/js/commonjs/test/index.spec.js'),
+          directory: path.join(__dirname, 'fixtures/js/commonjs/')
         });
-
-        assert.equal(result, path.join(__dirname, 'js/commonjs/subdir/index.js'));
+        const expected = path.join(__dirname, 'fixtures/js/commonjs/subdir/index.js');
+        assert.equal(result, expected);
       });
 
-      it('resolves a node module with module entry in package.json', function() {
+      it('resolves a node module with module entry in package.json', () => {
         const result = cabinet({
           partial: 'module.entry',
-          filename: path.join(__dirname, 'js/commonjs/module-entry.js'),
-          directory: path.join(__dirname, 'js/commonjs/'),
+          filename: path.join(__dirname, 'fixtures/js/commonjs/module-entry.js'),
+          directory: path.join(__dirname, 'fixtures/js/commonjs/'),
           nodeModulesConfig: {
             entry: 'module'
           }
         });
-
-        assert.equal(
-          result,
-          path.join(
-            __dirname,
-            'js/node_modules/module.entry/index.module.js'
-          )
-        );
+        const expected = path.join(__dirname, 'fixtures/js/node_modules/module.entry/index.module.js');
+        assert.equal(result, expected);
       });
 
-      it('resolves a nested module', function() {
+      it('resolves a nested module', () => {
         const result = cabinet({
           partial: 'lodash.assign',
-          filename: path.join(__dirname, 'js/node_modules/nested/index.js'),
-          directory: path.join(__dirname, 'js/node_modules/nested/')
+          filename: path.join(__dirname, 'fixtures/js/node_modules/nested/index.js'),
+          directory: path.join(__dirname, 'fixtures/js/node_modules/nested/')
         });
-
-        assert.equal(
-          result,
-          path.join(
-            __dirname,
-            'js/node_modules/nested/node_modules/lodash.assign/index.js'
-          )
-        );
+        const expected = path.join(__dirname, 'fixtures/js/node_modules/nested/node_modules/lodash.assign/index.js');
+        assert.equal(result, expected);
       });
 
-      it('resolves to the index.js file of a directory', function() {
+      it('resolves to the index.js file of a directory', () => {
         const result = cabinet({
           partial: './subdir',
-          filename: path.join(__dirname, 'js/withIndex/index.js'),
-          directory: path.join(__dirname, 'js/withIndex')
+          filename: path.join(__dirname, 'fixtures/js/withIndex/index.js'),
+          directory: path.join(__dirname, 'fixtures/js/withIndex')
         });
-
-        assert.equal(
-          result,
-          path.join(__dirname, 'js/withIndex/subdir/index.js')
-        );
+        const expected = path.join(__dirname, 'fixtures/js/withIndex/subdir/index.js');
+        assert.equal(result, expected);
       });
 
-      it('resolves implicit .jsx requires', function() {
+      it('resolves implicit .jsx requires', () => {
         const result = cabinet({
           partial: './bar',
-          filename: path.join(__dirname, 'js/cjs/foo.js'),
-          directory: path.join(__dirname, 'js/cjs/')
+          filename: path.join(__dirname, 'fixtures/js/cjs/foo.js'),
+          directory: path.join(__dirname, 'fixtures/js/cjs/')
         });
-
-        assert.equal(result, path.join(__dirname, 'js/cjs/bar.jsx'));
+        const expected = path.join(__dirname, 'fixtures/js/cjs/bar.jsx');
+        assert.equal(result, expected);
       });
     });
 
-    describe('typescript', function() {
-      const directory = path.join(__dirname, 'ts');
+    describe('typescript', () => {
+      const directory = path.join(__dirname, 'fixtures/ts');
 
-      it('resolves an import', function() {
+      it('resolves an import', () => {
         const filename = path.join(directory, 'index.ts');
-
         const result = cabinet({
           partial: './foo',
           filename,
           directory
         });
-
-        assert.equal(
-          result,
-          path.join(directory, 'foo.ts')
-        );
+        const expected = path.join(directory, 'foo.ts');
+        assert.equal(result, expected);
       });
 
-      it('resolves the import within a tsx file', function() {
+      it('resolves the import within a tsx file', () => {
         const filename = path.join(directory, 'module.tsx');
-
         const result = cabinet({
           partial: './foo',
           filename,
           directory
         });
-
-        assert.equal(
-          result,
-          path.join(directory, 'foo.ts')
-        );
+        const expected = path.join(directory, 'foo.ts');
+        assert.equal(result, expected);
       });
 
-      it('resolves the import of a file with type-definition', function() {
+      it('resolves the import of a file with type-definition', () => {
         const filename = path.join(directory, 'index.ts');
-
         const result = cabinet({
           partial: './withTypeDef',
           filename,
           directory
         });
-
-        assert.equal(
-          result,
-          path.join(directory, 'withTypeDef.d.ts')
-        );
+        const expected = path.join(directory, 'withTypeDef.d.ts');
+        assert.equal(result, expected);
       });
 
       describe('when noTypeDefinitions is set', () => {
-        it('resolves the import of a file with type-definition to the JS file', function() {
+        it('resolves the import of a file with type-definition to the JS file', () => {
           const filename = path.join(directory, '/index.ts');
-
           const result = cabinet({
             partial: './withTypeDef',
             filename,
             directory,
             noTypeDefinitions: true
           });
-
-          assert.equal(
-            result,
-            path.join(directory, 'withTypeDef.js')
-          );
+          const expected = path.join(directory, 'withTypeDef.js');
+          assert.equal(result, expected);
         });
 
-        it('resolves the import of a file with type-definition to the JS file using custom import paths', function() {
+        it('resolves the import of a file with type-definition to the JS file using custom import paths', () => {
           const filename = path.join(directory, './index.ts');
-
           const result = cabinet({
             partial: '@test/withTypeDef',
             filename,
@@ -336,115 +303,100 @@ describe('filing-cabinet', function() {
                 moduleResolution: 'node',
                 baseUrl: directory,
                 paths: {
-                  '@test/*': ['*'],
+                  '@test/*': ['*']
                 }
               }
             },
-            noTypeDefinitions: true,
+            noTypeDefinitions: true
           });
-
-          assert.equal(result, path.join(directory, 'withTypeDef.js'));
+          const expected = path.join(directory, 'withTypeDef.js');
+          assert.equal(result, expected);
         });
 
-        it('still returns the .d.ts file if no JS file is found', function() {
+        it('still returns the .d.ts file if no JS file is found', () => {
           const filename = path.join(directory, '/index.ts');
-
           const result = cabinet({
             partial: './withOnlyTypeDef.d.ts',
             filename,
             directory,
             noTypeDefinitions: true
           });
-
-          assert.equal(
-            result,
-            path.join(directory, 'withOnlyTypeDef.d.ts')
-          );
+          const expected = path.join(directory, 'withOnlyTypeDef.d.ts');
+          assert.equal(result, expected);
         });
       });
 
-      describe('when a partial does not exist', function() {
-        it('returns an empty result', function() {
+      describe('when a partial does not exist', () => {
+        it('returns an empty result', () => {
           const filename = path.join(directory, 'index.ts');
-
           const result = cabinet({
             partial: './barbar',
             filename,
             directory
           });
-
-          assert.equal(result, '');
+          const expected = '';
+          assert.equal(result, expected);
         });
       });
 
-      describe('when given a tsconfig', function() {
-        describe('as an object', function() {
-          it('resolves the module name', function() {
+      describe('when given a tsconfig', () => {
+        describe('as an object', () => {
+          it('resolves the module name', () => {
             const filename = path.join(directory, 'index.ts');
-
             const tsConfigPath = path.join(directory, '.tsconfig');
-            const parsedConfig = JSON.parse(fs.readFileSync(tsConfigPath, 'utf8'));
-
+            const configContent = fs.readFileSync(tsConfigPath, 'utf8');
+            const parsedConfig = JSON.parse(configContent);
             const result = cabinet({
               partial: './foo',
               filename,
               directory,
               tsConfig: parsedConfig
             });
-
-            assert.equal(result, path.join(directory, 'foo.ts'));
+            const expected = path.join(directory, 'foo.ts');
+            assert.equal(result, expected);
           });
 
-          it('finds import from child subdirectories when using node module resolution', function() {
+          it('finds import from child subdirectories when using node module resolution', () => {
             const filename = path.join(directory, 'check-nested.ts');
-
             const result = cabinet({
               partial: './subdir',
               filename,
               directory,
               tsConfig: {
-                compilerOptions: {module: 'commonjs', moduleResolution: 'node'}
+                compilerOptions: {
+                  module: 'commonjs',
+                  moduleResolution: 'node'
+                }
               }
             });
-
-            assert.equal(
-              result,
-              path.join(directory, '/subdir/index.tsx')
-            );
+            const expected = path.join(directory, '/subdir/index.tsx');
+            assert.equal(result, expected);
           });
 
-          it('finds import from child subdirectories when using node module resolution in extended config', function() {
+          it('finds import from child subdirectories when using node module resolution in extended config', () => {
             const result = cabinet({
               partial: './subdir',
               filename: path.join(directory, 'check-nested.ts'),
               directory,
               tsConfig: path.join(directory, '.tsconfigExtending')
             });
-
-            assert.equal(
-                result,
-                path.join(directory, 'subdir/index.tsx')
-            );
+            const expected = path.join(directory, '/subdir/index.tsx');
+            assert.equal(result, expected);
           });
 
-          it('finds imports of non-typescript files', function() {
+          it('finds imports of non-typescript files', () => {
             const filename = path.join(directory, '/index.ts');
-
             const result = cabinet({
               partial: './image.svg',
               filename,
               directory
             });
-
-            assert.equal(
-              result,
-              path.join(directory, '/image.svg')
-            );
+            const expected = path.join(directory, '/image.svg');
+            assert.equal(result, expected);
           });
 
-          it('finds imports of non-typescript files using custom import paths', function() {
+          it('finds imports of non-typescript files using custom import paths', () => {
             const filename = path.join(directory, '/index.ts');
-
             const result = cabinet({
               partial: '@shortcut/subimage.svg',
               filename,
@@ -454,56 +406,52 @@ describe('filing-cabinet', function() {
                   moduleResolution: 'node',
                   baseUrl: directory,
                   paths: {
-                    '@shortcut/*': ['subdir/*'],
+                    '@shortcut/*': ['subdir/*']
                   }
                 }
               }
             });
-
-            assert.equal(
-              result,
-              path.join(directory, 'subdir/subimage.svg')
-            );
+            const expected = path.join(directory, 'subdir/subimage.svg');
+            assert.equal(result, expected);
           });
 
-          it('finds imports of non-typescript files from node_modules', function() {
+          it('finds imports of non-typescript files from node_modules', () => {
             const filename = path.join(directory, 'index.ts');
-
             const result = cabinet({
               partial: 'image/npm-image.svg',
               filename,
               directory,
               tsConfig: {
-                compilerOptions: {moduleResolution: 'node'}
+                compilerOptions: {
+                  moduleResolution: 'node'
+                }
               }
             });
-
-            assert.equal(
-              result,
-              path.join(directory, 'node_modules/image/npm-image.svg')
+            const expected = path.join(
+              directory,
+              'node_modules/image/npm-image.svg'
             );
+            assert.equal(result, expected);
           });
 
-          it('finds imports of typescript files from non-typescript files with allowJs option (#89)', function() {
+          it('finds imports of typescript files from non-typescript files with allowJs option (#89)', () => {
             const filename = path.join(directory, '/bar.js');
-
             const result = cabinet({
               partial: './foo',
               filename,
               directory,
               tsConfig: {
-                compilerOptions: {allowJs: true}
+                compilerOptions: {
+                  allowJs: true
+                }
               }
             });
-            assert.equal(
-              result,
-              path.join(directory, '/foo.ts')
-            );
+            const expected = path.join(directory, '/foo.ts');
+            assert.equal(result, expected);
           });
 
-          it('finds imports using custom import paths from javascript files with allowJs option', function() {
+          it('finds imports using custom import paths from javascript files with allowJs option', () => {
             const filename = path.join(directory, '/bar.js');
-
             const result = cabinet({
               partial: '@shortcut/subimage.svg',
               filename,
@@ -514,76 +462,71 @@ describe('filing-cabinet', function() {
                   moduleResolution: 'node',
                   baseUrl: directory,
                   paths: {
-                    '@shortcut/*': ['subdir/*'],
+                    '@shortcut/*': ['subdir/*']
                   }
                 }
               }
             });
-
-            assert.equal(
-              result,
-              path.join(directory, 'subdir/subimage.svg')
-            );
+            const expected = path.join(directory, 'subdir/subimage.svg');
+            assert.equal(result, expected);
           });
         });
 
-        describe('as a string', function() {
-          it('parses the string into an object', function() {
+        describe('as a string', () => {
+          it('parses the string into an object', () => {
             const filename = path.join(directory, 'index.ts');
-
             const result = cabinet({
               partial: './foo',
               filename,
               directory,
               tsConfig: path.join(directory, '.tsconfig')
             });
-
-            assert.equal(result, path.join(directory, 'foo.ts'));
+            const expected = path.join(directory, 'foo.ts');
+            assert.equal(result, expected);
           });
         });
 
-        describe(`when the typescript's path mapping is configured`, function() {
-          it('should resolve the path', function() {
+        describe('when the typescript\'s path mapping is configured', () => {
+          it('should resolve the path', () => {
             const result = cabinet({
               partial: '#foo/hello',
-              filename: path.resolve(__dirname, 'root3', 'packages', 'foo', 'index.ts'),
-              directory: path.resolve(__dirname, 'root3'),
+              filename: path.resolve(__dirname, 'fixtures/root3/packages/foo/index.ts'),
+              directory: path.resolve(__dirname, 'fixtures/root3'),
               tsConfig: {
-                'compilerOptions': {
-                  'rootDir': '.',
-                  'baseUrl': 'packages',
-                  'paths': {
+                compilerOptions: {
+                  rootDir: '.',
+                  baseUrl: 'packages',
+                  paths: {
                     '@monorepo/*': ['*'],
                     '#foo/*': ['foo/*'],
                     '#bar/*': ['bar/*'],
                     '#*': ['*']
-                  },
-                },
+                  }
+                }
               },
-              tsConfigPath: path.resolve(__dirname, 'root3', 'tsconfig.json'),
+              tsConfigPath: path.resolve(__dirname, 'fixtures/root3/tsconfig.json')
             });
-            const expected = path.resolve(__dirname, 'root3', 'packages', 'foo', 'hello.ts');
+            const expected = path.resolve(__dirname, 'fixtures/root3/packages/foo/hello.ts');
             assert.equal(result, expected);
           });
         });
       });
 
-      describe('when not given a tsconfig', function() {
-        it('resolves the module', function() {
+      describe('when not given a tsconfig', () => {
+        it('resolves the module', () => {
           const filename = path.join(directory, 'index.ts');
-
           const result = cabinet({
             partial: './foo',
             filename,
             directory
           });
-
-          assert.equal(result, path.join(directory, 'foo.ts'));
+          const expected = path.join(directory, 'foo.ts');
+          assert.equal(result, expected);
         });
       });
 
-      describe('when given a tsconfig and webpack config', function() {
-        it('resolves the module', function() {
+      describe('when given a tsconfig and webpack config', () => {
+        it('resolves the module', () => {
           const result = cabinet({
             partial: './subdir',
             filename: path.join(directory, 'check-nested.ts'),
@@ -591,120 +534,111 @@ describe('filing-cabinet', function() {
             tsConfig: path.join(directory, '.tsconfigExtending'),
             webpackConfig: path.join(directory, 'webpack.config.js')
           });
-
-          assert.equal(
-            result,
-            path.join(directory, 'subdir/index.tsx')
-          );
+          const expected = path.join(directory, 'subdir/index.tsx');
+          assert.equal(result, expected);
         });
       });
     });
   });
 
-  describe('CSS', function() {
-    describe('sass', function() {
-      it('uses the sass resolver for .scss files', function() {
+  describe('CSS', () => {
+    describe('less', () => {
+      it('resolves extensionless partials', () => {
         const result = cabinet({
           partial: 'bar',
-          filename: path.join(__dirname, 'sass/foo.scss'),
-          directory: path.join(__dirname, 'sass/')
+          filename: path.join(__dirname, 'fixtures/less/foo.less'),
+          directory: path.join(__dirname, 'fixtures/less/')
         });
-
-        const expected = path.join(__dirname, 'sass/bar.scss');
+        const expected = path.join(__dirname, 'fixtures/less/bar.less');
         assert.equal(result, expected);
       });
 
-      it('uses the sass resolver for .sass files', function() {
-        const result = cabinet({
-          partial: 'bar',
-          filename: path.join(__dirname, 'sass/foo.sass'),
-          directory: path.join(__dirname, 'sass/')
-        });
-
-        const expected = path.join(__dirname, 'sass/bar.sass');
-        assert.equal(result, expected);
-      });
-    });
-
-    describe('stylus', function() {
-      it('uses the stylus resolver', function() {
-        const result = cabinet({
-          partial: 'bar',
-          filename: path.join(__dirname, 'stylus/foo.styl'),
-          directory: path.join(__dirname, 'stylus/')
-        });
-
-        const expected = path.join(__dirname, 'stylus/bar.styl');
-        assert.equal(result, expected);
-      });
-    });
-
-    describe('less', function() {
-      it('resolves extensionless partials', function() {
-        const result = cabinet({
-          partial: 'bar',
-          filename: path.join(__dirname, 'less/foo.less'),
-          directory: path.join(__dirname, 'less/')
-        });
-
-        const expected = path.join(__dirname, 'less/bar.less');
-        assert.equal(result, expected);
-      });
-
-      it('resolves partials with a less extension', function() {
+      it('resolves partials with a less extension', () => {
         const result = cabinet({
           partial: 'bar.less',
-          filename: path.join(__dirname, 'less/foo.less'),
-          directory: path.join(__dirname, 'less/')
+          filename: path.join(__dirname, 'fixtures/less/foo.less'),
+          directory: path.join(__dirname, 'fixtures/less/')
         });
-
-        const expected = path.join(__dirname, 'less/bar.less');
+        const expected = path.join(__dirname, 'fixtures/less/bar.less');
         assert.equal(result, expected);
       });
 
-      it('resolves partials with a css extension', function() {
+      it('resolves partials with a css extension', () => {
         const result = cabinet({
           partial: 'bar.css',
-          filename: path.join(__dirname, 'less/foo.less'),
-          directory: path.join(__dirname, 'less/')
+          filename: path.join(__dirname, 'fixtures/less/foo.less'),
+          directory: path.join(__dirname, 'fixtures/less/')
         });
+        const expected = path.join(__dirname, 'fixtures/less/bar.css');
+        assert.equal(result, expected);
+      });
+    });
 
-        const expected = path.join(__dirname, 'less/bar.css');
+    describe('sass', () => {
+      it('uses the sass resolver for .sass files', () => {
+        const result = cabinet({
+          partial: 'bar',
+          filename: path.join(__dirname, 'fixtures/sass/foo.sass'),
+          directory: path.join(__dirname, 'fixtures/sass/')
+        });
+        const expected = path.join(__dirname, 'fixtures/sass/bar.sass');
+        assert.equal(result, expected);
+      });
+
+      it('uses the sass resolver for .scss files', () => {
+        const result = cabinet({
+          partial: 'bar',
+          filename: path.join(__dirname, 'fixtures/sass/foo.scss'),
+          directory: path.join(__dirname, 'fixtures/sass/')
+        });
+        const expected = path.join(__dirname, 'fixtures/sass/bar.scss');
+        assert.equal(result, expected);
+      });
+    });
+
+    describe('stylus', () => {
+      it('uses the stylus resolver', () => {
+        const result = cabinet({
+          partial: 'bar',
+          filename: path.join(__dirname, 'fixtures/stylus/foo.styl'),
+          directory: path.join(__dirname, 'fixtures/stylus/')
+        });
+        const expected = path.join(__dirname, 'fixtures/stylus/bar.styl');
         assert.equal(result, expected);
       });
     });
   });
 
-  describe('.register', function() {
-    it('registers a custom resolver for a given extension', function() {
+  describe('.register', () => {
+    it('registers a custom resolver for a given extension', () => {
       const stub = sinon.stub().returns('foo.foobar');
       cabinet.register('.foobar', stub);
 
-      const path = cabinet({
+      const expectedPath = cabinet({
         partial: './bar',
         filename: 'js/custom/foo.foobar',
         directory: 'js/custom/'
       });
 
       assert.ok(stub.called);
-      assert.equal(path, 'foo.foobar');
+      assert.equal(expectedPath, 'foo.foobar');
       cabinet.unregister('.foobar');
     });
 
-    it('does not break default resolvers', function() {
+    it('does not break default resolvers', () => {
       const stub = sinon.stub().returns('foo.foobar');
       cabinet.register('.foobar', stub);
 
       cabinet({
         partial: './bar',
-        filename: path.join(__dirname, 'js/custom/foo.foobar'),
-        directory: path.join(__dirname, 'js/custom/')
+        filename: path.join(__dirname, 'fixtures/js/custom/foo.foobar'),
+        directory: path.join(__dirname, 'fixtures/js/custom/')
       });
 
       const result = cabinet({
         partial: './bar',
-        filename: path.join(__dirname, 'stylus/foo.styl'),
-        directory: path.join(__dirname, 'stylus/')
+        filename: path.join(__dirname, 'fixtures/stylus/foo.styl'),
+        directory: path.join(__dirname, 'fixtures/stylus/')
       });
 
       assert.ok(stub.called);
@@ -713,7 +647,7 @@ describe('filing-cabinet', function() {
       cabinet.unregister('.foobar');
     });
 
-    it('can be called multiple times', function() {
+    it('can be called multiple times', () => {
       const stub = sinon.stub().returns('foo');
       const stub2 = sinon.stub().returns('foo');
 
@@ -722,14 +656,14 @@ describe('filing-cabinet', function() {
 
       cabinet({
         partial: './bar',
-        filename: path.join(__dirname, 'js/custom/foo.foobar'),
-        directory: path.join(__dirname, 'js/amd/')
+        filename: path.join(__dirname, 'fixtures/js/custom/foo.foobar'),
+        directory: path.join(__dirname, 'fixtures/js/amd/')
       });
 
       cabinet({
         partial: './bar',
-        filename: path.join(__dirname, 'js/custom/foo.barbar'),
-        directory: path.join(__dirname, 'js/custom/')
+        filename: path.join(__dirname, 'fixtures/js/custom/foo.barbar'),
+        directory: path.join(__dirname, 'fixtures/js/custom/')
       });
 
       assert.ok(stub.called);
@@ -739,149 +673,153 @@ describe('filing-cabinet', function() {
       cabinet.unregister('.barbar');
     });
 
-    it('does not add redundant extensions to supportedFileExtensions', function() {
-      const stub = sinon.stub;
+    it('does not add redundant extensions to supportedFileExtensions', () => {
+      const { stub } = sinon;
       const newExt = '.foobar';
 
       cabinet.register(newExt, stub);
       cabinet.register(newExt, stub);
 
-      const {supportedFileExtensions} = cabinet;
+      const { supportedFileExtensions } = cabinet;
 
-      assert.equal(supportedFileExtensions.indexOf(newExt), supportedFileExtensions.lastIndexOf(newExt));
+      assert.equal(
+        supportedFileExtensions.indexOf(newExt),
+        supportedFileExtensions.lastIndexOf(newExt)
+      );
     });
   });
 
-  describe('webpack', function() {
-    let directory = path.join(__dirname, 'webpack');
+  describe('webpack', () => {
+    const directory = path.join(__dirname, 'fixtures/webpack');
 
     function testResolution(partial, expected) {
-      const resolved = cabinet({
+      const result = cabinet({
         partial,
         filename: path.join(directory, 'index.js'),
         directory,
         webpackConfig: path.join(directory, 'webpack.config.js')
       });
-
-      assert.equal(resolved, expected);
+      assert.equal(result, expected);
     }
 
-    it('resolves an aliased path', function() {
-      testResolution('R', path.join(directory, 'node_modules/resolve/index.js'));
+    it('resolves an aliased path', () => {
+      const partial = 'R';
+      const expected = path.join(directory, 'node_modules/resolve/index.js');
+      testResolution(partial, expected);
     });
 
-    it('resolves a non-aliased path', function() {
-      testResolution('resolve', path.join(directory, 'node_modules/resolve/index.js'));
+    it('resolves a non-aliased path', () => {
+      const partial = 'resolve';
+      const expected = path.join(directory, 'node_modules/resolve/index.js');
+      testResolution(partial, expected);
     });
 
-    it('resolves a relative path', function() {
-      testResolution('./test/ast', path.join(directory, 'test/ast.js'));
+    it('resolves a relative path', () => {
+      const partial = './test/ast';
+      const expected = path.join(directory, 'test/ast.js');
+      testResolution(partial, expected);
     });
 
-    it('resolves an absolute path from a file within a subdirectory', function() {
-      const resolved = cabinet({
+    it('resolves an absolute path from a file within a subdirectory', () => {
+      const result = cabinet({
         partial: 'R',
         filename: path.join(directory, 'test/ast.js'),
         directory,
         webpackConfig: path.join(directory, 'webpack.config.js')
       });
-
       const expected = path.join(directory, 'node_modules/resolve/index.js');
-      assert.equal(resolved, expected);
+      assert.equal(result, expected);
     });
 
-    it('resolves a path using resolve.root', function() {
-      const resolved = cabinet({
+    it('resolves a path using resolve.root', () => {
+      const result = cabinet({
         partial: 'mod1',
         filename: path.join(directory, 'index.js'),
         directory,
         webpackConfig: path.join(directory, 'webpack-root.config.js')
       });
-
       const expected = path.join(directory, 'test/root1/mod1.js');
-      assert.equal(resolved, expected);
+      assert.equal(result, expected);
     });
 
-    it('resolves NPM module when using resolve.root', function() {
-      const resolved = cabinet({
+    it('resolves npm module when using resolve.root', () => {
+      const result = cabinet({
         partial: 'resolve',
         filename: path.join(directory, 'index.js'),
         directory,
         webpackConfig: path.join(directory, 'webpack-root.config.js')
       });
-
       const expected = path.join(directory, 'node_modules/resolve/index.js');
-      assert.equal(resolved, expected);
+      assert.equal(result, expected);
     });
 
-    it('resolves NPM module when using resolve.modulesDirectories', function() {
-      const resolved = cabinet({
+    it('resolves npm module when using resolve.modulesDirectories', () => {
+      const result = cabinet({
         partial: 'resolve',
         filename: path.join(directory, 'index.js'),
         directory,
         webpackConfig: path.join(directory, 'webpack-root.config.js')
       });
-
       const expected = path.join(directory, 'node_modules/resolve/index.js');
-      assert.equal(resolved, expected);
+      assert.equal(result, expected);
     });
 
-    it('resolves a path using resolve.modulesDirectories', function() {
-      const resolved = cabinet({
+    it('resolves a path using resolve.modulesDirectories', () => {
+      const result = cabinet({
         partial: 'mod2',
         filename: path.join(directory, 'index.js'),
         directory,
         webpackConfig: path.join(directory, 'webpack-root.config.js')
       });
-
       const expected = path.join(directory, 'test/root2/mod2.js');
-      assert.equal(resolved, expected);
+      assert.equal(result, expected);
     });
 
-    it('resolves a path using webpack config that exports a function', function() {
-      const resolved = cabinet({
+    it('resolves a path using webpack config that exports a function', () => {
+      const result = cabinet({
         partial: 'R',
         filename: path.join(directory, 'index.js'),
         directory,
         webpackConfig: path.join(directory, 'webpack-env.config.js')
       });
-
       const expected = path.join(directory, 'node_modules/resolve/index.js');
-      assert.equal(resolved, expected);
+      assert.equal(result, expected);
     });
 
-    it('resolves a path using a first configuration', function() {
-      const resolved = cabinet({
+    it('resolves a path using a first configuration', () => {
+      const result = cabinet({
         partial: 'mod1',
         filename: path.join(directory, 'index.js'),
         directory,
         webpackConfig: path.join(directory, 'webpack-multiple.config.js')
       });
-
       const expected = path.join(directory, 'test/root1/mod1.js');
-      assert.equal(resolved, expected);
+      assert.equal(result, expected);
     });
 
-    it('resolves files with a .jsx extension', function() {
-      testResolution('./test/foo.jsx', path.join(directory, 'test/foo.jsx'));
+    it('resolves files with a .jsx extension', () => {
+      const partial = './test/foo.jsx';
+      const expected = path.join(directory, 'test/foo.jsx');
+      testResolution(partial, expected);
     });
 
-    describe('when the partial contains a loader', function() {
-      it('still works', function() {
-        testResolution('hgn!resolve', path.join(directory, 'node_modules/resolve/index.js'));
+    describe('when the partial contains a loader', () => {
+      it('still works', () => {
+        const partial = 'hgn!resolve';
+        const expected = path.join(directory, 'node_modules/resolve/index.js');
+        testResolution(partial, expected);
       });
     });
 
-    it('resolves files with a .ts extension', function() {
-      const resolved = cabinet({
+    it('resolves files with a .ts extension', () => {
+      const result = cabinet({
         partial: 'R',
         filename: path.join(directory, 'index.ts'),
         directory,
         webpackConfig: path.join(directory, 'webpack.config.js')
       });
-
       const expected = path.join(directory, 'node_modules/resolve/index.js');
-      assert.equal(resolved, expected);
+      assert.equal(result, expected);
     });
   });
 });
