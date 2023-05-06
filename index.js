@@ -416,11 +416,22 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
 
   const resolveConfig = { ...loadedConfig.resolve };
 
-  if (!resolveConfig.modules && (resolveConfig.root || resolveConfig.modulesDirectories)) {
+  if (!resolveConfig.modules && (resolveConfig.root || resolveConfig.roots || resolveConfig.modulesDirectories)) {
     resolveConfig.modules = [];
 
-    if (resolveConfig.root) {
+    // `resolve.root` is a string, maybe used in webpack 1.x.
+    // here: https://github.com/webpack/webpack/issues/472#issuecomment-166946925
+    if (typeof resolveConfig.root === 'string') {
+      resolveConfig.modules = [...resolveConfig.modules, resolveConfig.root];
+    }
+
+    if (Array.isArray(resolveConfig.root)) {
       resolveConfig.modules = [...resolveConfig.modules, ...resolveConfig.root];
+    }
+
+    // https://webpack.js.org/configuration/resolve/#resolveroots
+    if (Array.isArray(resolveConfig.roots)) {
+      resolveConfig.modules = [...resolveConfig.modules, ...resolveConfig.roots];
     }
 
     if (resolveConfig.modulesDirectories) {
