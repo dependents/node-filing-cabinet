@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert').strict;
-const fs = require('fs');
+const { readFile } = require('fs/promises');
 const path = require('path');
 const sinon = require('sinon');
 const cabinet = require('../index.js');
@@ -341,10 +341,10 @@ describe('filing-cabinet', () => {
 
       describe('when given a tsconfig', () => {
         describe('as an object', () => {
-          it('resolves the module name', () => {
+          it('resolves the module name', async() => {
             const filename = path.join(directory, 'index.ts');
             const tsConfigPath = path.join(directory, '.tsconfig');
-            const configContent = fs.readFileSync(tsConfigPath, 'utf8');
+            const configContent = await readFile(tsConfigPath, 'utf8');
             const parsedConfig = JSON.parse(configContent);
             const result = cabinet({
               partial: './foo',
