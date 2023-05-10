@@ -45,10 +45,10 @@
   "dependencies": {
     "app-module-path": "^2.2.0",
     "commander": "^10.0.1",
-    "enhanced-resolve": "^5.13.0",
+    "enhanced-resolve": "^5.14.0",
     "is-relative-path": "^1.0.2",
     "module-definition": "^5.0.0",
-    "module-lookup-amd": "^8.0.3",
+    "module-lookup-amd": "^8.0.4",
     "resolve": "^1.22.3",
     "resolve-dependency-path": "^3.0.2",
     "sass-lookup": "^5.0.0",
