@@ -1,7 +1,9 @@
+/* eslint-env mocha */
+
 'use strict';
 
 const assert = require('assert').strict;
-const fs = require('fs');
+const { readFile } = require('fs/promises');
 const path = require('path');
 const sinon = require('sinon');
 const cabinet = require('../index.js');
@@ -342,10 +344,10 @@ describe('filing-cabinet', () => {
 
       describe('when given a tsconfig', () => {
         describe('as an object', () => {
-          it('resolves the module name', () => {
+          it('resolves the module name', async() => {
             const filename = path.join(directory, 'index.ts');
             const tsConfigPath = path.join(directory, '.tsconfig');
-            const configContent = fs.readFileSync(tsConfigPath, 'utf8');
+            const configContent = await readFile(tsConfigPath, 'utf8');
             const parsedConfig = JSON.parse(configContent);
             const result = cabinet({
               partial: './foo',
@@ -732,7 +734,7 @@ describe('filing-cabinet', () => {
       assert.equal(result, expected);
     });
 
-    it('resolves a path using resolve.root', () => {
+    it('resolves a path using resolve.root that value is array', () => {
       const result = cabinet({
         partial: 'mod1',
         filename: path.join(directory, 'index.js'),
@@ -743,7 +745,40 @@ describe('filing-cabinet', () => {
       assert.equal(result, expected);
     });
 
+    it('resolves a path using resolve.root that value is string', () => {
+      const result = cabinet({
+        partial: 'mod2',
+        filename: path.join(directory, 'index.js'),
+        directory,
+        webpackConfig: path.join(directory, 'webpack-root-string.config.js')
+      });
+      const expected = path.join(directory, 'test/root2/mod2.js');
+      assert.equal(result, expected);
+    });
+
+    it('resolves a path using resolve.roots', () => {
+      const result = cabinet({
+        partial: 'mod2',
+        filename: path.join(directory, 'index.js'),
+        directory,
+        webpackConfig: path.join(directory, 'webpack-roots.config.js')
+      });
+      const expected = path.join(directory, 'test/root2/mod2.js');
+      assert.equal(result, expected);
+    });
+
     it('resolves npm module when using resolve.root', () => {
+      const result = cabinet({
+        partial: 'resolve',
+        filename: path.join(directory, 'index.js'),
+        directory,
+        webpackConfig: path.join(directory, 'webpack-root.config.js')
+      });
+      const expected = path.join(directory, 'node_modules/resolve/index.js');
+      assert.equal(result, expected);
+    });
+
+    it('resolves npm module when using resolve.roots', () => {
       const result = cabinet({
         partial: 'resolve',
         filename: path.join(directory, 'index.js'),
