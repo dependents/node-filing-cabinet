@@ -10,7 +10,7 @@
 npm install filing-cabinet
 ```
 
-### Usage
+## Usage
 
 ```js
 const cabinet = require('filing-cabinet');
@@ -46,7 +46,7 @@ console.log(result); // /absolute/path/to/somePartialPath
 * `tsConfigPath`: (optional) A (virtual) path to TypeScript config file when `tsConfig` option is given as an object, not a string. Needed to calculate [Path Mapping](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping). If not given when `tsConfig` is an object, **Path Mapping** is ignored. This is not need when `tsConfig` is given as string (path to the tsconfig file).
 * `noTypeDefinitions`: (optional) For TypeScript files, whether to prefer `*.js` over `*.d.ts`.
 
-### Registered languages
+## Registered languages
 
 By default, filing-cabinet provides support for the following languages:
 
@@ -72,7 +72,7 @@ For examples of resolver implementations, take a look at the default language re
 If a given extension does not have a registered resolver, cabinet will use
 a generic file resolver which is basically `require('path').join` with a bit of extension defaulting logic.
 
-### CLI
+## CLI
 
 Requires a global install with `npm install -g filing-cabinet`
 
@@ -81,3 +81,7 @@ filing-cabinet [options] <dependencyPath>
 ```
 
 See `filing-cabinet --help` for details on the options.
+
+## License
+
+[MIT](LICENSE)
