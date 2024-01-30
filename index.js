@@ -27,6 +27,7 @@ let webpackResolve;
 const defaultLookups = {
   '.js': jsLookup,
   '.jsx': jsLookup,
+  '.mjs': jsLookup,
   '.less': sassLookup, // Less and Sass imports are very similar
   '.sass': sassLookup,
   '.scss': sassLookup,
