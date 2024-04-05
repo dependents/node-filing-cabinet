@@ -2,7 +2,7 @@
 
 'use strict';
 
-const program = require('commander');
+const { program } = require('commander');
 const cabinet = require('../index.js');
 const { name, description, version } = require('../package.json');
 

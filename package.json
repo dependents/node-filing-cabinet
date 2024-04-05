@@ -40,27 +40,27 @@
   },
   "homepage": "https://github.com/dependents/node-filing-cabinet",
   "engines": {
-    "node": ">=14"
+    "node": ">=18"
   },
   "dependencies": {
     "app-module-path": "^2.2.0",
-    "commander": "^10.0.1",
-    "enhanced-resolve": "^5.14.1",
+    "commander": "^12.0.0",
+    "enhanced-resolve": "^5.16.0",
     "is-relative-path": "^1.0.2",
-    "module-definition": "^5.0.1",
-    "module-lookup-amd": "^8.0.5",
-    "resolve": "^1.22.3",
-    "resolve-dependency-path": "^3.0.2",
-    "sass-lookup": "^5.0.1",
-    "stylus-lookup": "^5.0.1",
+    "module-definition": "^6.0.0",
+    "module-lookup-amd": "^9.0.1",
+    "resolve": "^1.22.8",
+    "resolve-dependency-path": "^4.0.0",
+    "sass-lookup": "^6.0.1",
+    "stylus-lookup": "^6.0.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.0.4"
+    "typescript": "^5.4.4"
   },
   "devDependencies": {
-    "c8": "^7.13.0",
-    "mocha": "^10.2.0",
-    "sinon": "^15.1.0",
-    "xo": "^0.54.2"
+    "c8": "^9.1.0",
+    "mocha": "^10.4.0",
+    "sinon": "^17.0.1",
+    "xo": "^0.58.0"
   },
   "xo": {
     "space": true,
