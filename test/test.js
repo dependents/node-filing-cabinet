@@ -21,7 +21,8 @@ describe('filing-cabinet', () => {
         '.scss',
         '.styl',
         '.ts',
-        '.tsx'
+        '.tsx',
+        '.vue'
       ].sort();
       assert.deepEqual(actual, expected);
     });
