@@ -4,7 +4,6 @@ const fs = require('fs');
 const path = require('path');
 const { debuglog } = require('util');
 const appModulePath = require('app-module-path');
-const isRelative = require('is-relative-path');
 const sassLookup = require('sass-lookup');
 const stylusLookup = require('stylus-lookup');
 const { createMatchPath } = require('tsconfig-paths');
@@ -479,7 +478,7 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
     // we only wnat the path of the resolved file
     dependency = stripLoader(dependency);
 
-    const lookupPath = isRelative(dependency) ?
+    const lookupPath = isRelativePath(dependency) ?
       path.dirname(filename) :
       directory;
 
@@ -498,4 +497,17 @@ function stripLoader(dependency) {
   if (exclamationLocation === -1) return dependency;
 
   return dependency.slice(exclamationLocation + 1);
+}
+
+// Source: https://github.com/mrjoelkemp/is-relative-path/blob/v1.0.2/index.js
+/**
+ * @param  {String}  filename
+ * @return {Boolean}
+ */
+function isRelativePath(filename) {
+  if (typeof filename !== 'string') {
+    throw new TypeError(`Path must be a string. Received ${filename}`);
+  }
+
+  return filename[0] === '.';
 }
