@@ -4,7 +4,6 @@ const fs = require('fs');
 const path = require('path');
 const { debuglog } = require('util');
 const appModulePath = require('app-module-path');
-const isRelative = require('is-relative-path');
 const sassLookup = require('sass-lookup');
 const stylusLookup = require('stylus-lookup');
 const { createMatchPath } = require('tsconfig-paths');
@@ -62,9 +61,7 @@ module.exports = function(options = {}) {
 
   if (!resolver) {
     debug('using generic resolver');
-    if (!resolveDependencyPath) {
-      resolveDependencyPath = require('resolve-dependency-path');
-    }
+    resolveDependencyPath ||= require('resolve-dependency-path');
 
     resolver = resolveDependencyPath;
   }
@@ -115,9 +112,7 @@ module.exports.unregister = function(extension) {
  * @return {String}
  */
 module.exports._getJSType = function(options = {}) {
-  if (!getModuleType) {
-    getModuleType = require('module-definition');
-  }
+  getModuleType ||= require('module-definition');
 
   if (options.config) {
     return 'amd';
@@ -137,9 +132,7 @@ module.exports._getJSType = function(options = {}) {
 };
 
 function getCompilerOptionsFromTsConfig(tsConfig) {
-  if (!ts) {
-    ts = require('typescript');
-  }
+  ts ||= require('typescript');
 
   debug(`given typescript config: ${tsConfig}`);
   let compilerOptions = {};
@@ -196,9 +189,7 @@ function jsLookup(options) {
   switch (type) {
     case 'amd': {
       debug('using amd resolver');
-      if (!amdLookup) {
-        amdLookup = require('module-lookup-amd');
-      }
+      amdLookup ||= require('module-lookup-amd');
 
       return amdLookup({
         config,
@@ -218,7 +209,12 @@ function jsLookup(options) {
 
     case 'webpack': {
       debug('using webpack resolver for es6');
-      return resolveWebpackPath({ dependency, filename, directory, webpackConfig });
+      return resolveWebpackPath({
+        dependency,
+        filename,
+        directory,
+        webpackConfig
+      });
     }
 
     default: {
@@ -231,12 +227,17 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
   debug('performing a typescript lookup');
 
   if (typeof tsConfig === 'string') {
-    tsConfigPath = tsConfigPath || path.dirname(tsConfig);
+    tsConfigPath ||= path.dirname(tsConfig);
   }
 
   if (!tsConfig && webpackConfig) {
     debug('using webpack resolver for typescript');
-    return resolveWebpackPath({ dependency, filename, directory, webpackConfig });
+    return resolveWebpackPath({
+      dependency,
+      filename,
+      directory,
+      webpackConfig
+    });
   }
 
   const compilerOptions = getCompilerOptionsFromTsConfig(tsConfig);
@@ -329,9 +330,7 @@ function commonJSLookup(options) {
   const { filename, directory, nodeModulesConfig, tsConfig } = options;
   let { dependency } = options;
 
-  if (!resolve) {
-    resolve = require('resolve');
-  }
+  resolve ||= require('resolve');
 
   if (!dependency) {
     debug('blank dependency given. Returning early.');
@@ -423,9 +422,7 @@ function vueLookup(options) {
 }
 
 function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) {
-  if (!webpackResolve) {
-    webpackResolve = require('enhanced-resolve');
-  }
+  webpackResolve ||= require('enhanced-resolve');
 
   webpackConfig = path.resolve(webpackConfig);
   let loadedConfig;
@@ -482,7 +479,7 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
     // we only wnat the path of the resolved file
     dependency = stripLoader(dependency);
 
-    const lookupPath = isRelative(dependency) ?
+    const lookupPath = isRelativePath(dependency) ?
       path.dirname(filename) :
       directory;
 
@@ -501,4 +498,17 @@ function stripLoader(dependency) {
   if (exclamationLocation === -1) return dependency;
 
   return dependency.slice(exclamationLocation + 1);
+}
+
+// Source: https://github.com/mrjoelkemp/is-relative-path/blob/v1.0.2/index.js
+/**
+ * @param  {String}  filename
+ * @return {Boolean}
+ */
+function isRelativePath(filename) {
+  if (typeof filename !== 'string') {
+    throw new TypeError(`Path must be a string. Received ${filename}`);
+  }
+
+  return filename[0] === '.';
 }
