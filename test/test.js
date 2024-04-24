@@ -398,6 +398,16 @@ describe('filing-cabinet', () => {
             assert.equal(result, expected);
           });
 
+          it('finds imports of non-existent typescript imports', () => {
+            const filename = path.join(directory, '/index.ts');
+            const result = cabinet({
+              partial: 'virtual:test-virtual',
+              filename,
+              directory
+            });
+            assert.equal(result, '');
+          });
+
           it('finds imports of non-typescript files using custom import paths', () => {
             const filename = path.join(directory, '/index.ts');
             const result = cabinet({

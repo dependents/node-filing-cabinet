@@ -260,7 +260,7 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
     }
   } else {
     const suffix = '.d.ts';
-    const lookUpLocations = namedModule.failedLookupLocations
+    const lookUpLocations = (namedModule.failedLookupLocations ?? [])
       .filter(string => string.endsWith(suffix))
       .map(string => string.substr(0, string.length - suffix.length));
 
