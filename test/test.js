@@ -16,6 +16,7 @@ describe('filing-cabinet', () => {
       const expected = [
         '.js',
         '.jsx',
+        '.mjs',
         '.less',
         '.sass',
         '.scss',
