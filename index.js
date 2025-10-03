@@ -32,7 +32,8 @@ const defaultLookups = {
   '.styl': stylusLookup,
   '.ts': tsLookup,
   '.tsx': tsLookup,
-  '.vue': vueLookup
+  '.vue': vueLookup,
+  '.svelte': svelteLookup
 };
 
 /**
@@ -390,6 +391,14 @@ function commonJSLookup(options) {
 }
 
 function vueLookup(options) {
+  return sfcLookup(options);
+}
+
+function svelteLookup(options) {
+  return sfcLookup(options);
+}
+
+function sfcLookup(options) {
   const { dependency } = options;
 
   if (!dependency) {
