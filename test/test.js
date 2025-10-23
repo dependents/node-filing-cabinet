@@ -20,10 +20,10 @@ describe('filing-cabinet', () => {
         '.sass',
         '.scss',
         '.styl',
+        '.svelte',
         '.ts',
         '.tsx',
-        '.vue',
-        '.svelte'
+        '.vue'
       ].sort();
       assert.deepEqual(actual, expected);
     });
