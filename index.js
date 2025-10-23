@@ -33,7 +33,7 @@ const defaultLookups = {
   '.svelte': svelteLookup,
   '.ts': tsLookup,
   '.tsx': tsLookup,
-  '.vue': vueLookup,
+  '.vue': vueLookup
 };
 
 /**
