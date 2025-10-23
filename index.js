@@ -30,10 +30,10 @@ const defaultLookups = {
   '.sass': sassLookup,
   '.scss': sassLookup,
   '.styl': stylusLookup,
+  '.svelte': svelteLookup,
   '.ts': tsLookup,
   '.tsx': tsLookup,
   '.vue': vueLookup,
-  '.svelte': svelteLookup
 };
 
 /**
