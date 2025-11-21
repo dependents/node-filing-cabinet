@@ -23,9 +23,17 @@ const result = cabinet({
   // Only for JavaScript files
   config: 'path/to/requirejs/config',
   webpackConfig: 'path/to/webpack/config',
+  // Node modules entry resolution:
+  // - As an object: choose which package.json field to use as entry instead of "main"
   nodeModulesConfig: {
     entry: 'module'
   },
+  // - Or as a function: fully custom package.json transformer (resolve's packageFilter)
+  //   nodeModulesConfig: (pkg) => {
+  //     // Example: prefer "module" and fallback to "main"
+  //     pkg.main = pkg.module ?? pkg.main;
+  //     return pkg;
+  //   },
   tsConfig: 'path/to/tsconfig.json', // or an object
   tsConfigPath: 'path/to/tsconfig.json'
 });
@@ -41,7 +49,9 @@ console.log(result); // /absolute/path/to/somePartialPath
   * Useful optimization for avoiding a parse of filename
 * `config`: (optional) requirejs config for resolving aliased JavaScript modules
 * `webpackConfig`: (optional) Webpack config for resolving aliased JavaScript modules. If exporting multiple configurations, the first configuration is used.
-* `nodeModulesConfig`: (optional) config for resolving entry file for node_modules. This value overrides the `main` attribute in the package.json file; used in conjunction with the [packageFilter](https://github.com/browserify/resolve#resolveid-opts-cb) of the `resolve` package.
+* `nodeModulesConfig`: (optional) configuration to choose the entry file when resolving packages from `node_modules`.
+  * You can pass an object like `{ entry: 'module' }` — in this case the `entry` field replaces `main` in the target package's `package.json` (for example, to select the ESM entry via the `module` field).
+  * Or you can pass a function — a custom `packageFilter` from the [`resolve`](https://github.com/browserify/resolve#resolveid-opts-cb) package. The function receives the `package.json` object (`pkg`), may mutate it (e.g., set `pkg.main`), and must return the object. This gives you full control over how the entry file is selected.
 * `tsConfig`: (optional) path to a TypeScript configuration. Could also be an object representing a pre-parsed TypeScript config.
 * `tsConfigPath`: (optional) A (virtual) path to TypeScript config file when `tsConfig` option is given as an object, not a string. Needed to calculate [Path Mapping](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping). If not given when `tsConfig` is an object, **Path Mapping** is ignored. This is not need when `tsConfig` is given as string (path to the tsconfig file).
 * `noTypeDefinitions`: (optional) For TypeScript files, whether to prefer `*.js` over `*.d.ts`.
