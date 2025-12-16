@@ -1,0 +1,7 @@
+{
+  "name": "test-ts-imports",
+  "imports": {
+    "#utils": "./src/utils.ts",
+    "#lib/*": "./src/*.tsx"
+  }
+}
