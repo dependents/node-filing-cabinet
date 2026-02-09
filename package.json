@@ -47,7 +47,7 @@
     "commander": "^12.1.0",
     "enhanced-resolve": "^5.19.0",
     "module-definition": "^6.0.1",
-    "module-lookup-amd": "^9.0.5",
+    "module-lookup-amd": "^9.1.0",
     "resolve": "^1.22.11",
     "resolve-dependency-path": "^4.0.1",
     "sass-lookup": "^6.1.0",
