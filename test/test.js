@@ -869,4 +869,48 @@ describe('filing-cabinet', () => {
       assert.equal(result, expected);
     });
   });
+
+  describe('Svelte', () => {
+    const directory = path.join(__dirname, 'fixtures/svelte');
+
+    it('resolves a Svelte component', () => {
+      const result = cabinet({
+        partial: './bar.svelte',
+        filename: path.join(directory, 'foo.svelte'),
+        directory
+      });
+      const expected = path.join(directory, 'bar.svelte');
+      assert.equal(result, expected);
+    });
+
+    it('resolves a JS file from a Svelte component', () => {
+      const result = cabinet({
+        partial: './script.js',
+        filename: path.join(directory, 'withJs.svelte'),
+        directory
+      });
+      const expected = path.join(directory, 'script.js');
+      assert.equal(result, expected);
+    });
+
+    it('resolves a TS file from a Svelte component', () => {
+      const result = cabinet({
+        partial: './script.ts',
+        filename: path.join(directory, 'withTs.svelte'),
+        directory
+      });
+      const expected = path.join(directory, 'script.ts');
+      assert.equal(result, expected);
+    });
+
+    it('resolves a SCSS file from a Svelte component', () => {
+      const result = cabinet({
+        partial: './styles.scss',
+        filename: path.join(directory, 'withStyles.svelte'),
+        directory
+      });
+      const expected = path.join(directory, 'styles.scss');
+      assert.equal(result, expected);
+    });
+  });
 });
