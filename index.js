@@ -30,6 +30,7 @@ const defaultLookups = {
   '.sass': sassLookup,
   '.scss': sassLookup,
   '.styl': stylusLookup,
+  '.svelte': svelteLookup,
   '.ts': tsLookup,
   '.tsx': tsLookup,
   '.vue': vueLookup
@@ -390,6 +391,14 @@ function commonJSLookup(options) {
 }
 
 function vueLookup(options) {
+  return sfcLookup(options);
+}
+
+function svelteLookup(options) {
+  return sfcLookup(options);
+}
+
+function sfcLookup(options) {
   const { dependency } = options;
 
   if (!dependency) {
