@@ -448,7 +448,7 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
   if (!resolveConfig.modules && (resolveConfig.root || resolveConfig.roots || resolveConfig.modulesDirectories)) {
     resolveConfig.modules = [];
 
-    // `resolve.root` is a string, maybe used in webpack 1.x.
+    // `resolve.root` is a string, it may be used in webpack 1.x.
     // here: https://github.com/webpack/webpack/issues/472#issuecomment-166946925
     if (typeof resolveConfig.root === 'string') {
       resolveConfig.modules = [...resolveConfig.modules, resolveConfig.root];
