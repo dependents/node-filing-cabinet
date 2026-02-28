@@ -263,6 +263,46 @@ describe('filing-cabinet', () => {
       });
     });
 
+    describe('package.json imports field', () => {
+      const importsDir = path.join(__dirname, 'fixtures/js/imports');
+
+      it('resolves a simple #hash import', () => {
+        const result = cabinet({
+          partial: '#utils',
+          filename: path.join(importsDir, 'src/utils.js'),
+          directory: path.join(importsDir, 'src/')
+        });
+        assert.equal(result, path.join(importsDir, 'src/utils.js'));
+      });
+
+      it('resolves a wildcard #hash import', () => {
+        const result = cabinet({
+          partial: '#lib/button',
+          filename: path.join(importsDir, 'src/utils.js'),
+          directory: path.join(importsDir, 'src/')
+        });
+        assert.equal(result, path.join(importsDir, 'src/button.js'));
+      });
+
+      it('resolves a conditional #hash import (prefers import over default)', () => {
+        const result = cabinet({
+          partial: '#config',
+          filename: path.join(importsDir, 'src/utils.js'),
+          directory: path.join(importsDir, 'src/')
+        });
+        assert.equal(result, path.join(importsDir, 'src/config-esm.js'));
+      });
+
+      it('returns empty string for unresolved #hash import', () => {
+        const result = cabinet({
+          partial: '#nonexistent',
+          filename: path.join(importsDir, 'src/utils.js'),
+          directory: path.join(importsDir, 'src/')
+        });
+        assert.equal(result, '');
+      });
+    });
+
     describe('typescript', () => {
       const directory = path.join(__dirname, 'fixtures/ts');
 
@@ -567,6 +607,28 @@ describe('filing-cabinet', () => {
           });
           const expected = path.join(directory, 'subdir/index.tsx');
           assert.equal(result, expected);
+        });
+      });
+
+      describe('package.json imports field', () => {
+        const importsDir = path.join(__dirname, 'fixtures/ts/imports');
+
+        it('resolves a simple #hash import from a .ts file', () => {
+          const result = cabinet({
+            partial: '#utils',
+            filename: path.join(importsDir, 'src/utils.ts'),
+            directory: importsDir
+          });
+          assert.equal(result, path.join(importsDir, 'src/utils.ts'));
+        });
+
+        it('resolves a wildcard #hash import to a .tsx file', () => {
+          const result = cabinet({
+            partial: '#lib/button',
+            filename: path.join(importsDir, 'src/utils.ts'),
+            directory: importsDir
+          });
+          assert.equal(result, path.join(importsDir, 'src/button.tsx'));
         });
       });
     });
