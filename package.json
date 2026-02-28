@@ -29,6 +29,8 @@
     "sass",
     "less",
     "stylus",
+    "vue",
+    "svelte",
     "partial",
     "resolution",
     "paths"
