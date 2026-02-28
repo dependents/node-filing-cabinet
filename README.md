@@ -63,6 +63,7 @@ By default, filing-cabinet provides support for the following languages:
 * JavaScript: CommonJS, AMD, ES6
 * TypeScript
 * CSS Preprocessors: Sass (`.scss` and `.sass`), Stylus (`.styl`), and Less (`.less`)
+* Svelte
 * Vue
 
 You can register resolvers for new languages via `cabinet.register(extension, resolver)`.
