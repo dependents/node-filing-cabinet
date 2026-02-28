@@ -375,10 +375,17 @@ function commonJSLookup(options) {
   }
 
   try {
+    let packageFilterOption;
+    if (nodeModulesConfig && nodeModulesConfig.entry) {
+      packageFilterOption = packageFilter;
+    } else if (typeof nodeModulesConfig === 'function') {
+      packageFilterOption = nodeModulesConfig;
+    }
+
     result = resolve.sync(dependency, {
       extensions,
       basedir: directory,
-      packageFilter: nodeModulesConfig && nodeModulesConfig.entry ? packageFilter : undefined,
+      packageFilter: packageFilterOption,
       // Add fileDir to resolve index.js files in that dir
       moduleDirectory: ['node_modules', directory]
     });

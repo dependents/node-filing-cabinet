@@ -215,6 +215,24 @@ describe('filing-cabinet', () => {
         assert.equal(result, expected);
       });
 
+      it('resolves a node module via function using pkg.exports.default', () => {
+        const result = cabinet({
+          partial: 'exports.default',
+          filename: path.join(__dirname, 'fixtures/js/commonjs/exports-default.js'),
+          directory: path.join(__dirname, 'fixtures/js/commonjs/'),
+          nodeModulesConfig(pkg) {
+            // Map conditional to main via exports.default
+            if (pkg && pkg.exports && pkg.exports.default) {
+              pkg.main = pkg.exports.default;
+            }
+
+            return pkg;
+          }
+        });
+        const expected = path.join(__dirname, 'fixtures/js/node_modules/exports.default/index.default.js');
+        assert.equal(result, expected);
+      });
+
       it('resolves a nested module', () => {
         const result = cabinet({
           partial: 'lodash.assign',
