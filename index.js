@@ -110,6 +110,23 @@ module.exports.unregister = function(extension) {
 };
 
 /**
+ * Clear all internal caches.
+ *
+ * Call this in long-running processes (watch mode, language servers, etc.) to
+ * prevent unbounded memory growth when many different tsconfig / webpack config
+ * files are analysed over time.
+ */
+module.exports.clearCache = function() {
+  tsCompilerOptionsCache.clear();
+  webpackResolverCache.clear();
+  tsMatchPathCache.clear();
+  addedModulePaths.clear();
+  // Reset the shared compiler host so it is recreated with fresh state after a
+  // cache clear (it captures compiler options internally).
+  tsCompilerHost = undefined;
+};
+
+/**
  * Exposed for testing
  *
  * @param  {Object} options
@@ -241,7 +258,10 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
   debug('performing a typescript lookup');
 
   if (typeof tsConfig === 'string') {
-    tsConfigPath ||= path.dirname(tsConfig);
+    // tsConfigPath must be the file path (not its dirname) so that
+    // path.dirname(tsConfigPath) correctly returns the project root when
+    // computing absoluteBaseUrl for path-mapping resolution.
+    tsConfigPath ||= tsConfig;
   }
 
   if (!tsConfig && webpackConfig) {
@@ -286,11 +306,22 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
 
   if (!result && tsConfigPath && compilerOptions.baseUrl && compilerOptions.paths) {
     const absoluteBaseUrl = path.join(path.dirname(tsConfigPath), compilerOptions.baseUrl);
-    let tsMatchPath = tsMatchPathCache.get(tsConfigPath);
+
+    // Use a composite cache key covering all matcher inputs so a different
+    // tsConfig object reusing the same tsConfigPath string doesn't return a
+    // stale matcher built for different path mappings.
+    const sortedPaths = {};
+    for (const key of Object.keys(compilerOptions.paths).sort()) {
+      sortedPaths[key] = compilerOptions.paths[key];
+    }
+
+    const cacheKey = `${tsConfigPath}|${absoluteBaseUrl}|${JSON.stringify(sortedPaths)}`;
+
+    let tsMatchPath = tsMatchPathCache.get(cacheKey);
     if (!tsMatchPath) {
       // REF: https://github.com/jonaskello/tsconfig-paths#creatematchpath
       tsMatchPath = createMatchPath(absoluteBaseUrl, compilerOptions.paths);
-      tsMatchPathCache.set(tsConfigPath, tsMatchPath);
+      tsMatchPathCache.set(cacheKey, tsMatchPath);
     }
 
     // REF: https://github.com/jonaskello/tsconfig-paths#creatematchpath

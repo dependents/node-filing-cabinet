@@ -84,6 +84,16 @@ For examples of resolver implementations, take a look at the default language re
 If a given extension does not have a registered resolver, cabinet will use
 a generic file resolver which is basically `require('path').join` with a bit of extension defaulting logic.
 
+### `cabinet.clearCache()`
+
+Clears all internal caches (parsed TypeScript compiler options, webpack resolver instances, tsconfig-paths matchers, and registered module paths).
+
+Call this in long-running processes such as watch mode or language servers to prevent unbounded memory growth when many different tsconfig / webpack config files are analysed over time.
+
+```js
+cabinet.clearCache();
+```
+
 ## CLI
 
 Requires a global install with `npm install -g filing-cabinet`

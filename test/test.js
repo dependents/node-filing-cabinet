@@ -541,6 +541,36 @@ describe('filing-cabinet', () => {
             const expected = path.resolve(__dirname, 'fixtures/root3/packages/foo/hello.ts');
             assert.equal(result, expected);
           });
+
+          // Regression: a directory-style tsConfigPath makes absoluteBaseUrl resolve
+          // one level too high, breaking path-mapping. tsConfigPath must be the file.
+          it('returns empty string when tsConfigPath is a directory rather than a file path', () => {
+            const common = {
+              partial: '#foo/hello',
+              filename: path.resolve(__dirname, 'fixtures/root3/packages/foo/index.ts'),
+              directory: path.resolve(__dirname, 'fixtures/root3'),
+              tsConfig: {
+                compilerOptions: {
+                  rootDir: '.',
+                  baseUrl: 'packages',
+                  paths: { '#foo/*': ['foo/*'] }
+                }
+              }
+            };
+
+            const bugResult = cabinet({
+              ...common,
+              tsConfigPath: path.resolve(__dirname, 'fixtures/root3') // directory — wrong
+            });
+            assert.equal(bugResult, '');
+
+            const fixResult = cabinet({
+              ...common,
+              tsConfigPath: path.resolve(__dirname, 'fixtures/root3/tsconfig.json') // file — correct
+            });
+            const expected = path.resolve(__dirname, 'fixtures/root3/packages/foo/hello.ts');
+            assert.equal(fixResult, expected);
+          });
         });
       });
 
@@ -718,6 +748,58 @@ describe('filing-cabinet', () => {
         supportedFileExtensions.indexOf(newExt),
         supportedFileExtensions.lastIndexOf(newExt)
       );
+    });
+  });
+
+  describe('.clearCache', () => {
+    it('is exposed as a function', () => {
+      assert.equal(typeof cabinet.clearCache, 'function');
+    });
+
+    it('does not throw when called with empty caches', () => {
+      assert.doesNotThrow(() => cabinet.clearCache());
+    });
+
+    it('does not throw when called after resolving a TypeScript file', () => {
+      cabinet({
+        partial: './bar',
+        filename: path.join(__dirname, 'fixtures/ts/foo.ts'),
+        directory: path.join(__dirname, 'fixtures/ts/'),
+        tsConfig: {
+          compilerOptions: { module: 'commonjs' }
+        }
+      });
+
+      assert.doesNotThrow(() => cabinet.clearCache());
+    });
+
+    it('allows subsequent resolutions to work correctly after clearing', () => {
+      const tsConfigPath = path.join(__dirname, 'fixtures/root3/tsconfig.json');
+
+      const resultBefore = cabinet({
+        partial: 'bar',
+        filename: path.join(__dirname, 'fixtures/root3/packages/foo/index.ts'),
+        directory: path.join(__dirname, 'fixtures/root3/'),
+        tsConfig: tsConfigPath
+      });
+
+      cabinet.clearCache();
+
+      const resultAfter = cabinet({
+        partial: 'bar',
+        filename: path.join(__dirname, 'fixtures/root3/packages/foo/index.ts'),
+        directory: path.join(__dirname, 'fixtures/root3/'),
+        tsConfig: tsConfigPath
+      });
+
+      assert.equal(resultAfter, resultBefore);
+    });
+
+    it('can be called multiple times in succession without error', () => {
+      assert.doesNotThrow(() => {
+        cabinet.clearCache();
+        cabinet.clearCache();
+      });
     });
   });
 
