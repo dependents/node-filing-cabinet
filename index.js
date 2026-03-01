@@ -22,6 +22,14 @@ let amdLookup;
 let ts;
 let resolveDependencyPath;
 let webpackResolve;
+let tsCompilerHost;
+
+const tsCompilerOptionsCache = new Map();
+const webpackResolverCache = new Map();
+const tsMatchPathCache = new Map();
+const addedModulePaths = new Set();
+
+const TS_EXTENSIONS = ['.ts', '.tsx', '.d.ts', '.js', '.jsx', '.json', '.node'];
 
 const defaultLookups = {
   '.js': jsLookup,
@@ -140,6 +148,10 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
   if (!tsConfig) {
     debug('no tsconfig given, defaulting');
   } else if (typeof tsConfig === 'string') {
+    if (tsCompilerOptionsCache.has(tsConfig)) {
+      return tsCompilerOptionsCache.get(tsConfig);
+    }
+
     debug('string tsconfig given, parsing');
 
     try {
@@ -150,6 +162,8 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
       debug('could not parse tsconfig');
       throw new Error('could not read tsconfig');
     }
+
+    tsCompilerOptionsCache.set(tsConfig, compilerOptions);
   } else if ('compilerOptions' in tsConfig) {
     debug('raw tsconfig json given, parsing');
     compilerOptions = ts.convertCompilerOptionsFromJson(tsConfig.compilerOptions).options;
@@ -241,7 +255,9 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
   }
 
   const compilerOptions = getCompilerOptionsFromTsConfig(tsConfig);
-  const host = ts.createCompilerHost({});
+  tsCompilerHost ||= ts.createCompilerHost({});
+
+  const host = tsCompilerHost;
 
   debug('with options: %o', compilerOptions);
 
@@ -270,20 +286,16 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
 
   if (!result && tsConfigPath && compilerOptions.baseUrl && compilerOptions.paths) {
     const absoluteBaseUrl = path.join(path.dirname(tsConfigPath), compilerOptions.baseUrl);
-    // REF: https://github.com/dividab/tsconfig-paths#creatematchpath
-    const tsMatchPath = createMatchPath(absoluteBaseUrl, compilerOptions.paths);
-    const extensions = [
-      '.ts',
-      '.tsx',
-      '.d.ts',
-      '.js',
-      '.jsx',
-      '.json',
-      '.node'
-    ];
-    // REF: https://github.com/dividab/tsconfig-paths#creatematchpath
+    let tsMatchPath = tsMatchPathCache.get(tsConfigPath);
+    if (!tsMatchPath) {
+      // REF: https://github.com/jonaskello/tsconfig-paths#creatematchpath
+      tsMatchPath = createMatchPath(absoluteBaseUrl, compilerOptions.paths);
+      tsMatchPathCache.set(tsConfigPath, tsMatchPath);
+    }
+
+    // REF: https://github.com/jonaskello/tsconfig-paths#creatematchpath
     // Get absolute path by ts path mapping. `undefined` if non-existent
-    const resolvedTsAliasPath = tsMatchPath(dependency, undefined, undefined, extensions);
+    const resolvedTsAliasPath = tsMatchPath(dependency, undefined, undefined, TS_EXTENSIONS);
 
     if (resolvedTsAliasPath) {
       const stat = (() => {
@@ -298,7 +310,7 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
       if (stat) {
         if (stat.isDirectory()) {
           // When directory is imported, index file is resolved
-          for (const ext of extensions) {
+          for (const ext of TS_EXTENSIONS) {
             const filename = path.join(resolvedTsAliasPath, `index${ext}`);
             if (fs.existsSync(filename)) {
               result = filename;
@@ -311,7 +323,7 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
         }
       } else {
         // For cases a file extension is omitted when being imported
-        for (const ext of extensions) {
+        for (const ext of TS_EXTENSIONS) {
           const filenameWithExt = resolvedTsAliasPath + ext;
           if (fs.existsSync(filenameWithExt)) {
             result = filenameWithExt;
@@ -340,9 +352,12 @@ function commonJSLookup(options) {
   // Need to resolve partials within the directory of the module, not filing-cabinet
   const moduleLookupDir = path.join(directory, 'node_modules');
 
-  debug(`adding ${moduleLookupDir} to the require resolution paths`);
+  if (!addedModulePaths.has(moduleLookupDir)) {
+    debug(`adding ${moduleLookupDir} to the require resolution paths`);
 
-  appModulePath.addPath(moduleLookupDir);
+    appModulePath.addPath(moduleLookupDir);
+    addedModulePaths.add(moduleLookupDir);
+  }
 
   // Make sure the partial is being resolved to the filename's context
   // 3rd party modules will not be relative
@@ -488,7 +503,11 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
   }
 
   try {
-    const resolver = webpackResolve.create.sync(resolveConfig);
+    let resolver = webpackResolverCache.get(webpackConfig);
+    if (!resolver) {
+      resolver = webpackResolve.create.sync(resolveConfig);
+      webpackResolverCache.set(webpackConfig, resolver);
+    }
 
     // We don't care about what the loader resolves the dependency to
     // we only wnat the path of the resolved file
