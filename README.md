@@ -79,10 +79,10 @@ For examples of resolver implementations, take a look at the default language re
 
 * [sass-lookup](https://github.com/dependents/node-sass-lookup)
 * [stylus-lookup](https://github.com/dependents/node-stylus-lookup)
-* [amdLookup](https://github.com/dependents/node-module-lookup-amd)
+* [module-lookup-amd](https://github.com/dependents/node-module-lookup-amd)
 
-If a given extension does not have a registered resolver, cabinet will use
-a generic file resolver which is basically `require('path').join` with a bit of extension defaulting logic.
+If a given extension does not have a registered resolver, cabinet will use a generic file
+resolver which is basically `require('path').join` with a bit of extension defaulting logic.
 
 ## CLI
 
