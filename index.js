@@ -542,8 +542,6 @@ function isRelativePath(filename) {
 
 // Hash import resolution for package.json "imports" field using enhanced-resolve
 function resolveHashImport(dependency, filename) {
-  if (!dependency?.startsWith('#')) return '';
-
   debug(`resolving hash import: ${dependency} from ${filename}`);
 
   webpackResolve ||= require('enhanced-resolve');
@@ -558,7 +556,7 @@ function resolveHashImport(dependency, filename) {
     const result = resolver(path.dirname(filename), dependency);
     debug(`hash import resolved: ${result}`);
 
-    return result || '';
+    return result;
   } catch (error) {
     debug(`could not resolve hash import ${dependency}: ${error.message}`);
 
