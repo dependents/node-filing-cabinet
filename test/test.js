@@ -735,19 +735,16 @@ describe('filing-cabinet', () => {
   });
 
   describe('.getLookup', () => {
-    const directory = path.join(__dirname, 'fixtures/ts');
-
     it('returns a lookup by extension', () => {
       const tsLookup = cabinet.getLookup('.ts');
       cabinet.register('.customTs', tsLookup);
 
-      const filename = path.join(directory, 'index.customTs');
       const result = cabinet({
         partial: './foo',
-        filename,
-        directory
+        filename: fixtures('ts/index.customTs'),
+        directory: fixtures('ts/')
       });
-      const expected = path.join(directory, 'foo.ts');
+      const expected = fixtures('ts/foo.ts');
       assert.equal(result, expected);
     });
 
