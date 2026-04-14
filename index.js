@@ -223,6 +223,38 @@ function jsLookup(options) {
   }
 }
 
+function resolveFromTsAliasPath(resolvedTsAliasPath, extensions) {
+  let stat;
+
+  try {
+    stat = fs.statSync(resolvedTsAliasPath);
+  } catch {}
+
+  if (!stat) {
+    // tsconfig-paths returns an extensionless path when path.{ext} exists; recover it
+    for (const ext of extensions) {
+      const withExt = resolvedTsAliasPath + ext;
+      if (fs.existsSync(withExt)) return withExt;
+    }
+    /* c8 ignore next 3 */
+
+    return '';
+  }
+
+  if (stat.isDirectory()) {
+    // tsconfig-paths returns a directory path when directory/index.{ext} exists; resolve it
+    for (const ext of extensions) {
+      const indexFile = path.join(resolvedTsAliasPath, `index${ext}`);
+      if (fs.existsSync(indexFile)) return indexFile;
+    }
+    /* c8 ignore next 3 */
+
+    return '';
+  }
+
+  return resolvedTsAliasPath;
+}
+
 function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, tsConfigPath, noTypeDefinitions }) {
   debug('performing a typescript lookup');
 
@@ -286,39 +318,7 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
     const resolvedTsAliasPath = tsMatchPath(dependency, undefined, undefined, extensions);
 
     if (resolvedTsAliasPath) {
-      const stat = (() => {
-        try {
-          // fs.statSync throws an error if path is non-existent
-          return fs.statSync(resolvedTsAliasPath);
-        } catch {
-          return undefined;
-        }
-      })();
-
-      if (stat) {
-        if (stat.isDirectory()) {
-          // When directory is imported, index file is resolved
-          for (const ext of extensions) {
-            const filename = path.join(resolvedTsAliasPath, `index${ext}`);
-            if (fs.existsSync(filename)) {
-              result = filename;
-              break;
-            }
-          }
-        } else {
-          // if the path is complete filename
-          result = resolvedTsAliasPath;
-        }
-      } else {
-        // For cases a file extension is omitted when being imported
-        for (const ext of extensions) {
-          const filenameWithExt = resolvedTsAliasPath + ext;
-          if (fs.existsSync(filenameWithExt)) {
-            result = filenameWithExt;
-            break;
-          }
-        }
-      }
+      result = resolveFromTsAliasPath(resolvedTsAliasPath, extensions);
     }
   }
 
