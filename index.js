@@ -258,6 +258,12 @@ function resolveFromTsAliasPath(resolvedTsAliasPath, extensions) {
 function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, tsConfigPath, noTypeDefinitions }) {
   debug('performing a typescript lookup');
 
+  // Handle #hash imports via package.json imports field
+  if (dependency && dependency.startsWith('#')) {
+    const hashResult = resolveHashImport(dependency, filename);
+    if (hashResult) return hashResult;
+  }
+
   if (typeof tsConfig === 'string') {
     tsConfigPath ||= path.dirname(tsConfig);
   }
@@ -335,6 +341,12 @@ function commonJSLookup(options) {
   if (!dependency) {
     debug('blank dependency given. Returning early.');
     return '';
+  }
+
+  // Handle #hash imports via package.json imports field
+  if (dependency.startsWith('#')) {
+    const hashResult = resolveHashImport(dependency, filename);
+    if (hashResult) return hashResult;
   }
 
   // Need to resolve partials within the directory of the module, not filing-cabinet
@@ -526,4 +538,28 @@ function isRelativePath(filename) {
   }
 
   return filename[0] === '.';
+}
+
+// Hash import resolution for package.json "imports" field using enhanced-resolve
+function resolveHashImport(dependency, filename) {
+  debug(`resolving hash import: ${dependency} from ${filename}`);
+
+  webpackResolve ||= require('enhanced-resolve');
+
+  try {
+    const resolver = webpackResolve.create.sync({
+      importsFields: ['imports'],
+      conditionNames: ['import', 'require', 'node', 'default'],
+      extensions: ['.js', '.ts', '.tsx', '.jsx', '.mjs', '.cjs', '.json']
+    });
+
+    const result = resolver(path.dirname(filename), dependency);
+    debug(`hash import resolved: ${result}`);
+
+    return result;
+  } catch (error) {
+    debug(`could not resolve hash import ${dependency}: ${error.message}`);
+
+    return '';
+  }
 }

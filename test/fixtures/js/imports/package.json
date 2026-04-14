@@ -1,0 +1,14 @@
+{
+  "name": "test-imports",
+  "imports": {
+    "#utils": "./src/utils.js",
+    "#lib/*": "./src/*.js",
+    "#config": {
+      "import": "./src/config-esm.js",
+      "default": "./src/config-cjs.js"
+    },
+    "#config-cjs": {
+      "default": "./src/config-cjs.js"
+    }
+  }
+}

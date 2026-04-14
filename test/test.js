@@ -243,6 +243,55 @@ describe('filing-cabinet', () => {
         assert.equal(result, expected);
       });
     });
+
+    describe('package.json imports field', () => {
+      const importsDir = fixtures('js/imports');
+
+      it('resolves a simple #hash import', () => {
+        const result = cabinet({
+          partial: '#utils',
+          filename: path.join(importsDir, 'src/utils.js'),
+          directory: path.join(importsDir, 'src/')
+        });
+        assert.equal(result, path.join(importsDir, 'src/utils.js'));
+      });
+
+      it('resolves a wildcard #hash import', () => {
+        const result = cabinet({
+          partial: '#lib/button',
+          filename: path.join(importsDir, 'src/utils.js'),
+          directory: path.join(importsDir, 'src/')
+        });
+        assert.equal(result, path.join(importsDir, 'src/button.js'));
+      });
+
+      it('resolves a conditional #hash import (prefers import over default)', () => {
+        const result = cabinet({
+          partial: '#config',
+          filename: path.join(importsDir, 'src/utils.js'),
+          directory: path.join(importsDir, 'src/')
+        });
+        assert.equal(result, path.join(importsDir, 'src/config-esm.js'));
+      });
+
+      it('returns empty string for unresolved #hash import', () => {
+        const result = cabinet({
+          partial: '#nonexistent',
+          filename: path.join(importsDir, 'src/utils.js'),
+          directory: path.join(importsDir, 'src/')
+        });
+        assert.equal(result, '');
+      });
+
+      it('resolves a default-condition-only #hash import', () => {
+        const result = cabinet({
+          partial: '#config-cjs',
+          filename: path.join(importsDir, 'src/utils.js'),
+          directory: path.join(importsDir, 'src/')
+        });
+        assert.equal(result, path.join(importsDir, 'src/config-cjs.js'));
+      });
+    });
   });
 
   describe('TypeScript', () => {
@@ -573,6 +622,46 @@ describe('filing-cabinet', () => {
         });
         const expected = path.resolve(root3Dir, 'packages/foo/index.ts');
         assert.equal(result, expected);
+      });
+
+      describe('package.json imports field', () => {
+        const importsDir = fixtures('ts/imports');
+
+        it('resolves a simple #hash import from a .ts file', () => {
+          const result = cabinet({
+            partial: '#utils',
+            filename: path.join(importsDir, 'src/utils.ts'),
+            directory: importsDir
+          });
+          assert.equal(result, path.join(importsDir, 'src/utils.ts'));
+        });
+
+        it('resolves a wildcard #hash import to a .tsx file', () => {
+          const result = cabinet({
+            partial: '#lib/button',
+            filename: path.join(importsDir, 'src/utils.ts'),
+            directory: importsDir
+          });
+          assert.equal(result, path.join(importsDir, 'src/button.tsx'));
+        });
+
+        it('resolves a conditional #hash import (prefers import over default)', () => {
+          const result = cabinet({
+            partial: '#config',
+            filename: path.join(importsDir, 'src/utils.ts'),
+            directory: importsDir
+          });
+          assert.equal(result, path.join(importsDir, 'src/config-esm.ts'));
+        });
+
+        it('returns empty string for unresolved #hash import', () => {
+          const result = cabinet({
+            partial: '#nonexistent',
+            filename: path.join(importsDir, 'src/utils.ts'),
+            directory: importsDir
+          });
+          assert.equal(result, '');
+        });
       });
     });
   });
