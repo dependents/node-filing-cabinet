@@ -282,6 +282,15 @@ describe('filing-cabinet', () => {
         });
         assert.equal(result, '');
       });
+
+      it('resolves a default-condition-only #hash import', () => {
+        const result = cabinet({
+          partial: '#config-cjs',
+          filename: path.join(importsDir, 'src/utils.js'),
+          directory: path.join(importsDir, 'src/')
+        });
+        assert.equal(result, path.join(importsDir, 'src/config-cjs.js'));
+      });
     });
   });
 
@@ -634,6 +643,24 @@ describe('filing-cabinet', () => {
             directory: importsDir
           });
           assert.equal(result, path.join(importsDir, 'src/button.tsx'));
+        });
+
+        it('resolves a conditional #hash import (prefers import over default)', () => {
+          const result = cabinet({
+            partial: '#config',
+            filename: path.join(importsDir, 'src/utils.ts'),
+            directory: importsDir
+          });
+          assert.equal(result, path.join(importsDir, 'src/config-esm.ts'));
+        });
+
+        it('returns empty string for unresolved #hash import', () => {
+          const result = cabinet({
+            partial: '#nonexistent',
+            filename: path.join(importsDir, 'src/utils.ts'),
+            directory: importsDir
+          });
+          assert.equal(result, '');
         });
       });
     });

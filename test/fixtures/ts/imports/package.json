@@ -2,6 +2,10 @@
   "name": "test-ts-imports",
   "imports": {
     "#utils": "./src/utils.ts",
-    "#lib/*": "./src/*.tsx"
+    "#lib/*": "./src/*.tsx",
+    "#config": {
+      "import": "./src/config-esm.ts",
+      "default": "./src/config-cjs.ts"
+    }
   }
 }
