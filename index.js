@@ -346,7 +346,7 @@ function commonJSLookup(options) {
 
   // Make sure the partial is being resolved to the filename's context
   // 3rd party modules will not be relative
-  if (dependency[0] === '.') {
+  if (isRelativePath(dependency)) {
     dependency = path.resolve(path.dirname(filename), dependency);
   }
 
