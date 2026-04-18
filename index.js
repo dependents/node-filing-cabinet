@@ -78,6 +78,15 @@ module.exports = function(options = {}) {
 module.exports.supportedFileExtensions = Object.keys(defaultLookups);
 
 /**
+ * Get the lookup resolver for a given file extension
+ *
+ * @param {string} extension - The file extension whose resolver should be retrieved.
+ */
+module.exports.getLookup = function(extension) {
+  return defaultLookups[extension];
+};
+
+/**
  * Register a custom lookup resolver for a file extension
  *
  * @param  {String} extension - The file extension that should use the resolver

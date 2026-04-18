@@ -734,6 +734,26 @@ describe('filing-cabinet', () => {
     });
   });
 
+  describe('.getLookup', () => {
+    it('returns a lookup by extension', () => {
+      const tsLookup = cabinet.getLookup('.ts');
+      cabinet.register('.customTs', tsLookup);
+
+      const result = cabinet({
+        partial: './foo',
+        filename: fixtures('ts/index.customTs'),
+        directory: fixtures('ts/')
+      });
+      const expected = fixtures('ts/foo.ts');
+      assert.equal(result, expected);
+    });
+
+    it('returns undefined when no lookup matches extension', () => {
+      const unknownLookup = cabinet.getLookup('.unknown');
+      assert.equal(unknownLookup, undefined);
+    });
+  });
+
   describe('.register', () => {
     it('registers a custom resolver for a given extension', () => {
       const stub = sinon.stub().returns('foo.foobar');
