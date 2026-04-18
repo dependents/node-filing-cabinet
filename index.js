@@ -307,9 +307,6 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
   }
 
   if (!result && tsConfigPath && compilerOptions.baseUrl && compilerOptions.paths) {
-    const absoluteBaseUrl = path.join(path.dirname(tsConfigPath), compilerOptions.baseUrl);
-    // REF: https://github.com/jonaskello/tsconfig-paths#creatematchpath
-    const tsMatchPath = createMatchPath(absoluteBaseUrl, compilerOptions.paths);
     const extensions = [
       '.ts',
       '.tsx',
@@ -319,8 +316,11 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
       '.json',
       '.node'
     ];
-    // REF: https://github.com/jonaskello/tsconfig-paths#creatematchpath
+
+    const absoluteBaseUrl = path.join(path.dirname(tsConfigPath), compilerOptions.baseUrl);
     // Get absolute path by ts path mapping. `undefined` if non-existent
+    // REF: https://github.com/jonaskello/tsconfig-paths#creatematchpath
+    const tsMatchPath = createMatchPath(absoluteBaseUrl, compilerOptions.paths);
     const resolvedTsAliasPath = tsMatchPath(dependency, undefined, undefined, extensions);
 
     if (resolvedTsAliasPath) {
