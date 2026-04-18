@@ -78,9 +78,9 @@ module.exports = function(options = {}) {
 module.exports.supportedFileExtensions = Object.keys(defaultLookups);
 
 /**
- * Get a lookup resolver for a file extension
+ * Get the lookup resolver for a given file extension
  *
- * @param  {String} extension - The file extension whose resolver should be removed
+ * @param {string} extension - The file extension whose resolver should be retrieved.
  */
 module.exports.getLookup = function(extension) {
   return defaultLookups[extension];
