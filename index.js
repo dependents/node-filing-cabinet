@@ -111,8 +111,6 @@ module.exports.unregister = function(extension) {
 };
 
 /**
- * Exposed for testing
- *
  * @param  {Object} options
  * @param  {String} options.config
  * @param  {String} options.webpackConfig
@@ -120,7 +118,7 @@ module.exports.unregister = function(extension) {
  * @param  {Object} options.ast
  * @return {String}
  */
-module.exports._getJSType = function(options = {}) {
+function getJSType(options = {}) {
   getModuleType ||= require('module-definition');
 
   if (options.config) {
@@ -138,7 +136,7 @@ module.exports._getJSType = function(options = {}) {
 
   debug('using the filename to find the module type');
   return getModuleType.sync(options.filename);
-};
+}
 
 function getCompilerOptionsFromTsConfig(tsConfig) {
   ts ||= require('typescript');
@@ -188,7 +186,7 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
  */
 function jsLookup(options) {
   const { dependency, filename, directory, config, webpackConfig, configPath, ast } = options;
-  const type = module.exports._getJSType({
+  const type = getJSType({
     config,
     webpackConfig,
     filename,
