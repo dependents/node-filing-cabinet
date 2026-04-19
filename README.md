@@ -50,8 +50,8 @@ console.log(result); // /absolute/path/to/somePartialPath
 * `config`: (optional) requirejs config for resolving aliased JavaScript modules
 * `webpackConfig`: (optional) Webpack config for resolving aliased JavaScript modules. If exporting multiple configurations, the first configuration is used.
 * `nodeModulesConfig`: (optional) configuration to choose the entry file when resolving packages from `node_modules`.
-  * You can pass an object like `{ entry: 'module' }` — in this case the `entry` field replaces `main` in the target package's `package.json` (for example, to select the ESM entry via the `module` field).
-  * Or you can pass a function — a custom `packageFilter` from the [`resolve`](https://github.com/browserify/resolve#resolveid-opts-cb) package. The function receives the `package.json` object (`pkg`), may mutate it (e.g., set `pkg.main`), and must return the object. This gives you full control over how the entry file is selected.
+  * You can pass an object like `{ entry: 'module' }` - in this case the `entry` field replaces `main` in the target package's `package.json` (for example, to select the ESM entry via the `module` field).
+  * Or you can pass a function - a custom `packageFilter` from the [`resolve`](https://github.com/browserify/resolve#resolveid-opts-cb) package. The function receives the `package.json` object (`pkg`), may mutate it (e.g., set `pkg.main`), and must return the object. This gives you full control over how the entry file is selected.
 * `tsConfig`: (optional) path to a TypeScript configuration. Could also be an object representing a pre-parsed TypeScript config.
 * `tsConfigPath`: (optional) A (virtual) path to TypeScript config file when `tsConfig` option is given as an object, not a string. Needed to calculate [Path Mapping](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping). If not given when `tsConfig` is an object, **Path Mapping** is ignored. This is not need when `tsConfig` is given as string (path to the tsconfig file).
 * `noTypeDefinitions`: (optional) For TypeScript files, whether to prefer `*.js` over `*.d.ts`.
