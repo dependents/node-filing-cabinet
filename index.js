@@ -38,17 +38,17 @@ const defaultLookups = {
 
 /**
  * @param {Object} options
- * @param {String} options.partial The dependency being looked up
- * @param {String} options.filename The file that contains the dependency being looked up
- * @param {String|Object} [options.config] Path to a requirejs config
- * @param {String} [options.configPath] For AMD resolution, if the config is an object, this represents the location of the config file.
- * @param {Object} [options.nodeModulesConfig] Config for overriding the entry point defined in a package json file
- * @param {String} [options.nodeModulesConfig.entry] The new value for "main" in package json
- * @param {String} [options.webpackConfig] Path to the webpack config
- * @param {Object} [options.ast] A preparsed AST for the file identified by filename.
- * @param {String|Object} [options.tsConfig] Path to a typescript configuration or an object representing a pre-parsed typescript config.
- * @param {String} [options.tsConfigPath] A (virtual) Path to typescript config file when options.tsConfig is given as an object. Needed to calculate [Path Mapping](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping). If not given when options.tsConfig is an object, Path Mapping is not considered.
- * @param {Boolean} [options.noTypeDefinitions] Whether to return '.d.ts' files or '.js' files for a dependency
+ * @param {string} options.partial The dependency being looked up
+ * @param {string} options.filename The file that contains the dependency being looked up
+ * @param {string|Object} [options.config] Path to a RequireJS config
+ * @param {string} [options.configPath] For AMD resolution, if `config` is an object, this is the config file path.
+ * @param {Object|Function} [options.nodeModulesConfig] Config for overriding the entry point defined in package.json for node_modules resolution.
+ * @param {string} [options.nodeModulesConfig.entry] The field value to use as package `main` (for example, `module`).
+ * @param {string} [options.webpackConfig] Path to the webpack config
+ * @param {Object} [options.ast] A pre-parsed AST for the file identified by `filename`.
+ * @param {string|Object} [options.tsConfig] Path to a TypeScript config or a pre-parsed TypeScript config object.
+ * @param {string} [options.tsConfigPath] A (virtual) path to a TypeScript config file when `tsConfig` is an object. Needed to calculate [Path Mapping](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping). If omitted in object mode, path mapping is ignored.
+ * @param {boolean} [options.noTypeDefinitions] For TypeScript dependencies, whether to prefer `.js` over `.d.ts`.
  */
 module.exports = function(options = {}) {
   const { partial, filename } = options;
@@ -81,6 +81,7 @@ module.exports.supportedFileExtensions = Object.keys(defaultLookups);
  * Get the lookup resolver for a given file extension
  *
  * @param {string} extension - The file extension whose resolver should be retrieved.
+ * @returns {Function|undefined}
  */
 module.exports.getLookup = function(extension) {
   return defaultLookups[extension];
@@ -89,8 +90,8 @@ module.exports.getLookup = function(extension) {
 /**
  * Register a custom lookup resolver for a file extension
  *
- * @param  {String} extension - The file extension that should use the resolver
- * @param  {Function} lookupStrategy - A resolver of partial paths
+ * @param  {string} extension - The file extension that should use the resolver
+ * @param  {Function} lookupStrategy - A resolver that accepts the options object used by `cabinet`
  */
 module.exports.register = function(extension, lookupStrategy) {
   defaultLookups[extension] = lookupStrategy;
@@ -103,7 +104,7 @@ module.exports.register = function(extension, lookupStrategy) {
 /**
  * Unregister a custom lookup resolver for a file extension
  *
- * @param  {String} extension - The file extension whose resolver should be removed
+ * @param  {string} extension - The file extension whose resolver should be removed
  */
 module.exports.unregister = function(extension) {
   delete defaultLookups[extension];
@@ -114,11 +115,11 @@ module.exports.unregister = function(extension) {
  * Exposed for testing
  *
  * @param  {Object} options
- * @param  {String} options.config
- * @param  {String} options.webpackConfig
- * @param  {String} options.filename
+ * @param  {string} options.config
+ * @param  {string} options.webpackConfig
+ * @param  {string} options.filename
  * @param  {Object} options.ast
- * @return {String}
+ * @return {'amd'|'webpack'|'commonjs'|'es6'|string}
  */
 module.exports._getJSType = function(options = {}) {
   getModuleType ||= require('module-definition');
@@ -504,7 +505,7 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
     const resolver = webpackResolve.create.sync(resolveConfig);
 
     // We don't care about what the loader resolves the dependency to
-    // we only wnat the path of the resolved file
+    // we only want the path of the resolved file
     dependency = stripLoader(dependency);
 
     const lookupPath = isRelativePath(dependency) ?
