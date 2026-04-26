@@ -138,6 +138,7 @@ function getJSType(options = {}) {
 }
 
 const webpackResolverByConfig = new Map();
+const compilerOptionsByObject = new WeakMap();
 let compilerHost;
 
 function getCompilerHost() {
@@ -152,6 +153,11 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
   if (!tsConfig) {
     debug('no tsconfig given, defaulting');
     return {};
+  }
+
+  if (typeof tsConfig !== 'string') {
+    const cached = compilerOptionsByObject.get(tsConfig);
+    if (cached) return cached;
   }
 
   ts ||= require('typescript');
@@ -175,9 +181,11 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
   } else if ('compilerOptions' in tsConfig) {
     debug('raw tsconfig json given, parsing');
     compilerOptions = ts.convertCompilerOptionsFromJson(tsConfig.compilerOptions).options;
+    compilerOptionsByObject.set(tsConfig, compilerOptions);
   } else {
     debug('parsed tsconfig given, plucking options');
     compilerOptions = tsConfig.options;
+    compilerOptionsByObject.set(tsConfig, compilerOptions);
   }
 
   debug(`processed typescript config (${typeof tsConfig}): ${tsConfig}`);
