@@ -235,7 +235,10 @@ function resolveFromTsAliasPath(resolvedTsAliasPath, extensions) {
   let stat;
 
   try {
-    stat = fs.statSync(resolvedTsAliasPath);
+    // throwIfNoEntry: false avoids constructing an Error on every path-mapping miss;
+    // the outer try/catch preserves the original behavior of swallowing all other OS errors.
+    // TODO: Maybe revisit this in the future.
+    stat = fs.statSync(resolvedTsAliasPath, { throwIfNoEntry: false });
   } catch {}
 
   if (!stat) {
