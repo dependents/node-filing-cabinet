@@ -391,6 +391,17 @@ describe('filing-cabinet', () => {
         const expected = path.join(directory, 'withOnlyTypeDef.d.ts');
         assert.equal(result, expected);
       });
+
+      it('strips only the trailing extension when a parent directory name also contains .d.ts', () => {
+        const result = cabinet({
+          partial: './dirWithDts.d.ts/inner',
+          filename: path.join(directory, '/index.ts'),
+          directory,
+          noTypeDefinitions: true
+        });
+        const expected = path.join(directory, 'dirWithDts.d.ts/inner.js');
+        assert.equal(result, expected);
+      });
     });
 
     describe('tsconfig', () => {

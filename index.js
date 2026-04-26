@@ -299,7 +299,7 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
     result = namedModule.resolvedModule.resolvedFileName;
 
     if (namedModule.resolvedModule.extension === '.d.ts' && noTypeDefinitions) {
-      const resolvedFileNameWithoutExtension = result.replace(namedModule.resolvedModule.extension, '');
+      const resolvedFileNameWithoutExtension = result.slice(0, -namedModule.resolvedModule.extension.length);
       try {
         result = ts.resolveJSModule(resolvedFileNameWithoutExtension, path.dirname(filename), host);
       } catch (error) {
