@@ -310,7 +310,7 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
     const suffix = '.d.ts';
     const lookUpLocations = (namedModule.failedLookupLocations ?? [])
       .filter(string => string.endsWith(suffix))
-      .map(string => string.substr(0, string.length - suffix.length));
+      .map(string => string.slice(0, -suffix.length));
 
     result = lookUpLocations.find(location => ts.sys.fileExists(location)) || '';
   }
