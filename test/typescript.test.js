@@ -301,6 +301,19 @@ describe('TypeScript', () => {
         });
       }, /could not read tsconfig/);
     });
+
+    it('returns consistent results on repeated TypeScript lookups', () => {
+      const options = {
+        partial: './foo',
+        filename: path.join(directory, 'index.ts'),
+        directory,
+        tsConfig: path.join(directory, '.tsconfig')
+      };
+      const expected = path.join(directory, 'foo.ts');
+
+      assert.equal(cabinet(options), expected);
+      assert.equal(cabinet(options), expected);
+    });
   });
 
   describe('path mapping', () => {
