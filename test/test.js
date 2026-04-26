@@ -648,6 +648,18 @@ describe('filing-cabinet', () => {
         assert.equal(result, expected);
       });
 
+      it('resolves via path mapping when tsConfig is a string path and tsConfigPath is omitted', () => {
+        const root3Dir = path.resolve(__dirname, 'fixtures/root3');
+        const result = cabinet({
+          partial: '@monorepo/foo/hello.ts',
+          filename: path.resolve(root3Dir, 'packages/bar/index.ts'),
+          directory: root3Dir,
+          tsConfig: path.resolve(root3Dir, 'tsconfig.json')
+        });
+        const expected = path.resolve(root3Dir, 'packages/foo/hello.ts');
+        assert.equal(result, expected);
+      });
+
       describe('package.json imports field', () => {
         const importsDir = fixtures('ts/imports');
 

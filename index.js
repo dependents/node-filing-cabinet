@@ -298,7 +298,7 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
   }
 
   if (typeof tsConfig === 'string') {
-    tsConfigPath ||= path.dirname(tsConfig);
+    tsConfigPath ||= tsConfig;
   }
 
   if (!tsConfig && webpackConfig) {
