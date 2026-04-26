@@ -141,14 +141,18 @@ module.exports._getJSType = function(options = {}) {
 };
 
 function getCompilerOptionsFromTsConfig(tsConfig) {
-  ts ||= require('typescript');
-
   debug(`given typescript config: ${tsConfig}`);
-  let compilerOptions = {};
 
   if (!tsConfig) {
     debug('no tsconfig given, defaulting');
-  } else if (typeof tsConfig === 'string') {
+    return {};
+  }
+
+  ts ||= require('typescript');
+
+  let compilerOptions = {};
+
+  if (typeof tsConfig === 'string') {
     debug('string tsconfig given, parsing');
 
     try {
@@ -291,6 +295,8 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
   }
 
   const compilerOptions = getCompilerOptionsFromTsConfig(tsConfig);
+
+  ts ||= require('typescript');
   const host = ts.createCompilerHost({});
 
   debug('with options: %o', compilerOptions);
