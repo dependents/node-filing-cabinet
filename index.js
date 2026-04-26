@@ -52,12 +52,11 @@ const defaultLookups = {
  */
 module.exports = function(options = {}) {
   const { partial, filename } = options;
-  const ext = path.extname(filename);
+  const extension = path.extname(filename);
 
-  debug(`Given filename: ${filename}`);
-  debug(`which has the extension: ${ext}`);
+  debug(`filename: ${filename}, extension: ${extension}`);
 
-  let resolver = defaultLookups[ext];
+  let resolver = defaultLookups[extension];
 
   if (!resolver) {
     debug('using generic resolver');
@@ -66,7 +65,7 @@ module.exports = function(options = {}) {
     resolver = resolveDependencyPath;
   }
 
-  debug(`found a resolver for ${ext}`);
+  debug(`found a resolver for ${extension}`);
 
   options.dependency = partial;
   const result = resolver(options);
@@ -168,8 +167,7 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
     compilerOptions = tsConfig.options;
   }
 
-  debug(`processed typescript config: ${tsConfig}`);
-  debug(`processed typescript config type: ${typeof tsConfig}`);
+  debug(`processed typescript config (${typeof tsConfig}): ${tsConfig}`);
 
   return compilerOptions;
 }
@@ -241,9 +239,9 @@ function resolveFromTsAliasPath(resolvedTsAliasPath, extensions) {
   } catch {}
 
   if (!stat) {
-    // tsconfig-paths returns an extensionless path when path.{ext} exists; recover it
-    for (const ext of extensions) {
-      const withExt = resolvedTsAliasPath + ext;
+    // tsconfig-paths returns an extensionless path when path.{extension} exists; recover it
+    for (const extension of extensions) {
+      const withExt = resolvedTsAliasPath + extension;
       if (fs.existsSync(withExt)) return withExt;
     }
     /* c8 ignore next 3 */
@@ -252,9 +250,9 @@ function resolveFromTsAliasPath(resolvedTsAliasPath, extensions) {
   }
 
   if (stat.isDirectory()) {
-    // tsconfig-paths returns a directory path when directory/index.{ext} exists; resolve it
-    for (const ext of extensions) {
-      const indexFile = path.join(resolvedTsAliasPath, `index${ext}`);
+    // tsconfig-paths returns a directory path when directory/index.{extension} exists; resolve it
+    for (const extension of extensions) {
+      const indexFile = path.join(resolvedTsAliasPath, `index${extension}`);
       if (fs.existsSync(indexFile)) return indexFile;
     }
     /* c8 ignore next 3 */
@@ -270,6 +268,7 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
 
   // Handle #hash imports via package.json imports field
   if (dependency && dependency.startsWith('#')) {
+    debug('using hash import resolver');
     const hashResult = resolveHashImport(dependency, filename);
     if (hashResult) return hashResult;
   }
@@ -355,6 +354,7 @@ function commonJSLookup(options) {
 
   // Handle #hash imports via package.json imports field
   if (dependency.startsWith('#')) {
+    debug('using hash import resolver');
     const hashResult = resolveHashImport(dependency, filename);
     if (hashResult) return hashResult;
   }
@@ -467,9 +467,7 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
       loadedConfig = loadedConfig[0];
     }
   } catch (error) {
-    debug(`error loading the webpack config at ${webpackConfig}`);
-    debug(error.message);
-    debug(error.stack);
+    debug(`error loading the webpack config at ${webpackConfig}:\n${error.stack}`);
     return '';
   }
 
@@ -514,9 +512,7 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
 
     return resolver(lookupPath, dependency);
   } catch (error) {
-    debug(`error when resolving ${dependency}`);
-    debug(error.message);
-    debug(error.stack);
+    debug(`error when resolving ${dependency}:\n${error.stack}`);
     return '';
   }
 }
