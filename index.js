@@ -141,6 +141,7 @@ module.exports._getJSType = function(options = {}) {
 };
 
 const compilerOptionsByObject = new WeakMap();
+const webpackResolverByConfig = new Map();
 let compilerHost;
 
 function getCompilerHost() {
@@ -477,53 +478,61 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
   webpackResolve ||= require('enhanced-resolve');
 
   webpackConfig = path.resolve(webpackConfig);
-  let loadedConfig;
+  let resolver = webpackResolverByConfig.get(webpackConfig);
+  let resolveConfig;
 
-  try {
-    loadedConfig = require(webpackConfig);
+  if (!resolver) {
+    let loadedConfig;
 
-    if (typeof loadedConfig === 'function') {
-      loadedConfig = loadedConfig();
+    try {
+      loadedConfig = require(webpackConfig);
+
+      if (typeof loadedConfig === 'function') {
+        loadedConfig = loadedConfig();
+      }
+
+      if (Array.isArray(loadedConfig)) {
+        loadedConfig = loadedConfig[0];
+      }
+    } catch (error) {
+      debug(`error loading the webpack config at ${webpackConfig}:\n${error.stack}`);
+      return '';
     }
 
-    if (Array.isArray(loadedConfig)) {
-      loadedConfig = loadedConfig[0];
+    resolveConfig = { ...loadedConfig.resolve };
+
+    if (!resolveConfig.modules && (resolveConfig.root || resolveConfig.roots || resolveConfig.modulesDirectories)) {
+      resolveConfig.modules = [];
+
+      // `resolve.root` is a string, it may be used in webpack 1.x.
+      // here: https://github.com/webpack/webpack/issues/472#issuecomment-166946925
+      if (typeof resolveConfig.root === 'string') {
+        resolveConfig.modules = [...resolveConfig.modules, resolveConfig.root];
+      }
+
+      if (Array.isArray(resolveConfig.root)) {
+        resolveConfig.modules = [...resolveConfig.modules, ...resolveConfig.root];
+      }
+
+      // https://webpack.js.org/configuration/resolve/#resolveroots
+      if (Array.isArray(resolveConfig.roots)) {
+        resolveConfig.modules = [...resolveConfig.modules, ...resolveConfig.roots];
+      }
+
+      if (resolveConfig.modulesDirectories) {
+        resolveConfig.modules = [
+          ...resolveConfig.modules,
+          ...resolveConfig.modulesDirectories
+        ];
+      }
     }
-  } catch (error) {
-    debug(`error loading the webpack config at ${webpackConfig}:\n${error.stack}`);
-    return '';
   }
 
-  const resolveConfig = { ...loadedConfig.resolve };
-
-  if (!resolveConfig.modules && (resolveConfig.root || resolveConfig.roots || resolveConfig.modulesDirectories)) {
-    resolveConfig.modules = [];
-
-    // `resolve.root` is a string, it may be used in webpack 1.x.
-    // here: https://github.com/webpack/webpack/issues/472#issuecomment-166946925
-    if (typeof resolveConfig.root === 'string') {
-      resolveConfig.modules = [...resolveConfig.modules, resolveConfig.root];
-    }
-
-    if (Array.isArray(resolveConfig.root)) {
-      resolveConfig.modules = [...resolveConfig.modules, ...resolveConfig.root];
-    }
-
-    // https://webpack.js.org/configuration/resolve/#resolveroots
-    if (Array.isArray(resolveConfig.roots)) {
-      resolveConfig.modules = [...resolveConfig.modules, ...resolveConfig.roots];
-    }
-
-    if (resolveConfig.modulesDirectories) {
-      resolveConfig.modules = [
-        ...resolveConfig.modules,
-        ...resolveConfig.modulesDirectories
-      ];
-    }
-  }
-
   try {
-    const resolver = webpackResolve.create.sync(resolveConfig);
+    if (!resolver) {
+      resolver = webpackResolve.create.sync(resolveConfig);
+      webpackResolverByConfig.set(webpackConfig, resolver);
+    }
 
     // We don't care about what the loader resolves the dependency to
     // we only want the path of the resolved file

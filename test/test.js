@@ -1017,6 +1017,19 @@ describe('filing-cabinet', () => {
       });
       assert.equal(result, '');
     });
+
+    it('returns the same result on repeated lookups against the same webpack config', () => {
+      const options = {
+        partial: 'R',
+        filename: path.join(directory, 'index.js'),
+        directory,
+        webpackConfig: path.join(directory, 'webpack.config.js')
+      };
+      const expected = path.join(directory, 'node_modules/resolve/index.js');
+
+      assert.equal(cabinet(options), expected);
+      assert.equal(cabinet(options), expected);
+    });
   });
 
   describe('Svelte', () => {
