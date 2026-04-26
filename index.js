@@ -140,6 +140,14 @@ module.exports._getJSType = function(options = {}) {
   return getModuleType.sync(options.filename);
 };
 
+let compilerHost;
+
+function getCompilerHost() {
+  ts ||= require('typescript');
+  compilerHost ||= ts.createCompilerHost({});
+  return compilerHost;
+}
+
 function getCompilerOptionsFromTsConfig(tsConfig) {
   debug(`given typescript config: ${tsConfig}`);
 
@@ -295,9 +303,7 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
   }
 
   const compilerOptions = getCompilerOptionsFromTsConfig(tsConfig);
-
-  ts ||= require('typescript');
-  const host = ts.createCompilerHost({});
+  const host = getCompilerHost();
 
   debug('with options: %o', compilerOptions);
 
