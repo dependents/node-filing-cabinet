@@ -36,11 +36,11 @@ if (result) {
 
 | Member | Type | Description |
 | --- | --- | --- |
-| [`cabinet(options)`](#cabinetoptions) | `Function` | Resolve a dependency to an absolute path |
-| [`cabinet.register(extension, resolver)`](#cabinetregisterextension-resolver) | `Function` | Register a custom resolver for a file extension |
-| [`cabinet.unregister(extension)`](#cabinetunregisterextension) | `Function` | Remove a registered resolver |
-| [`cabinet.getLookup(extension)`](#cabinetgetlookupextension) | `Function` | Get the resolver for a file extension |
-| [`cabinet.supportedFileExtensions`](#cabinetsupportedfileextensions) | `string[]` | All currently registered file extensions |
+| `cabinet(options)` | `Function` | Resolve a dependency to an absolute path |
+| `cabinet.register(extension, resolver)` | `Function` | Register a custom resolver for a file extension |
+| `cabinet.unregister(extension)` | `Function` | Remove a registered resolver |
+| `cabinet.getLookup(extension)` | `Function` | Get the resolver for a file extension |
+| `cabinet.supportedFileExtensions` | `string[]` | All currently registered file extensions |
 
 ### `cabinet(options: CabinetOptions)`
 
@@ -59,14 +59,12 @@ Resolves a dependency string from the context of a file.
 | `config` | `string \| Object` | No | **JS only.** RequireJS config (path or object) for AMD resolution |
 | `configPath` | `string` | No | **JS only.** Path to the RequireJS config file when `config` is an object |
 | `webpackConfig` | `string` | No | **JS only.** Webpack config path for webpack-style resolution; if the config exports an array, the first config is used |
-| `nodeModulesConfig` | `Object \| Function` | No | Controls package entry selection when resolving from `node_modules` ([see examples below](#node-modules-config-examples)) |
+| `nodeModulesConfig` | `Object \| Function` | No | Controls package entry selection when resolving from `node_modules` (see examples below) |
 | `nodeModulesConfig.entry` | `string` | No | Object form: field name to prefer instead of `main` (for example `module`) |
 | `nodeModulesConfig` (function) | `Function` | No | Function form: custom [`resolve` packageFilter](https://github.com/browserify/resolve#resolveid-opts-cb) callback for full control of package entry selection |
 | `tsConfig` | `string \| Object` | No | **TS only.** TypeScript config path or pre-parsed config object |
 | `tsConfigPath` | `string` | No | **TS only.** (Virtual) path to tsconfig when `tsConfig` is an object; needed for [Path Mapping](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping) |
 | `noTypeDefinitions` | `boolean` | No | **TS only.** Prefer `*.js` over `*.d.ts` when resolving TypeScript dependencies |
-
-<a id="node-modules-config-examples"></a>
 
 #### `nodeModulesConfig` examples
 
@@ -103,7 +101,7 @@ Register a custom resolver for a file extension.
 **Parameters:**
 
 * `extension` (`string`, required) - file extension to handle (for example `.py`, `.php`)
-* `resolver` (`(options: Object) => string`, required) - function that receives the same `options` object passed to [`cabinet(options)`](#cabinetoptions) and returns a resolved absolute path or an empty string
+* `resolver` (`(options: Object) => string`, required) - function that receives the same `options` object passed to `cabinet(options)` and returns a resolved absolute path or an empty string
 
 **Returns:** `void`
 
