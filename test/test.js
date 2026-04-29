@@ -575,8 +575,8 @@ describe('filing-cabinet', () => {
       it('resolves a path using TypeScript path mapping', () => {
         const result = cabinet({
           partial: '#foo/hello',
-          filename: path.resolve(__dirname, 'fixtures/root3/packages/foo/index.ts'),
-          directory: path.resolve(__dirname, 'fixtures/root3'),
+          filename: fixtures('root3/packages/foo/index.ts'),
+          directory: fixtures('root3'),
           tsConfig: {
             compilerOptions: {
               rootDir: '.',
@@ -589,14 +589,14 @@ describe('filing-cabinet', () => {
               }
             }
           },
-          tsConfigPath: path.resolve(__dirname, 'fixtures/root3/tsconfig.json')
+          tsConfigPath: fixtures('root3/tsconfig.json')
         });
-        const expected = path.resolve(__dirname, 'fixtures/root3/packages/foo/hello.ts');
+        const expected = fixtures('root3/packages/foo/hello.ts');
         assert.equal(result, expected);
       });
 
       it('resolves a file import with explicit extension via path mapping using pre-parsed options object', () => {
-        const root3Dir = path.resolve(__dirname, 'fixtures/root3');
+        const root3Dir = fixtures('root3');
         const result = cabinet({
           partial: '@monorepo/foo/hello.ts',
           filename: path.resolve(root3Dir, 'packages/bar/index.ts'),
@@ -616,7 +616,7 @@ describe('filing-cabinet', () => {
       });
 
       it('resolves a directory import via path mapping to its index file', () => {
-        const root3Dir = path.resolve(__dirname, 'fixtures/root3');
+        const root3Dir = fixtures('root3');
         const result = cabinet({
           partial: '@monorepo/foo',
           filename: path.resolve(root3Dir, 'packages/bar/index.ts'),
@@ -838,10 +838,7 @@ describe('filing-cabinet', () => {
 
       const { supportedFileExtensions } = cabinet;
 
-      assert.equal(
-        supportedFileExtensions.indexOf(newExt),
-        supportedFileExtensions.lastIndexOf(newExt)
-      );
+      assert.equal(supportedFileExtensions.indexOf(newExt), supportedFileExtensions.lastIndexOf(newExt));
     });
   });
 
