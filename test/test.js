@@ -223,6 +223,16 @@ describe('filing-cabinet', () => {
         assert.equal(result, expected);
       });
 
+      it('resolves a nested module when directory is an ancestor of the file', () => {
+        const result = cabinet({
+          partial: 'lodash.assign',
+          filename: fixtures('js/node_modules/nested/index.js'),
+          directory: fixtures('js/')
+        });
+        const expected = fixtures('js/node_modules/nested/node_modules/lodash.assign/index.js');
+        assert.equal(result, expected);
+      });
+
       it('resolves to the index.js file of a directory', () => {
         const result = cabinet({
           partial: './subdir',
