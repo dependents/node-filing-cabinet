@@ -421,7 +421,7 @@ function commonJSLookup(options) {
 
     result = resolve.sync(dependency, {
       extensions,
-      basedir: directory,
+      basedir: path.dirname(filename),
       packageFilter: packageFilterOption,
       // Add fileDir to resolve index.js files in that dir
       moduleDirectory: ['node_modules', directory]
