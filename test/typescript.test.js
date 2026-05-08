@@ -3,6 +3,7 @@
 const assert = require('assert').strict;
 const { readFile } = require('fs/promises');
 const path = require('path');
+const sinon = require('sinon');
 const cabinet = require('../index.js');
 const { fixtures } = require('./helpers.js');
 
@@ -368,6 +369,80 @@ describe('TypeScript', () => {
       const expected = path.resolve(root3Dir, 'packages/foo/index.ts');
 
       assert.equal(result, expected);
+    });
+
+    describe('alternate fileSystem', () => {
+      const root3Dir = fixtures('root3');
+      const tsConfig = {
+        options: {
+          baseUrl: 'packages',
+          paths: { '@monorepo/*': ['*'] }
+        }
+      };
+      const tsConfigPath = path.resolve(root3Dir, 'tsconfig.json');
+      const filename = path.resolve(root3Dir, 'packages/bar/index.ts');
+
+      it('uses the alternate fs for stat checks during path-mapping resolution', () => {
+        const realFs = require('fs');
+        const statSpy = sinon.spy(realFs, 'statSync');
+        const existsSpy = sinon.spy(realFs, 'existsSync');
+
+        const fakeFs = {
+          statSync: statSpy,
+          existsSync: existsSpy
+        };
+
+        try {
+          const result = cabinet({
+            partial: '@monorepo/foo/hello.ts',
+            filename,
+            directory: root3Dir,
+            tsConfig,
+            tsConfigPath,
+            fileSystem: fakeFs
+          });
+
+          assert.equal(result, path.resolve(root3Dir, 'packages/foo/hello.ts'));
+          assert.equal(
+            statSpy.called || existsSpy.called,
+            true,
+            'alternate fs should be used for stat/exists checks'
+          );
+        } finally {
+          statSpy.restore();
+          existsSpy.restore();
+        }
+      });
+
+      it('falls back to real fs when fileSystem is not provided', () => {
+        const result = cabinet({
+          partial: '@monorepo/foo/hello.ts',
+          filename,
+          directory: root3Dir,
+          tsConfig,
+          tsConfigPath
+        });
+
+        assert.equal(result, path.resolve(root3Dir, 'packages/foo/hello.ts'));
+      });
+
+      it('returns empty string when alternate fs reports the resolved alias path does not exist', () => {
+        const fakeFs = {
+          statSync: () => undefined,
+          existsSync: () => false
+        };
+
+        const result = cabinet({
+          partial: '@monorepo/foo/hello.ts',
+          filename,
+          directory: root3Dir,
+          tsConfig,
+          tsConfigPath,
+          fileSystem: fakeFs
+        });
+
+        assert.equal(result, '');
+      });
     });
 
     describe('package.json imports field', () => {

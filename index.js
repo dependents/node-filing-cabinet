@@ -49,6 +49,7 @@ const defaultLookups = {
  * @param {string|Object} [options.tsConfig] Path to a TypeScript config or a pre-parsed TypeScript config object.
  * @param {string} [options.tsConfigPath] A (virtual) path to a TypeScript config file when `tsConfig` is an object. Needed to calculate [Path Mapping](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping). If omitted in object mode, path mapping is ignored.
  * @param {boolean} [options.noTypeDefinitions] For TypeScript dependencies, whether to prefer `.js` over `.d.ts`.
+ * @param {Object} [options.fileSystem] An alternative fs implementation to use for reading tsConfigPath.
  */
 module.exports = function(options = {}) {
   const { partial, filename } = options;
@@ -243,21 +244,22 @@ function jsLookup(options) {
   }
 }
 
-function resolveFromTsAliasPath(resolvedTsAliasPath, extensions) {
+function resolveFromTsAliasPath(resolvedTsAliasPath, extensions, fileSystem) {
+  const fsOpt = fileSystem || fs;
   let stat;
 
   try {
     // throwIfNoEntry: false avoids constructing an Error on every path-mapping miss;
     // the outer try/catch preserves the original behavior of swallowing all other OS errors.
     // TODO: Maybe revisit this in the future.
-    stat = fs.statSync(resolvedTsAliasPath, { throwIfNoEntry: false });
+    stat = fsOpt.statSync(resolvedTsAliasPath, { throwIfNoEntry: false });
   } catch {}
 
   if (!stat) {
     // tsconfig-paths returns an extensionless path when path.{extension} exists; recover it
     for (const extension of extensions) {
       const withExt = resolvedTsAliasPath + extension;
-      if (fs.existsSync(withExt)) return withExt;
+      if (fsOpt.existsSync(withExt)) return withExt;
     }
     /* c8 ignore next 3 */
 
@@ -268,7 +270,7 @@ function resolveFromTsAliasPath(resolvedTsAliasPath, extensions) {
     // tsconfig-paths returns a directory path when directory/index.{extension} exists; resolve it
     for (const extension of extensions) {
       const indexFile = path.join(resolvedTsAliasPath, `index${extension}`);
-      if (fs.existsSync(indexFile)) return indexFile;
+      if (fsOpt.existsSync(indexFile)) return indexFile;
     }
     /* c8 ignore next 3 */
 
@@ -278,7 +280,7 @@ function resolveFromTsAliasPath(resolvedTsAliasPath, extensions) {
   return resolvedTsAliasPath;
 }
 
-function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, tsConfigPath, noTypeDefinitions }) {
+function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, tsConfigPath, noTypeDefinitions, fileSystem }) {
   debug('performing a typescript lookup');
 
   // Handle #hash imports via package.json imports field
@@ -348,7 +350,7 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
     const resolvedTsAliasPath = tsMatchPath(dependency, undefined, undefined, extensions);
 
     if (resolvedTsAliasPath) {
-      result = resolveFromTsAliasPath(resolvedTsAliasPath, extensions);
+      result = resolveFromTsAliasPath(resolvedTsAliasPath, extensions, fileSystem);
     }
   }
 

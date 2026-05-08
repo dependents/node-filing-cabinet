@@ -65,6 +65,7 @@ Resolves a dependency string from the context of a file.
 | `tsConfig` | `string \| Object` | No | **TS only.** TypeScript config path or pre-parsed config object |
 | `tsConfigPath` | `string` | No | **TS only.** (Virtual) path to tsconfig when `tsConfig` is an object; needed for [Path Mapping](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping) |
 | `noTypeDefinitions` | `boolean` | No | **TS only.** Prefer `*.js` over `*.d.ts` when resolving TypeScript dependencies |
+| `fileSystem` | `Object` | No | An alternative `fs` implementation to use for reading `tsConfigPath` |
 
 #### `nodeModulesConfig` examples
 
