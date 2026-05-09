@@ -261,6 +261,18 @@ describe('JavaScript', () => {
 
       assert.equal(result, expected);
     });
+
+    it('resolves a partial require of a JSON file', () => {
+      const commonjsDirectory = fixtures('js/commonjs');
+      const result = cabinet({
+        partial: './config',
+        filename: path.join(commonjsDirectory, 'bar.js'),
+        directory: commonjsDirectory
+      });
+      const expected = path.join(commonjsDirectory, 'config.json');
+
+      assert.equal(result, expected);
+    });
   });
 
   describe('package.json imports field', () => {
