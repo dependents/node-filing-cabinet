@@ -1,14 +1,14 @@
 'use strict';
 
-const assert = require('assert').strict;
-const path = require('path');
+const assert = require('node:assert').strict;
+const path = require('node:path');
 const sinon = require('sinon');
 const cabinet = require('../index.js');
 const { fixtures } = require('./helpers.js');
 
 describe('supportedFileExtensions', () => {
   it('dangles off its supported file extensions', () => {
-    const actual = cabinet.supportedFileExtensions.sort();
+    const actual = cabinet.supportedFileExtensions.toSorted();
     const expected = [
       '.js',
       '.jsx',
@@ -20,7 +20,7 @@ describe('supportedFileExtensions', () => {
       '.ts',
       '.tsx',
       '.vue'
-    ].sort();
+    ].toSorted();
 
     assert.deepEqual(actual, expected);
   });

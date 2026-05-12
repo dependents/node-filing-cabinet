@@ -1,8 +1,8 @@
 'use strict';
 
-const assert = require('assert').strict;
-const { readFile } = require('fs/promises');
-const path = require('path');
+const assert = require('node:assert').strict;
+const { readFile } = require('node:fs/promises');
+const path = require('node:path');
 const sinon = require('sinon');
 const cabinet = require('../index.js');
 const { fixtures } = require('./helpers.js');
@@ -383,7 +383,7 @@ describe('TypeScript', () => {
       const filename = path.resolve(root3Dir, 'packages/bar/index.ts');
 
       it('uses the alternate fs for stat checks during path-mapping resolution', () => {
-        const realFs = require('fs');
+        const realFs = require('node:fs');
         const statSpy = sinon.spy(realFs, 'statSync');
         const existsSpy = sinon.spy(realFs, 'existsSync');
 

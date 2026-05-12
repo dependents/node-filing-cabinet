@@ -1,8 +1,8 @@
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const { debuglog } = require('util');
+const fs = require('node:fs');
+const path = require('node:path');
+const { debuglog } = require('node:util');
 const appModulePath = require('app-module-path');
 const sassLookup = require('sass-lookup');
 const stylusLookup = require('stylus-lookup');
@@ -320,7 +320,7 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
       const resolvedFileNameWithoutExtension = result.slice(0, -namedModule.resolvedModule.extension.length);
       try {
         result = ts.resolveJSModule(resolvedFileNameWithoutExtension, path.dirname(filename), host);
-      } catch (error) {
+      } catch(error) {
         debug(`ts.resolveJSModule threw an Error: ${error.message}`);
       }
     }
@@ -488,7 +488,7 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
       if (Array.isArray(loadedConfig)) {
         loadedConfig = loadedConfig[0];
       }
-    } catch (error) {
+    } catch(error) {
       debug(`error loading the webpack config at ${webpackConfig}:\n${error.stack}`);
       return '';
     }
@@ -537,7 +537,7 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
       directory;
 
     return resolver(lookupPath, dependency);
-  } catch (error) {
+  } catch(error) {
     debug(`error when resolving ${dependency}:\n${error.stack}`);
     return '';
   }
@@ -581,7 +581,7 @@ function resolveHashImport(dependency, filename) {
     debug(`hash import resolved: ${result}`);
 
     return result;
-  } catch (error) {
+  } catch(error) {
     debug(`could not resolve hash import ${dependency}: ${error.message}`);
 
     return '';
