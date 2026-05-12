@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-'use strict';
+import { program } from 'commander';
+import cabinet from '../index.js';
+import pkg from '../package.json' with { type: 'json' };
 
-const { program } = require('commander');
-const cabinet = require('../index.js');
-const { name, description, version } = require('../package.json');
+const { name, description, version } = pkg;
 
 program
   .name(name)

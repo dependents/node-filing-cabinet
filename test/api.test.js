@@ -1,10 +1,8 @@
-'use strict';
-
-const assert = require('node:assert').strict;
-const path = require('node:path');
-const sinon = require('sinon');
-const cabinet = require('../index.js');
-const { fixtures } = require('./helpers.js');
+import { strict as assert } from 'node:assert';
+import path from 'node:path';
+import sinon from 'sinon';
+import cabinet from '../index.js';
+import { fixtures } from './helpers.js';
 
 describe('supportedFileExtensions', () => {
   it('dangles off its supported file extensions', () => {

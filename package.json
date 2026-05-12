@@ -2,7 +2,10 @@
   "name": "filing-cabinet",
   "version": "5.5.1",
   "description": "Find files based on partial paths",
-  "main": "index.js",
+  "type": "module",
+  "exports": {
+    ".": "./index.js"
+  },
   "files": [
     "bin/cli.js",
     "index.js"
@@ -42,7 +45,7 @@
   },
   "homepage": "https://github.com/dependents/node-filing-cabinet",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19.0 || >=22.12.0"
   },
   "dependencies": {
     "app-module-path": "^2.2.0",
