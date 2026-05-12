@@ -1,13 +1,13 @@
-'use strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { debuglog } from 'node:util';
+import { createRequire } from 'node:module';
+import appModulePath from 'app-module-path';
+import sassLookup from 'sass-lookup';
+import stylusLookup from 'stylus-lookup';
+import { createMatchPath } from 'tsconfig-paths';
 
-const fs = require('node:fs');
-const path = require('node:path');
-const { debuglog } = require('node:util');
-const appModulePath = require('app-module-path');
-const sassLookup = require('sass-lookup');
-const stylusLookup = require('stylus-lookup');
-const { createMatchPath } = require('tsconfig-paths');
-
+const require = createRequire(import.meta.url);
 const debug = debuglog('cabinet');
 
 /*
@@ -51,18 +51,16 @@ const defaultLookups = {
  * @param {boolean} [options.noTypeDefinitions] For TypeScript dependencies, whether to prefer `.js` over `.d.ts`.
  * @param {Object} [options.fileSystem] An alternative fs implementation to use for reading tsConfigPath.
  */
-module.exports = function(options = {}) {
+export default function cabinet(options = {}) {
   const { partial, filename } = options;
   const extension = path.extname(filename);
 
   debug(`filename: ${filename}, extension: ${extension}`);
 
   let resolver = defaultLookups[extension];
-
   if (!resolver) {
     debug('using generic resolver');
-    resolveDependencyPath ||= require('resolve-dependency-path');
-
+    resolveDependencyPath ||= require('resolve-dependency-path').default;
     resolver = resolveDependencyPath;
   }
 
@@ -73,9 +71,9 @@ module.exports = function(options = {}) {
 
   debug(`resolved path for ${partial}: ${result}`);
   return result;
-};
+}
 
-module.exports.supportedFileExtensions = Object.keys(defaultLookups);
+cabinet.supportedFileExtensions = Object.keys(defaultLookups);
 
 /**
  * Get the lookup resolver for a given file extension
@@ -83,7 +81,7 @@ module.exports.supportedFileExtensions = Object.keys(defaultLookups);
  * @param {string} extension - The file extension whose resolver should be retrieved.
  * @returns {Function|undefined}
  */
-module.exports.getLookup = function(extension) {
+cabinet.getLookup = function(extension) {
   return defaultLookups[extension];
 };
 
@@ -93,11 +91,11 @@ module.exports.getLookup = function(extension) {
  * @param  {string} extension - The file extension that should use the resolver
  * @param  {Function} lookupStrategy - A resolver that accepts the options object used by `cabinet`
  */
-module.exports.register = function(extension, lookupStrategy) {
+cabinet.register = function(extension, lookupStrategy) {
   defaultLookups[extension] = lookupStrategy;
 
-  if (!this.supportedFileExtensions.includes(extension)) {
-    this.supportedFileExtensions.push(extension);
+  if (!cabinet.supportedFileExtensions.includes(extension)) {
+    cabinet.supportedFileExtensions.push(extension);
   }
 };
 
@@ -106,9 +104,9 @@ module.exports.register = function(extension, lookupStrategy) {
  *
  * @param  {string} extension - The file extension whose resolver should be removed
  */
-module.exports.unregister = function(extension) {
+cabinet.unregister = function(extension) {
   delete defaultLookups[extension];
-  module.exports.supportedFileExtensions = Object.keys(defaultLookups);
+  cabinet.supportedFileExtensions = Object.keys(defaultLookups);
 };
 
 /**
@@ -121,8 +119,8 @@ module.exports.unregister = function(extension) {
  * @param  {Object} options.ast
  * @return {'amd'|'webpack'|'commonjs'|'es6'|string}
  */
-module.exports._getJSType = function(options = {}) {
-  getModuleType ||= require('module-definition');
+cabinet._getJSType = function(options = {}) {
+  getModuleType ||= require('module-definition').default;
 
   if (options.config) {
     return 'amd';
@@ -159,7 +157,6 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
   }
 
   ts ||= require('typescript');
-
   let compilerOptions = {};
 
   if (typeof tsConfig === 'string') {
@@ -167,7 +164,11 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
 
     try {
       const tsParsedConfig = ts.readJsonConfigFile(tsConfig, ts.sys.readFile);
-      compilerOptions = ts.parseJsonSourceFileConfigFileContent(tsParsedConfig, ts.sys, path.dirname(tsConfig)).options;
+      compilerOptions = ts.parseJsonSourceFileConfigFileContent(
+        tsParsedConfig,
+        ts.sys,
+        path.dirname(tsConfig)
+      ).options;
       debug('successfully parsed tsconfig');
     } catch {
       debug('could not parse tsconfig');
@@ -201,7 +202,7 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
  */
 function jsLookup(options) {
   const { dependency, filename, directory, config, webpackConfig, configPath, ast } = options;
-  const type = module.exports._getJSType({
+  const type = cabinet._getJSType({
     config,
     webpackConfig,
     filename,
@@ -211,7 +212,7 @@ function jsLookup(options) {
   switch (type) {
     case 'amd': {
       debug('using amd resolver');
-      amdLookup ||= require('module-lookup-amd');
+      amdLookup ||= require('module-lookup-amd').default;
 
       return amdLookup({
         config,
@@ -317,7 +318,10 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
     result = namedModule.resolvedModule.resolvedFileName;
 
     if (namedModule.resolvedModule.extension === '.d.ts' && noTypeDefinitions) {
-      const resolvedFileNameWithoutExtension = result.slice(0, -namedModule.resolvedModule.extension.length);
+      const resolvedFileNameWithoutExtension = result.slice(
+        0,
+        -namedModule.resolvedModule.extension.length
+      );
       try {
         result = ts.resolveJSModule(resolvedFileNameWithoutExtension, path.dirname(filename), host);
       } catch(error) {
@@ -334,15 +338,7 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
   }
 
   if (!result && tsConfigPath && compilerOptions.baseUrl && compilerOptions.paths) {
-    const extensions = [
-      '.ts',
-      '.tsx',
-      '.d.ts',
-      '.js',
-      '.jsx',
-      '.json',
-      '.node'
-    ];
+    const extensions = ['.ts', '.tsx', '.d.ts', '.js', '.jsx', '.json', '.node'];
 
     const absoluteBaseUrl = path.join(path.dirname(tsConfigPath), compilerOptions.baseUrl);
     // Get absolute path by ts path mapping. `undefined` if non-existent
@@ -532,9 +528,7 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
     // we only want the path of the resolved file
     dependency = stripLoader(dependency);
 
-    const lookupPath = isRelativePath(dependency) ?
-      path.dirname(filename) :
-      directory;
+    const lookupPath = isRelativePath(dependency) ? path.dirname(filename) : directory;
 
     return resolver(lookupPath, dependency);
   } catch(error) {

@@ -1,7 +1,6 @@
-'use strict';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const path = require('node:path');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const fixtures = (...parts) => path.join(__dirname, 'fixtures', ...parts);
-
-module.exports = { fixtures };
+export const fixtures = (...parts) => path.join(__dirname, 'fixtures', ...parts);

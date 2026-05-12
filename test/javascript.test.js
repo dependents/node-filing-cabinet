@@ -1,10 +1,8 @@
-'use strict';
-
-const assert = require('node:assert').strict;
-const path = require('node:path');
-const cabinet = require('../index.js');
-const mockAST = require('./fixtures/ast.js');
-const { fixtures } = require('./helpers.js');
+import { strict as assert } from 'node:assert';
+import path from 'node:path';
+import cabinet from '../index.js';
+import { fixtures } from './helpers.js';
+import mockAST from './fixtures/ast.js';
 
 describe('JavaScript', () => {
   const directory = fixtures('js/commonjs');

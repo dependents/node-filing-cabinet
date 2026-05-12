@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = function() {
+export default function wallabyConfig() {
   return {
     files: [
       'index.js',
@@ -20,4 +18,4 @@ module.exports = function() {
     // https://wallabyjs.com/docs/integration/overview.html#supported-testing-frameworks
     testFramework: 'mocha'
   };
-};
+}
