@@ -14,10 +14,32 @@ npm install filing-cabinet
 
 ## Quick Start
 
-```js
-const path = require('path');
-const cabinet = require('filing-cabinet');
+### ESM
 
+```js
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import cabinet from 'filing-cabinet';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const result = cabinet({
+  // import Button from './button'
+  partial: './button',
+  filename: path.join(__dirname, 'src', 'app.js'),
+  directory: __dirname
+});
+```
+
+### CommonJS
+
+```js
+const { default: cabinet } = require('filing-cabinet');
+```
+
+### Options
+
+```js
 const result = cabinet({
   // import Button from './button'
   partial: './button',
