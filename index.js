@@ -112,8 +112,6 @@ cabinet.unregister = function(extension) {
 };
 
 /**
- * Exposed for testing
- *
  * @param  {Object} options
  * @param  {string} options.config
  * @param  {string} options.webpackConfig
@@ -121,7 +119,7 @@ cabinet.unregister = function(extension) {
  * @param  {Object} options.ast
  * @return {'amd'|'webpack'|'commonjs'|'es6'|string}
  */
-cabinet._getJSType = function(options = {}) {
+function getJSType(options = {}) {
   getModuleType ||= require('module-definition');
 
   if (options.config) {
@@ -139,7 +137,7 @@ cabinet._getJSType = function(options = {}) {
 
   debug('using the filename to find the module type');
   return getModuleType.sync(options.filename);
-};
+}
 
 const webpackResolverByConfig = new Map();
 let compilerHost;
@@ -201,7 +199,7 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
  */
 function jsLookup(options) {
   const { dependency, filename, directory, config, webpackConfig, configPath, ast } = options;
-  const type = cabinet._getJSType({
+  const type = getJSType({
     config,
     webpackConfig,
     filename,
