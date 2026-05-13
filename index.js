@@ -61,7 +61,7 @@ export default function cabinet(options = {}) {
 
   if (!resolver) {
     debug('using generic resolver');
-    resolveDependencyPath ||= require('resolve-dependency-path');
+    resolveDependencyPath ||= require('resolve-dependency-path').default;
 
     resolver = resolveDependencyPath;
   }
@@ -120,7 +120,7 @@ cabinet.unregister = function(extension) {
  * @return {'amd'|'webpack'|'commonjs'|'es6'|string}
  */
 function getJSType(options = {}) {
-  getModuleType ||= require('module-definition');
+  getModuleType ||= require('module-definition').default;
 
   if (options.config) {
     return 'amd';
@@ -209,7 +209,7 @@ function jsLookup(options) {
   switch (type) {
     case 'amd': {
       debug('using amd resolver');
-      amdLookup ||= require('module-lookup-amd');
+      amdLookup ||= require('module-lookup-amd').default;
 
       return amdLookup({
         config,
