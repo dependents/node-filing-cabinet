@@ -18,10 +18,10 @@ const debug = debuglog('cabinet');
 
 let getModuleType;
 let resolve;
+let enhancedResolve;
 let amdLookup;
 let ts;
 let resolveDependencyPath;
-let webpackResolve;
 
 const defaultLookups = {
   '.js': jsLookup,
@@ -363,8 +363,6 @@ function commonJSLookup(options) {
   const { filename, directory, nodeModulesConfig, tsConfig } = options;
   let { dependency } = options;
 
-  resolve ||= require('resolve');
-
   if (!dependency) {
     debug('blank dependency given. Returning early.');
     return '';
@@ -390,12 +388,6 @@ function commonJSLookup(options) {
     dependency = path.resolve(path.dirname(filename), dependency);
   }
 
-  // Allows us to configure what is used as the "main" entry point
-  function packageFilter(packageJson) {
-    packageJson.main = packageJson[nodeModulesConfig.entry] ?? packageJson.main;
-    return packageJson;
-  }
-
   const tsCompilerOptions = getCompilerOptionsFromTsConfig(tsConfig);
   const allowMixedJsAndTs = tsCompilerOptions.allowJs;
   let extensions = ['.js', '.jsx', '.json'];
@@ -413,6 +405,14 @@ function commonJSLookup(options) {
     // Otherwise, let the commonJS resolver look for plain .ts file imports.
     extensions = [...extensions, '.ts', '.tsx'];
   }
+
+  // Allows us to configure what is used as the "main" entry point
+  function packageFilter(packageJson) {
+    packageJson.main = packageJson[nodeModulesConfig.entry] ?? packageJson.main;
+    return packageJson;
+  }
+
+  resolve ||= require('resolve');
 
   try {
     let packageFilterOption;
@@ -469,7 +469,7 @@ function sfcLookup(options) {
 }
 
 function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) {
-  webpackResolve ||= require('enhanced-resolve');
+  enhancedResolve ||= require('enhanced-resolve');
 
   webpackConfig = path.resolve(webpackConfig);
   let resolver = webpackResolverByConfig.get(webpackConfig);
@@ -524,7 +524,7 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
 
   try {
     if (!resolver) {
-      resolver = webpackResolve.create.sync(resolveConfig);
+      resolver = enhancedResolve.create.sync(resolveConfig);
       webpackResolverByConfig.set(webpackConfig, resolver);
     }
 
@@ -568,10 +568,10 @@ function isRelativePath(filename) {
 function resolveHashImport(dependency, filename) {
   debug(`resolving hash import: ${dependency} from ${filename}`);
 
-  webpackResolve ||= require('enhanced-resolve');
+  enhancedResolve ||= require('enhanced-resolve');
 
   try {
-    const resolver = webpackResolve.create.sync({
+    const resolver = enhancedResolve.create.sync({
       importsFields: ['imports'],
       conditionNames: ['import', 'require', 'node', 'default'],
       extensions: ['.js', '.ts', '.tsx', '.jsx', '.mjs', '.cjs', '.json']
