@@ -22,6 +22,7 @@ let amdLookup;
 let ts;
 let resolveDependencyPath;
 let webpackResolve;
+let hashImportResolver;
 
 const defaultLookups = {
   '.js': jsLookup,
@@ -569,15 +570,14 @@ function resolveHashImport(dependency, filename) {
   debug(`resolving hash import: ${dependency} from ${filename}`);
 
   webpackResolve ||= require('enhanced-resolve');
+  hashImportResolver ||= webpackResolve.create.sync({
+    importsFields: ['imports'],
+    conditionNames: ['import', 'require', 'node', 'default'],
+    extensions: ['.js', '.ts', '.tsx', '.jsx', '.mjs', '.cjs', '.json']
+  });
 
   try {
-    const resolver = webpackResolve.create.sync({
-      importsFields: ['imports'],
-      conditionNames: ['import', 'require', 'node', 'default'],
-      extensions: ['.js', '.ts', '.tsx', '.jsx', '.mjs', '.cjs', '.json']
-    });
-
-    const result = resolver(path.dirname(filename), dependency);
+    const result = hashImportResolver(path.dirname(filename), dependency);
     debug(`hash import resolved: ${result}`);
 
     return result;
