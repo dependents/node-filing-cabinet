@@ -479,6 +479,12 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
         loadedConfig = loadedConfig();
       }
 
+      // Webpack 2+ allows Promise exports; we're synchronous so bail out gracefully.
+      if (loadedConfig && typeof loadedConfig.then === 'function') {
+        debug(`webpack config at ${webpackConfig} exports a Promise, which is not supported in synchronous mode`);
+        return '';
+      }
+
       if (Array.isArray(loadedConfig)) {
         loadedConfig = loadedConfig[0];
       }
