@@ -126,3 +126,64 @@ describe('register', () => {
     assert.equal(firstIndex, lastIndex);
   });
 });
+
+describe('create', () => {
+  it('returns an isolated instance', () => {
+    const instance = cabinet.create();
+    assert.equal(typeof instance, 'function');
+  });
+
+  it('instance has its own register/unregister/getLookup/supportedFileExtensions', () => {
+    const instance = cabinet.create();
+    assert.equal(typeof instance.register, 'function');
+    assert.equal(typeof instance.unregister, 'function');
+    assert.equal(typeof instance.getLookup, 'function');
+    assert.deepEqual(instance.supportedFileExtensions, cabinet.supportedFileExtensions);
+  });
+
+  it('instance resolver does not affect the global singleton', () => {
+    const instance = cabinet.create();
+    const stub = sinon.stub().returns('instance.result');
+    instance.register('.isolated', stub);
+
+    assert.equal(instance.getLookup('.isolated'), stub);
+    assert.equal(cabinet.getLookup('.isolated'), undefined);
+    assert.equal(cabinet.supportedFileExtensions.includes('.isolated'), false);
+  });
+
+  it('global singleton changes do not affect an existing instance', () => {
+    const instance = cabinet.create();
+    const stub = sinon.stub().returns('global.result');
+    cabinet.register('.globalonly', stub);
+
+    assert.equal(cabinet.getLookup('.globalonly'), stub);
+    assert.equal(instance.getLookup('.globalonly'), undefined);
+
+    cabinet.unregister('.globalonly');
+  });
+
+  it('two instances are isolated from each other', () => {
+    const a = cabinet.create();
+    const b = cabinet.create();
+    const stubA = sinon.stub().returns('a.result');
+    a.register('.aext', stubA);
+
+    assert.equal(a.getLookup('.aext'), stubA);
+    assert.equal(b.getLookup('.aext'), undefined);
+  });
+
+  it('instance resolves files using its own registry', () => {
+    const instance = cabinet.create();
+    const tsLookup = instance.getLookup('.ts');
+    instance.register('.customTs2', tsLookup);
+
+    const result = instance({
+      partial: './foo',
+      filename: fixtures('ts/index.customTs2'),
+      directory: fixtures('ts/')
+    });
+
+    assert.equal(result, fixtures('ts/foo.ts'));
+    instance.unregister('.customTs2');
+  });
+});

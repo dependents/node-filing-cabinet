@@ -112,6 +112,52 @@ module.exports.unregister = function(extension) {
 };
 
 /**
+ * Create an isolated cabinet instance with its own resolver registry,
+ * so that `register`/`unregister` calls do not affect the global singleton
+ * or other instances.
+ *
+ * @returns {Function} An independent cabinet function with its own `register`,
+ *   `unregister`, `getLookup`, and `supportedFileExtensions`.
+ */
+module.exports.create = function() {
+  const instanceLookups = { ...defaultLookups };
+
+  function instanceCabinet(options = {}) {
+    const { partial, filename } = options;
+    const extension = path.extname(filename);
+    let resolver = instanceLookups[extension];
+
+    if (!resolver) {
+      resolveDependencyPath ||= require('resolve-dependency-path');
+      resolver = resolveDependencyPath;
+    }
+
+    options.dependency = partial;
+    return resolver(options);
+  }
+
+  instanceCabinet.supportedFileExtensions = Object.keys(instanceLookups);
+
+  instanceCabinet.getLookup = function(extension) {
+    return instanceLookups[extension];
+  };
+
+  instanceCabinet.register = function(extension, lookupStrategy) {
+    instanceLookups[extension] = lookupStrategy;
+    if (!instanceCabinet.supportedFileExtensions.includes(extension)) {
+      instanceCabinet.supportedFileExtensions.push(extension);
+    }
+  };
+
+  instanceCabinet.unregister = function(extension) {
+    delete instanceLookups[extension];
+    instanceCabinet.supportedFileExtensions = Object.keys(instanceLookups);
+  };
+
+  return instanceCabinet;
+};
+
+/**
  * Exposed for testing
  *
  * @param  {Object} options
