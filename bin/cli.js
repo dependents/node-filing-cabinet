@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { program } from 'commander';
-import cabinet from '../index.js';
+import Cabinet from '../index.js';
 import pkg from '../package.json' with { type: 'json' };
 
 const { name, description, version } = pkg;
@@ -22,7 +22,8 @@ program
 const partial = program.args[0];
 const { filename, directory, config, webpackConfig, tsConfig } = program.opts();
 
-const result = cabinet({
+const cabinet = new Cabinet();
+const result = cabinet.lookup({
   partial,
   filename,
   directory,

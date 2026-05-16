@@ -1,13 +1,14 @@
 import path from 'node:path';
 import { describe, it, expect } from 'vitest';
-import cabinet from '../index.js';
+import Cabinet from '../index.js';
 import { fixtures } from './helpers.js';
 
 const directory = fixtures('svelte');
+const cabinet = new Cabinet();
 
 describe('Svelte', () => {
   it('resolves a Svelte component', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: './bar.svelte',
       filename: path.join(directory, 'foo.svelte'),
       directory
@@ -18,7 +19,7 @@ describe('Svelte', () => {
   });
 
   it('resolves a JS file from a Svelte component', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: './script.js',
       filename: path.join(directory, 'withJs.svelte'),
       directory
@@ -29,7 +30,7 @@ describe('Svelte', () => {
   });
 
   it('resolves a TS file from a Svelte component', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: './script.ts',
       filename: path.join(directory, 'withTs.svelte'),
       directory
@@ -40,7 +41,7 @@ describe('Svelte', () => {
   });
 
   it('resolves a SCSS file from a Svelte component', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: './styles.scss',
       filename: path.join(directory, 'withStyles.svelte'),
       directory
@@ -51,7 +52,7 @@ describe('Svelte', () => {
   });
 
   it('returns empty string for a blank dependency', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: undefined,
       filename: path.join(directory, 'foo.svelte'),
       directory
@@ -62,7 +63,7 @@ describe('Svelte', () => {
 
   it('resolves a Stylus file from a Svelte component', () => {
     const stylusDirectory = fixtures('stylus');
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: './bar.styl',
       filename: path.join(stylusDirectory, 'foo.svelte'),
       directory: stylusDirectory
@@ -73,7 +74,7 @@ describe('Svelte', () => {
   });
 
   it('uses typescript resolution for imports when tsConfig is provided', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: './script',
       filename: path.join(directory, 'foo.svelte'),
       directory,
@@ -89,7 +90,7 @@ describe('Svelte', () => {
 
 describe('Vue', () => {
   it('resolves a SCSS file from a Vue component', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: './styles.scss',
       filename: path.join(directory, 'foo.vue'),
       directory

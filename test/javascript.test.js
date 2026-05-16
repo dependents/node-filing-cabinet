@@ -1,14 +1,16 @@
 import path from 'node:path';
 import { describe, it, expect } from 'vitest';
-import cabinet from '../index.js';
+import Cabinet from '../index.js';
 import { fixtures } from './helpers.js';
 import mockAST from './fixtures/ast.js';
+
+const cabinet = new Cabinet();
 
 describe('JavaScript', () => {
   const directory = fixtures('js/commonjs');
 
   it('uses a generic resolve for unsupported file extensions', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: './bar',
       filename: path.join(directory, 'foo.baz'),
       directory
@@ -20,7 +22,7 @@ describe('JavaScript', () => {
 
   it('does not throw a runtime exception when using resolve dependency path (#71)', () => {
     expect(() => {
-      cabinet({
+      cabinet.lookup({
         partial: './bar',
         filename: path.join(directory, 'foo.baz'),
         directory
@@ -32,7 +34,7 @@ describe('JavaScript', () => {
     const es6Directory = fixtures('js/es6');
 
     it('resolves the partial successfully when given an ast', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: './bar',
         filename: path.join(es6Directory, 'foo.js'),
         directory: es6Directory,
@@ -44,7 +46,7 @@ describe('JavaScript', () => {
     });
 
     it('assumes commonjs for es6 modules with no requirejs/webpack config', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: './bar',
         filename: path.join(es6Directory, 'foo.js'),
         directory: es6Directory
@@ -55,7 +57,7 @@ describe('JavaScript', () => {
     });
 
     it('assumes amd for es6 modules with a requirejs config', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: './bar',
         filename: path.join(es6Directory, 'foo.js'),
         directory: es6Directory,
@@ -69,7 +71,7 @@ describe('JavaScript', () => {
     });
 
     it('does not throw for a lazy import with interpolation', () => {
-      const call = () => cabinet({
+      const call = () => cabinet.lookup({
         // eslint-disable-next-line no-template-curly-in-string
         partial: '`modulename/locales/${locale}`',
         filename: path.join(es6Directory, 'lazy.js'),
@@ -80,7 +82,7 @@ describe('JavaScript', () => {
     });
 
     it('does not throw for an undefined dependency', () => {
-      const call = () => cabinet({
+      const call = () => cabinet.lookup({
         partial: undefined,
         filename: path.join(es6Directory, 'lazy.js'),
         directory: es6Directory
@@ -94,7 +96,7 @@ describe('JavaScript', () => {
     const jsxDirectory = fixtures('js/es6');
 
     it('resolves files with the .jsx extension', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: './bar',
         filename: path.join(jsxDirectory, 'foo.jsx'),
         directory: jsxDirectory
@@ -109,7 +111,7 @@ describe('JavaScript', () => {
     const amdDirectory = fixtures('js/amd');
 
     it('uses the amd resolver', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: './bar',
         filename: path.join(amdDirectory, 'foo.js'),
         directory: amdDirectory
@@ -120,7 +122,7 @@ describe('JavaScript', () => {
     });
 
     it('passes along arguments', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: './bar',
         config: {
           baseUrl: 'js'
@@ -136,7 +138,7 @@ describe('JavaScript', () => {
 
   describe('commonjs', () => {
     it('resolves a relative partial about the filename', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: './bar',
         filename: path.join(directory, 'foo.js'),
         directory
@@ -147,7 +149,7 @@ describe('JavaScript', () => {
     });
 
     it('resolves a relative partial to a .mjs file', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: './esm',
         filename: path.join(directory, 'foo.js'),
         directory
@@ -158,7 +160,7 @@ describe('JavaScript', () => {
     });
 
     it('resolves a relative partial to a .cjs file', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: './cjs',
         filename: path.join(directory, 'foo.js'),
         directory
@@ -169,7 +171,7 @@ describe('JavaScript', () => {
     });
 
     it('returns an empty string for an unresolved module', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: 'foobar',
         filename: path.join(directory, 'foo.js'),
         directory
@@ -179,7 +181,7 @@ describe('JavaScript', () => {
     });
 
     it('resolves a .. partial to its parent directory\'s index.js file', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: '../',
         filename: path.join(directory, 'subdir/module.js'),
         directory
@@ -190,7 +192,7 @@ describe('JavaScript', () => {
     });
 
     it('resolves a partial within a directory outside of the given file', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: 'subdir',
         filename: path.join(directory, 'test/index.spec.js'),
         directory
@@ -201,7 +203,7 @@ describe('JavaScript', () => {
     });
 
     it('resolves a node module with module entry in package.json', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: 'module.entry',
         filename: path.join(directory, 'module-entry.js'),
         directory,
@@ -215,7 +217,7 @@ describe('JavaScript', () => {
     });
 
     it('resolves a node module via function using pkg.exports.default', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: 'exports.default',
         filename: path.join(directory, 'exports-default.js'),
         directory,
@@ -235,7 +237,7 @@ describe('JavaScript', () => {
 
     it('resolves a nested module', () => {
       const nestedDirectory = fixtures('js/node_modules/nested');
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: 'lodash.assign',
         filename: path.join(nestedDirectory, 'index.js'),
         directory: nestedDirectory
@@ -248,7 +250,7 @@ describe('JavaScript', () => {
     it('resolves a nested module when directory is an ancestor of the file', () => {
       const jsDirectory = fixtures('js/');
       const nestedDirectory = path.join(jsDirectory, 'node_modules/nested');
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: 'lodash.assign',
         filename: path.join(nestedDirectory, 'index.js'),
         directory: jsDirectory
@@ -260,7 +262,7 @@ describe('JavaScript', () => {
 
     it('resolves to the index.js file of a directory', () => {
       const withIndexDirectory = fixtures('js/withIndex');
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: './subdir',
         filename: path.join(withIndexDirectory, 'index.js'),
         directory: withIndexDirectory
@@ -272,7 +274,7 @@ describe('JavaScript', () => {
 
     it('resolves implicit .jsx requires', () => {
       const cjsDirectory = fixtures('js/cjs');
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: './bar',
         filename: path.join(cjsDirectory, 'foo.js'),
         directory: cjsDirectory
@@ -284,7 +286,7 @@ describe('JavaScript', () => {
 
     it('resolves a partial require of a JSON file', () => {
       const commonjsDirectory = fixtures('js/commonjs');
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: './config',
         filename: path.join(commonjsDirectory, 'bar.js'),
         directory: commonjsDirectory
@@ -300,7 +302,7 @@ describe('JavaScript', () => {
     const srcDir = path.join(importsDir, 'src/');
 
     it('resolves a simple #hash import', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: '#utils',
         filename: path.join(importsDir, 'src/utils.js'),
         directory: srcDir
@@ -311,7 +313,7 @@ describe('JavaScript', () => {
     });
 
     it('resolves a wildcard #hash import', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: '#lib/button',
         filename: path.join(importsDir, 'src/utils.js'),
         directory: srcDir
@@ -322,7 +324,7 @@ describe('JavaScript', () => {
     });
 
     it('resolves a conditional #hash import (prefers import over default)', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: '#config',
         filename: path.join(importsDir, 'src/utils.js'),
         directory: srcDir
@@ -333,7 +335,7 @@ describe('JavaScript', () => {
     });
 
     it('returns empty string for unresolved #hash import', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: '#nonexistent',
         filename: path.join(importsDir, 'src/utils.js'),
         directory: srcDir
@@ -343,7 +345,7 @@ describe('JavaScript', () => {
     });
 
     it('resolves a default-condition-only #hash import', () => {
-      const result = cabinet({
+      const result = cabinet.lookup({
         partial: '#config-cjs',
         filename: path.join(importsDir, 'src/utils.js'),
         directory: srcDir
