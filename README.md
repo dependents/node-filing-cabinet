@@ -16,9 +16,11 @@ npm install filing-cabinet
 
 ```js
 const path = require('path');
-const cabinet = require('filing-cabinet');
+const Cabinet = require('filing-cabinet');
 
-const result = cabinet({
+const cabinet = new Cabinet();
+
+const result = cabinet.lookup({
   // import Button from './button'
   partial: './button',
   filename: path.join(__dirname, 'src', 'app.js'),
@@ -32,17 +34,20 @@ if (result) {
 }
 ```
 
+Each `new Cabinet()` instance has its own independent resolver registry, so custom resolvers registered on one instance never affect another.
+
 ## API
 
 | Member | Type | Description |
 | --- | --- | --- |
-| `cabinet(options)` | `Function` | Resolve a dependency to an absolute path |
+| `new Cabinet()` | `Constructor` | Create an isolated cabinet instance |
+| `cabinet.lookup(options)` | `Function` | Resolve a dependency to an absolute path |
 | `cabinet.register(extension, resolver)` | `Function` | Register a custom resolver for a file extension |
 | `cabinet.unregister(extension)` | `Function` | Remove a registered resolver |
 | `cabinet.getLookup(extension)` | `Function` | Get the resolver for a file extension |
 | `cabinet.supportedFileExtensions` | `string[]` | All currently registered file extensions |
 
-### `cabinet(options: CabinetOptions)`
+### `cabinet.lookup(options: CabinetOptions)`
 
 Resolves a dependency string from the context of a file.
 
@@ -72,7 +77,7 @@ Resolves a dependency string from the context of a file.
 Object form - use a specific `package.json` field instead of `main`:
 
 ```js
-cabinet({
+cabinet.lookup({
   partial: 'some-package',
   filename: '/path/to/file.js',
   directory: '/path/to',
@@ -83,7 +88,7 @@ cabinet({
 Function form - full control via a custom `packageFilter`:
 
 ```js
-cabinet({
+cabinet.lookup({
   partial: 'some-package',
   filename: '/path/to/file.js',
   directory: '/path/to',
@@ -97,12 +102,12 @@ cabinet({
 
 ### `cabinet.register(extension: string, resolver: (options: Object) => string)`
 
-Register a custom resolver for a file extension.
+Register a custom resolver for a file extension on this instance.
 
 **Parameters:**
 
 * `extension` (`string`, required) - file extension to handle (for example `.py`, `.php`)
-* `resolver` (`(options: Object) => string`, required) - function that receives the same `options` object passed to `cabinet(options)` and returns a resolved absolute path or an empty string
+* `resolver` (`(options: Object) => string`, required) - function that receives the same `options` object passed to `cabinet.lookup(options)` and returns a resolved absolute path or an empty string
 
 **Returns:** `void`
 
@@ -123,7 +128,7 @@ If no resolver is registered for an extension, filing-cabinet falls back to a ge
 
 ### `cabinet.unregister(extension: string)`
 
-Remove the resolver registered for `extension`.
+Remove the resolver registered for `extension` on this instance.
 
 **Parameters:**
 
@@ -151,7 +156,7 @@ const resolver = cabinet.getLookup('.ts'); // built-in TypeScript resolver
 
 ### `cabinet.supportedFileExtensions`
 
-A `string[]` of all currently registered file extensions. Updated automatically by `register()` and `unregister()`.
+A `string[]` of all currently registered file extensions on this instance.
 
 ```js
 console.log(cabinet.supportedFileExtensions);

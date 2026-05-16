@@ -3,11 +3,12 @@
 const assert = require('assert').strict;
 const path = require('path');
 const sinon = require('sinon');
-const cabinet = require('../index.js');
+const Cabinet = require('../index.js');
 const { fixtures } = require('./helpers.js');
 
 describe('supportedFileExtensions', () => {
   it('dangles off its supported file extensions', () => {
+    const cabinet = new Cabinet();
     const actual = cabinet.supportedFileExtensions.sort();
     const expected = [
       '.js',
@@ -28,10 +29,11 @@ describe('supportedFileExtensions', () => {
 
 describe('getLookup', () => {
   it('returns a lookup by extension', () => {
+    const cabinet = new Cabinet();
     const tsLookup = cabinet.getLookup('.ts');
     cabinet.register('.customTs', tsLookup);
 
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: './foo',
       filename: fixtures('ts/index.customTs'),
       directory: fixtures('ts/')
@@ -42,6 +44,7 @@ describe('getLookup', () => {
   });
 
   it('returns undefined when no lookup matches extension', () => {
+    const cabinet = new Cabinet();
     const unknownLookup = cabinet.getLookup('.unknown');
 
     assert.equal(unknownLookup, undefined);
@@ -52,10 +55,11 @@ describe('register', () => {
   const customDirectory = fixtures('js/custom');
 
   it('registers a custom resolver for a given extension', () => {
+    const cabinet = new Cabinet();
     const stub = sinon.stub().returns('foo.foobar');
     cabinet.register('.foobar', stub);
 
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: './bar',
       filename: 'js/custom/foo.foobar',
       directory: 'js/custom/'
@@ -63,21 +67,21 @@ describe('register', () => {
 
     assert.equal(stub.called, true);
     assert.equal(result, 'foo.foobar');
-    cabinet.unregister('.foobar');
   });
 
   it('does not break default resolvers', () => {
+    const cabinet = new Cabinet();
     const stylusDirectory = fixtures('stylus');
     const stub = sinon.stub().returns('foo.foobar');
     cabinet.register('.foobar', stub);
 
-    cabinet({
+    cabinet.lookup({
       partial: './bar',
       filename: path.join(customDirectory, 'foo.foobar'),
       directory: customDirectory
     });
 
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: './bar',
       filename: path.join(stylusDirectory, 'foo.styl'),
       directory: stylusDirectory
@@ -85,23 +89,23 @@ describe('register', () => {
 
     assert.equal(stub.called, true);
     assert.notEqual(result, '');
-    cabinet.unregister('.foobar');
   });
 
   it('can be called multiple times', () => {
+    const cabinet = new Cabinet();
     const amdDirectory = fixtures('js/amd');
     const stub = sinon.stub().returns('foo');
     const stub2 = sinon.stub().returns('foo');
     cabinet.register('.foobar', stub);
     cabinet.register('.barbar', stub2);
 
-    cabinet({
+    cabinet.lookup({
       partial: './bar',
       filename: path.join(customDirectory, 'foo.foobar'),
       directory: amdDirectory
     });
 
-    cabinet({
+    cabinet.lookup({
       partial: './bar',
       filename: path.join(customDirectory, 'foo.barbar'),
       directory: customDirectory
@@ -109,15 +113,13 @@ describe('register', () => {
 
     assert.equal(stub.called, true);
     assert.equal(stub2.called, true);
-    cabinet.unregister('.foobar');
-    cabinet.unregister('.barbar');
   });
 
   it('does not add redundant extensions to supportedFileExtensions', () => {
-    const { stub } = sinon;
+    const cabinet = new Cabinet();
     const newExt = '.foobar';
-    cabinet.register(newExt, stub);
-    cabinet.register(newExt, stub);
+    cabinet.register(newExt, sinon.stub());
+    cabinet.register(newExt, sinon.stub());
 
     const { supportedFileExtensions } = cabinet;
     const firstIndex = supportedFileExtensions.indexOf(newExt);
@@ -127,63 +129,47 @@ describe('register', () => {
   });
 });
 
-describe('create', () => {
-  it('returns an isolated instance', () => {
-    const instance = cabinet.create();
-    assert.equal(typeof instance, 'function');
+describe('unregister', () => {
+  it('removes a registered resolver', () => {
+    const cabinet = new Cabinet();
+    const stub = sinon.stub().returns('foo.foobar');
+    cabinet.register('.foobar', stub);
+    cabinet.unregister('.foobar');
+
+    assert.equal(cabinet.getLookup('.foobar'), undefined);
+    assert.equal(cabinet.supportedFileExtensions.includes('.foobar'), false);
   });
+});
 
-  it('instance has its own register/unregister/getLookup/supportedFileExtensions', () => {
-    const instance = cabinet.create();
-    assert.equal(typeof instance.register, 'function');
-    assert.equal(typeof instance.unregister, 'function');
-    assert.equal(typeof instance.getLookup, 'function');
-    assert.deepEqual(instance.supportedFileExtensions, cabinet.supportedFileExtensions);
-  });
+describe('isolation between instances', () => {
+  it('registering on one instance does not affect another', () => {
+    const a = new Cabinet();
+    const b = new Cabinet();
+    const stub = sinon.stub().returns('a.result');
+    a.register('.aext', stub);
 
-  it('instance resolver does not affect the global singleton', () => {
-    const instance = cabinet.create();
-    const stub = sinon.stub().returns('instance.result');
-    instance.register('.isolated', stub);
-
-    assert.equal(instance.getLookup('.isolated'), stub);
-    assert.equal(cabinet.getLookup('.isolated'), undefined);
-    assert.equal(cabinet.supportedFileExtensions.includes('.isolated'), false);
-  });
-
-  it('global singleton changes do not affect an existing instance', () => {
-    const instance = cabinet.create();
-    const stub = sinon.stub().returns('global.result');
-    cabinet.register('.globalonly', stub);
-
-    assert.equal(cabinet.getLookup('.globalonly'), stub);
-    assert.equal(instance.getLookup('.globalonly'), undefined);
-
-    cabinet.unregister('.globalonly');
-  });
-
-  it('two instances are isolated from each other', () => {
-    const a = cabinet.create();
-    const b = cabinet.create();
-    const stubA = sinon.stub().returns('a.result');
-    a.register('.aext', stubA);
-
-    assert.equal(a.getLookup('.aext'), stubA);
+    assert.equal(a.getLookup('.aext'), stub);
     assert.equal(b.getLookup('.aext'), undefined);
   });
 
-  it('instance resolves files using its own registry', () => {
-    const instance = cabinet.create();
-    const tsLookup = instance.getLookup('.ts');
-    instance.register('.customTs2', tsLookup);
+  it('each instance starts with the same default extensions', () => {
+    const a = new Cabinet();
+    const b = new Cabinet();
 
-    const result = instance({
+    assert.deepEqual(a.supportedFileExtensions.sort(), b.supportedFileExtensions.sort());
+  });
+
+  it('instance resolves files using its own registry', () => {
+    const cabinet = new Cabinet();
+    const tsLookup = cabinet.getLookup('.ts');
+    cabinet.register('.customTs2', tsLookup);
+
+    const result = cabinet.lookup({
       partial: './foo',
       filename: fixtures('ts/index.customTs2'),
       directory: fixtures('ts/')
     });
 
     assert.equal(result, fixtures('ts/foo.ts'));
-    instance.unregister('.customTs2');
   });
 });

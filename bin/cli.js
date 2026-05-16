@@ -3,7 +3,7 @@
 'use strict';
 
 const { program } = require('commander');
-const cabinet = require('../index.js');
+const Cabinet = require('../index.js');
 const { name, description, version } = require('../package.json');
 
 program
@@ -22,7 +22,7 @@ program
 const partial = program.args[0];
 const { filename, directory, config, webpackConfig, tsConfig } = program.opts();
 
-const result = cabinet({
+const result = new Cabinet().lookup({
   partial,
   filename,
   directory,

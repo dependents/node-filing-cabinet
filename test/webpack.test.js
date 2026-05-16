@@ -2,14 +2,15 @@
 
 const assert = require('assert').strict;
 const path = require('path');
-const cabinet = require('../index.js');
+const Cabinet = require('../index.js');
+const cabinet = new Cabinet();
 const { fixtures } = require('./helpers.js');
 
 const directory = fixtures('webpack');
 
 describe('webpack', () => {
   it('resolves an aliased path', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: 'R',
       filename: path.join(directory, 'index.js'),
       directory,
@@ -21,7 +22,7 @@ describe('webpack', () => {
   });
 
   it('resolves a non-aliased path', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: 'resolve',
       filename: path.join(directory, 'index.js'),
       directory,
@@ -33,7 +34,7 @@ describe('webpack', () => {
   });
 
   it('resolves a relative path', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: './test/ast',
       filename: path.join(directory, 'index.js'),
       directory,
@@ -45,7 +46,7 @@ describe('webpack', () => {
   });
 
   it('resolves an absolute path from a file within a subdirectory', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: 'R',
       filename: path.join(directory, 'test/ast.js'),
       directory,
@@ -57,7 +58,7 @@ describe('webpack', () => {
   });
 
   it('resolves a path using resolve.root that value is array', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: 'mod1',
       filename: path.join(directory, 'index.js'),
       directory,
@@ -69,7 +70,7 @@ describe('webpack', () => {
   });
 
   it('resolves a path using resolve.root that value is string', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: 'mod2',
       filename: path.join(directory, 'index.js'),
       directory,
@@ -81,7 +82,7 @@ describe('webpack', () => {
   });
 
   it('resolves a path using resolve.roots', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: 'mod2',
       filename: path.join(directory, 'index.js'),
       directory,
@@ -93,7 +94,7 @@ describe('webpack', () => {
   });
 
   it('resolves npm module when using resolve.root', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: 'resolve',
       filename: path.join(directory, 'index.js'),
       directory,
@@ -105,7 +106,7 @@ describe('webpack', () => {
   });
 
   it('resolves a path using resolve.modulesDirectories', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: 'mod2',
       filename: path.join(directory, 'index.js'),
       directory,
@@ -117,7 +118,7 @@ describe('webpack', () => {
   });
 
   it('resolves a path using webpack config that exports a function', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: 'R',
       filename: path.join(directory, 'index.js'),
       directory,
@@ -129,7 +130,7 @@ describe('webpack', () => {
   });
 
   it('resolves a path using a first configuration', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: 'mod1',
       filename: path.join(directory, 'index.js'),
       directory,
@@ -141,7 +142,7 @@ describe('webpack', () => {
   });
 
   it('resolves files with a .jsx extension', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: './test/foo.jsx',
       filename: path.join(directory, 'index.js'),
       directory,
@@ -153,7 +154,7 @@ describe('webpack', () => {
   });
 
   it('still works when the partial contains a loader', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: 'hgn!resolve',
       filename: path.join(directory, 'index.js'),
       directory,
@@ -165,7 +166,7 @@ describe('webpack', () => {
   });
 
   it('resolves files with a .ts extension', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: 'R',
       filename: path.join(directory, 'index.ts'),
       directory,
@@ -177,7 +178,7 @@ describe('webpack', () => {
   });
 
   it('returns empty string when the webpack config cannot be loaded', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: './foo',
       filename: path.join(directory, 'index.js'),
       directory,
@@ -188,7 +189,7 @@ describe('webpack', () => {
   });
 
   it('returns empty string when the dependency cannot be resolved by webpack', () => {
-    const result = cabinet({
+    const result = cabinet.lookup({
       partial: 'this-module-xyz-does-not-exist',
       filename: path.join(directory, 'index.js'),
       directory,
@@ -207,7 +208,7 @@ describe('webpack', () => {
     };
     const expected = path.join(directory, 'node_modules/resolve/index.js');
 
-    assert.equal(cabinet(options), expected);
-    assert.equal(cabinet(options), expected);
+    assert.equal(cabinet.lookup(options), expected);
+    assert.equal(cabinet.lookup(options), expected);
   });
 });
