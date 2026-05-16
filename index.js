@@ -570,13 +570,14 @@ function resolveHashImport(dependency, filename) {
   debug(`resolving hash import: ${dependency} from ${filename}`);
 
   webpackResolve ||= require('enhanced-resolve');
-  hashImportResolver ||= webpackResolve.create.sync({
-    importsFields: ['imports'],
-    conditionNames: ['import', 'require', 'node', 'default'],
-    extensions: ['.js', '.ts', '.tsx', '.jsx', '.mjs', '.cjs', '.json']
-  });
 
   try {
+    hashImportResolver ||= webpackResolve.create.sync({
+      importsFields: ['imports'],
+      conditionNames: ['import', 'require', 'node', 'default'],
+      extensions: ['.js', '.ts', '.tsx', '.jsx', '.mjs', '.cjs', '.json']
+    });
+
     const result = hashImportResolver(path.dirname(filename), dependency);
     debug(`hash import resolved: ${result}`);
 
