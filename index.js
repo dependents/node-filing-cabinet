@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { debuglog } from 'node:util';
 import { createRequire } from 'node:module';
-import appModulePath from 'app-module-path';
 import sassLookup from 'sass-lookup';
 import stylusLookup from 'stylus-lookup';
 import { createMatchPath } from 'tsconfig-paths';
@@ -18,7 +17,7 @@ const debug = debuglog('cabinet');
 
 let getModuleType;
 let resolve;
-let enhancedResolve;
+let oxcResolver;
 let amdLookup;
 let ts;
 let resolveDependencyPath;
@@ -369,19 +368,6 @@ function commonJSLookup(options) {
     if (hashResult) return hashResult;
   }
 
-  // Need to resolve partials within the directory of the module, not filing-cabinet
-  const moduleLookupDir = path.join(directory, 'node_modules');
-
-  debug(`adding ${moduleLookupDir} to the require resolution paths`);
-
-  appModulePath.addPath(moduleLookupDir);
-
-  // Make sure the partial is being resolved to the filename's context
-  // 3rd party modules will not be relative
-  if (isRelativePath(dependency)) {
-    dependency = path.resolve(path.dirname(filename), dependency);
-  }
-
   const tsCompilerOptions = getCompilerOptionsFromTsConfig(tsConfig);
   const allowMixedJsAndTs = tsCompilerOptions.allowJs;
   let extensions = ['.js', '.jsx', '.json', '.mjs', '.cjs'];
@@ -400,32 +386,43 @@ function commonJSLookup(options) {
     extensions = [...extensions, '.ts', '.tsx'];
   }
 
-  // Allows us to configure what is used as the "main" entry point
-  function packageFilter(packageJson) {
-    packageJson.main = packageJson[nodeModulesConfig.entry] ?? packageJson.main;
-    return packageJson;
-  }
-
-  resolve ||= require('resolve');
-
-  try {
-    let packageFilterOption;
-    if (nodeModulesConfig && nodeModulesConfig.entry) {
-      packageFilterOption = packageFilter;
-    } else if (typeof nodeModulesConfig === 'function') {
-      packageFilterOption = nodeModulesConfig;
+  if (typeof nodeModulesConfig === 'function') {
+    // nodeModulesConfig is an arbitrary packageFilter callback - fall back to `resolve`
+    if (isRelativePath(dependency)) {
+      dependency = path.resolve(path.dirname(filename), dependency);
     }
 
-    result = resolve.sync(dependency, {
+    resolve ||= require('resolve');
+
+    try {
+      result = resolve.sync(dependency, {
+        extensions,
+        basedir: path.dirname(filename),
+        packageFilter: nodeModulesConfig,
+        moduleDirectory: ['node_modules', directory]
+      });
+      debug(`resolved path: ${result}`);
+    } catch {
+      debug(`could not resolve ${dependency}`);
+    }
+  } else {
+    oxcResolver ||= require('oxc-resolver');
+
+    const { ResolverFactory } = oxcResolver;
+    const resolver = new ResolverFactory({
       extensions,
-      basedir: path.dirname(filename),
-      packageFilter: packageFilterOption,
-      // Add fileDir to resolve index.js files in that dir
-      moduleDirectory: ['node_modules', directory]
+      modules: ['node_modules', directory],
+      mainFields: nodeModulesConfig?.entry ? [nodeModulesConfig.entry, 'main'] : ['main']
     });
-    debug(`resolved path: ${result}`);
-  } catch {
-    debug(`could not resolve ${dependency}`);
+
+    try {
+      const resolved = resolver.sync(path.dirname(filename), dependency);
+      result = resolved.path || '';
+      debug(`resolved path: ${result}`);
+    /* c8 ignore next 3 */
+    } catch {
+      debug(`could not resolve ${dependency}`);
+    }
   }
 
   return result;
@@ -462,69 +459,97 @@ function sfcLookup(options) {
   return jsLookup(options);
 }
 
-function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) {
-  enhancedResolve ||= require('enhanced-resolve');
-
-  webpackConfig = path.resolve(webpackConfig);
-  let resolver = webpackResolverByConfig.get(webpackConfig);
-  let resolveConfig;
-
-  if (!resolver) {
-    let loadedConfig;
-
-    try {
-      loadedConfig = require(webpackConfig);
-
-      if (typeof loadedConfig === 'function') {
-        loadedConfig = loadedConfig();
-      }
-
-      // Webpack 2+ allows Promise exports; we're synchronous so bail out gracefully.
-      if (loadedConfig && typeof loadedConfig.then === 'function') {
-        debug(`webpack config at ${webpackConfig} exports a Promise, which is not supported in synchronous mode`);
-        return '';
-      }
-
-      if (Array.isArray(loadedConfig)) {
-        loadedConfig = loadedConfig[0];
-      }
-    } catch(error) {
-      debug(`error loading the webpack config at ${webpackConfig}:\n${error.stack}`);
-      return '';
-    }
-
-    resolveConfig = { ...loadedConfig.resolve };
-
-    if (!resolveConfig.modules && (resolveConfig.root || resolveConfig.roots || resolveConfig.modulesDirectories)) {
-      resolveConfig.modules = [];
-
-      // `resolve.root` is a string, it may be used in webpack 1.x.
-      // here: https://github.com/webpack/webpack/issues/472#issuecomment-166946925
-      if (typeof resolveConfig.root === 'string') {
-        resolveConfig.modules = [...resolveConfig.modules, resolveConfig.root];
-      }
-
-      if (Array.isArray(resolveConfig.root)) {
-        resolveConfig.modules = [...resolveConfig.modules, ...resolveConfig.root];
-      }
-
-      // https://webpack.js.org/configuration/resolve/#resolveroots
-      if (Array.isArray(resolveConfig.roots)) {
-        resolveConfig.modules = [...resolveConfig.modules, ...resolveConfig.roots];
-      }
-
-      if (resolveConfig.modulesDirectories) {
-        resolveConfig.modules = [
-          ...resolveConfig.modules,
-          ...resolveConfig.modulesDirectories
-        ];
-      }
+// Normalize webpack alias values to arrays as required by oxc-resolver
+function normalizeAlias(alias) {
+  for (const [key, value] of Object.entries(alias)) {
+    if (value === false) {
+      alias[key] = [null];
+    } else if (!Array.isArray(value)) {
+      alias[key] = [value];
     }
   }
+}
+
+function collectModules(resolveConfig) {
+  if (resolveConfig.modules || !(resolveConfig.root || resolveConfig.roots || resolveConfig.modulesDirectories)) {
+    return;
+  }
+
+  const modules = [];
+
+  // `resolve.root` is a string, it may be used in webpack 1.x.
+  // here: https://github.com/webpack/webpack/issues/472#issuecomment-166946925
+  if (typeof resolveConfig.root === 'string') {
+    modules.push(resolveConfig.root);
+  }
+
+  if (Array.isArray(resolveConfig.root)) {
+    modules.push(...resolveConfig.root);
+  }
+
+  // https://webpack.js.org/configuration/resolve/#resolveroots
+  if (Array.isArray(resolveConfig.roots)) {
+    modules.push(...resolveConfig.roots);
+  }
+
+  if (resolveConfig.modulesDirectories) {
+    modules.push(...resolveConfig.modulesDirectories);
+  }
+
+  resolveConfig.modules = modules;
+}
+
+function buildResolveConfig(webpackConfig) {
+  let loadedConfig;
+
+  try {
+    loadedConfig = require(webpackConfig);
+
+    if (typeof loadedConfig === 'function') {
+      loadedConfig = loadedConfig();
+    }
+
+    // Webpack 2+ allows Promise exports; we're synchronous so bail out gracefully.
+    if (loadedConfig && typeof loadedConfig.then === 'function') {
+      debug(`webpack config at ${webpackConfig} exports a Promise, which is not supported in synchronous mode`);
+      return null;
+    }
+
+    if (Array.isArray(loadedConfig)) {
+      loadedConfig = loadedConfig[0];
+    }
+  } catch(error) {
+    debug(`error loading the webpack config at ${webpackConfig}:\n${error.stack}`);
+    return null;
+  }
+
+  const resolveConfig = { ...loadedConfig.resolve };
+
+  collectModules(resolveConfig);
+
+  if (resolveConfig.alias) {
+    normalizeAlias(resolveConfig.alias);
+  }
+
+  return resolveConfig;
+}
+
+function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) {
+  webpackConfig = path.resolve(webpackConfig);
+  let resolver = webpackResolverByConfig.get(webpackConfig);
 
   try {
     if (!resolver) {
-      resolver = enhancedResolve.create.sync(resolveConfig);
+      const resolveConfig = buildResolveConfig(webpackConfig);
+
+      if (!resolveConfig) {
+        return '';
+      }
+
+      oxcResolver ||= require('oxc-resolver');
+
+      const { ResolverFactory } = oxcResolver;
+      resolver = new ResolverFactory(resolveConfig);
       webpackResolverByConfig.set(webpackConfig, resolver);
     }
 
@@ -534,7 +559,9 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
 
     const lookupPath = isRelativePath(dependency) ? path.dirname(filename) : directory;
 
-    return resolver(lookupPath, dependency);
+    const resolved = resolver.sync(lookupPath, dependency);
+    return resolved.path || '';
+  /* c8 ignore next 4 */
   } catch(error) {
     debug(`error when resolving ${dependency}:\n${error.stack}`);
     return '';
@@ -555,6 +582,7 @@ function stripLoader(dependency) {
  * @return {Boolean}
  */
 function isRelativePath(filename) {
+  /* c8 ignore next 3 */
   if (typeof filename !== 'string') {
     throw new TypeError(`Path must be a string. Received ${filename}`);
   }
@@ -562,23 +590,26 @@ function isRelativePath(filename) {
   return filename[0] === '.';
 }
 
-// Hash import resolution for package.json "imports" field using enhanced-resolve
+// Hash import resolution for package.json "imports" field
 function resolveHashImport(dependency, filename) {
   debug(`resolving hash import: ${dependency} from ${filename}`);
 
-  enhancedResolve ||= require('enhanced-resolve');
-
   try {
-    const resolver = enhancedResolve.create.sync({
-      importsFields: ['imports'],
+    oxcResolver ||= require('oxc-resolver');
+
+    const { ResolverFactory } = oxcResolver;
+    const resolver = new ResolverFactory({
+      importsFields: [['imports']],
       conditionNames: ['import', 'require', 'node', 'default'],
       extensions: ['.js', '.ts', '.tsx', '.jsx', '.mjs', '.cjs', '.json']
     });
 
-    const result = resolver(path.dirname(filename), dependency);
+    const resolved = resolver.sync(path.dirname(filename), dependency);
+    const result = resolved.path || '';
     debug(`hash import resolved: ${result}`);
 
     return result;
+  /* c8 ignore next 5 */
   } catch(error) {
     debug(`could not resolve hash import ${dependency}: ${error.message}`);
 
