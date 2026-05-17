@@ -211,6 +211,33 @@ describe('JavaScript', () => {
       assert.equal(result, expected);
     });
 
+    it('resolves a relative partial when nodeModulesConfig is a function', () => {
+      const result = cabinet({
+        partial: './bar',
+        filename: path.join(directory, 'foo.js'),
+        directory,
+        nodeModulesConfig(pkg) {
+          return pkg;
+        }
+      });
+      const expected = path.join(directory, 'bar.js');
+
+      assert.equal(result, expected);
+    });
+
+    it('returns empty string for an unresolved module when nodeModulesConfig is a function', () => {
+      const result = cabinet({
+        partial: 'MODULE_NOT_FOUND',
+        filename: path.join(directory, 'foo.js'),
+        directory,
+        nodeModulesConfig(pkg) {
+          return pkg;
+        }
+      });
+
+      assert.equal(result, '');
+    });
+
     it('resolves a nested module', () => {
       const nestedDirectory = fixtures('js/node_modules/nested');
       const result = cabinet({
