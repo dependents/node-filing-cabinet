@@ -178,6 +178,16 @@ describe('JavaScript', () => {
       expect(result).toBe('');
     });
 
+    it('returns an empty string for a core module', () => {
+      const result = cabinet({
+        partial: 'path',
+        filename: path.join(directory, 'foo.js'),
+        directory
+      });
+
+      expect(result).toBe('');
+    });
+
     it('resolves a .. partial to its parent directory\'s index.js file', () => {
       const result = cabinet({
         partial: '../',
@@ -231,6 +241,68 @@ describe('JavaScript', () => {
       const expected = fixtures('js/node_modules/exports.default/index.default.js');
 
       expect(result).toBe(expected);
+    });
+
+    it('resolves a node module subpath via package.json exports field', () => {
+      const result = cabinet({
+        partial: 'exports-subpath/utils',
+        filename: path.join(directory, 'index.js'),
+        directory
+      });
+      const expected = fixtures('js/node_modules/exports-subpath/dist/utils.js');
+
+      expect(result).toBe(expected);
+    });
+
+    it('resolves a subpath exposed by the package exports field', () => {
+      const result = cabinet({
+        partial: 'exports-restricted/public',
+        filename: path.join(directory, 'index.js'),
+        directory
+      });
+      const expected = fixtures('js/node_modules/exports-restricted/lib/public.js');
+
+      expect(result).toBe(expected);
+    });
+
+    it('resolves a subpath not exposed by exports to its file on disk', () => {
+      // private.js is not listed in exports; fall back to the physical file
+      const result = cabinet({
+        partial: 'exports-restricted/private',
+        filename: path.join(directory, 'index.js'),
+        directory
+      });
+      const expected = fixtures('js/node_modules/exports-restricted/private.js');
+
+      expect(result).toBe(expected);
+    });
+
+    it('resolves a node module via nodeModulesConfig function when enhanced-resolve cannot find main', () => {
+      const result = cabinet({
+        partial: 'custom-entry-field',
+        filename: path.join(directory, 'index.js'),
+        directory,
+        nodeModulesConfig(pkg) {
+          pkg.main = pkg['custom-entry'];
+          return pkg;
+        }
+      });
+      const expected = fixtures('js/node_modules/custom-entry-field/custom-index.js');
+
+      expect(result).toBe(expected);
+    });
+
+    it('returns empty string when nodeModulesConfig function cannot resolve a non-existent module', () => {
+      const result = cabinet({
+        partial: 'non-existent-module-xyz',
+        filename: path.join(directory, 'index.js'),
+        directory,
+        nodeModulesConfig(pkg) {
+          return pkg;
+        }
+      });
+
+      expect(result).toBe('');
     });
 
     it('resolves a nested module', () => {
