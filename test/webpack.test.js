@@ -174,6 +174,17 @@ describe('webpack', () => {
     assert.equal(result, expected);
   });
 
+  it('returns empty string when the webpack config exports a Promise', () => {
+    const result = cabinet({
+      partial: './test/ast',
+      filename: path.join(directory, 'index.js'),
+      directory,
+      webpackConfig: path.join(directory, 'webpack-promise.config.js')
+    });
+
+    assert.equal(result, '');
+  });
+
   it('returns empty string when the webpack config cannot be loaded', () => {
     const result = cabinet({
       partial: './foo',
