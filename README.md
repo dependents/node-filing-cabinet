@@ -39,21 +39,6 @@ const { default: cabinet } = require('filing-cabinet');
 
 ### Options
 
-```js
-const result = cabinet({
-  // import Button from './button'
-  partial: './button',
-  filename: path.join(__dirname, 'src', 'app.js'),
-  directory: __dirname
-});
-
-if (result) {
-  console.log(result); // -> /absolute/path/to/src/button.js
-} else {
-  console.error('Dependency could not be resolved');
-}
-```
-
 ## API
 
 | Member | Type | Description |
