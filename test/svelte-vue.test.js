@@ -1,5 +1,5 @@
-import { strict as assert } from 'node:assert';
 import path from 'node:path';
+import { describe, it, expect } from 'vitest';
 import cabinet from '../index.js';
 import { fixtures } from './helpers.js';
 
@@ -14,7 +14,7 @@ describe('Svelte', () => {
     });
     const expected = path.join(directory, 'bar.svelte');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves a JS file from a Svelte component', () => {
@@ -25,7 +25,7 @@ describe('Svelte', () => {
     });
     const expected = path.join(directory, 'script.js');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves a TS file from a Svelte component', () => {
@@ -36,7 +36,7 @@ describe('Svelte', () => {
     });
     const expected = path.join(directory, 'script.ts');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves a SCSS file from a Svelte component', () => {
@@ -47,7 +47,7 @@ describe('Svelte', () => {
     });
     const expected = path.join(directory, 'styles.scss');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('returns empty string for a blank dependency', () => {
@@ -57,7 +57,7 @@ describe('Svelte', () => {
       directory
     });
 
-    assert.equal(result, '');
+    expect(result).toBe('');
   });
 
   it('resolves a Stylus file from a Svelte component', () => {
@@ -69,7 +69,7 @@ describe('Svelte', () => {
     });
     const expected = path.join(stylusDirectory, 'bar.styl');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('uses typescript resolution for imports when tsConfig is provided', () => {
@@ -83,7 +83,7 @@ describe('Svelte', () => {
     });
     const expected = path.join(directory, 'script.ts');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 });
 
@@ -96,6 +96,6 @@ describe('Vue', () => {
     });
     const expected = path.join(directory, 'styles.scss');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 });

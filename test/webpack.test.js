@@ -1,5 +1,5 @@
-import { strict as assert } from 'node:assert';
 import path from 'node:path';
+import { describe, it, expect } from 'vitest';
 import cabinet from '../index.js';
 import { fixtures } from './helpers.js';
 
@@ -15,7 +15,7 @@ describe('webpack', () => {
     });
     const expected = path.join(directory, 'node_modules/resolve/index.js');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves a non-aliased path', () => {
@@ -27,7 +27,7 @@ describe('webpack', () => {
     });
     const expected = path.join(directory, 'node_modules/resolve/index.js');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves a relative path', () => {
@@ -39,7 +39,7 @@ describe('webpack', () => {
     });
     const expected = path.join(directory, 'test/ast.js');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves an absolute path from a file within a subdirectory', () => {
@@ -51,7 +51,7 @@ describe('webpack', () => {
     });
     const expected = path.join(directory, 'node_modules/resolve/index.js');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves a path using resolve.root that value is array', () => {
@@ -63,7 +63,7 @@ describe('webpack', () => {
     });
     const expected = path.join(directory, 'test/root1/mod1.js');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves a path using resolve.root that value is string', () => {
@@ -75,7 +75,7 @@ describe('webpack', () => {
     });
     const expected = path.join(directory, 'test/root2/mod2.js');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves a path using resolve.roots', () => {
@@ -87,7 +87,7 @@ describe('webpack', () => {
     });
     const expected = path.join(directory, 'test/root2/mod2.js');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves npm module when using resolve.root', () => {
@@ -99,7 +99,7 @@ describe('webpack', () => {
     });
     const expected = path.join(directory, 'node_modules/resolve/index.js');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves a path using resolve.modulesDirectories', () => {
@@ -111,7 +111,7 @@ describe('webpack', () => {
     });
     const expected = path.join(directory, 'test/root2/mod2.js');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves a path using webpack config that exports a function', () => {
@@ -123,7 +123,7 @@ describe('webpack', () => {
     });
     const expected = path.join(directory, 'node_modules/resolve/index.js');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves a path using a first configuration', () => {
@@ -135,7 +135,7 @@ describe('webpack', () => {
     });
     const expected = path.join(directory, 'test/root1/mod1.js');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves files with a .jsx extension', () => {
@@ -147,7 +147,7 @@ describe('webpack', () => {
     });
     const expected = path.join(directory, 'test/foo.jsx');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('still works when the partial contains a loader', () => {
@@ -159,7 +159,7 @@ describe('webpack', () => {
     });
     const expected = path.join(directory, 'node_modules/resolve/index.js');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves files with a .ts extension', () => {
@@ -171,7 +171,7 @@ describe('webpack', () => {
     });
     const expected = path.join(directory, 'node_modules/resolve/index.js');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('returns empty string when the webpack config exports a Promise', () => {
@@ -182,7 +182,7 @@ describe('webpack', () => {
       webpackConfig: path.join(directory, 'webpack-promise.config.js')
     });
 
-    assert.equal(result, '');
+    expect(result).toBe('');
   });
 
   it('returns empty string when the webpack config cannot be loaded', () => {
@@ -193,7 +193,7 @@ describe('webpack', () => {
       webpackConfig: path.join(directory, 'nonexistent-webpack.config.js')
     });
 
-    assert.equal(result, '');
+    expect(result).toBe('');
   });
 
   it('returns empty string when the dependency cannot be resolved by webpack', () => {
@@ -204,7 +204,7 @@ describe('webpack', () => {
       webpackConfig: path.join(directory, 'webpack.config.js')
     });
 
-    assert.equal(result, '');
+    expect(result).toBe('');
   });
 
   it('returns the same result on repeated lookups against the same webpack config', () => {
@@ -216,7 +216,7 @@ describe('webpack', () => {
     };
     const expected = path.join(directory, 'node_modules/resolve/index.js');
 
-    assert.equal(cabinet(options), expected);
-    assert.equal(cabinet(options), expected);
+    expect(cabinet(options)).toBe(expected);
+    expect(cabinet(options)).toBe(expected);
   });
 });

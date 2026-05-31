@@ -1,5 +1,5 @@
-import { strict as assert } from 'node:assert';
 import path from 'node:path';
+import { describe, it, expect } from 'vitest';
 import cabinet from '../index.js';
 import { fixtures } from './helpers.js';
 
@@ -15,7 +15,7 @@ describe('CSS', () => {
       });
       const expected = path.join(directory, 'bar.less');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves partials with a less extension', () => {
@@ -26,7 +26,7 @@ describe('CSS', () => {
       });
       const expected = path.join(directory, 'bar.less');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves partials with a css extension', () => {
@@ -37,7 +37,7 @@ describe('CSS', () => {
       });
       const expected = path.join(directory, 'bar.css');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
   });
 
@@ -52,7 +52,7 @@ describe('CSS', () => {
       });
       const expected = path.join(directory, 'bar.sass');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('uses the sass resolver for .scss files', () => {
@@ -63,7 +63,7 @@ describe('CSS', () => {
       });
       const expected = path.join(directory, 'bar.scss');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
   });
 
@@ -78,7 +78,7 @@ describe('CSS', () => {
       });
       const expected = path.join(directory, 'bar.styl');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
   });
 });

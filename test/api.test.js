@@ -1,6 +1,10 @@
-import { strict as assert } from 'node:assert';
 import path from 'node:path';
-import sinon from 'sinon';
+import {
+  describe,
+  it,
+  expect,
+  vi
+} from 'vitest';
 import cabinet from '../index.js';
 import { fixtures } from './helpers.js';
 
@@ -20,7 +24,7 @@ describe('supportedFileExtensions', () => {
       '.vue'
     ].toSorted();
 
-    assert.deepEqual(actual, expected);
+    expect(actual).toStrictEqual(expected);
   });
 });
 
@@ -36,13 +40,13 @@ describe('getLookup', () => {
     });
     const expected = fixtures('ts/foo.ts');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('returns undefined when no lookup matches extension', () => {
     const unknownLookup = cabinet.getLookup('.unknown');
 
-    assert.equal(unknownLookup, undefined);
+    expect(unknownLookup).toBeUndefined();
   });
 });
 
@@ -50,7 +54,7 @@ describe('register', () => {
   const customDirectory = fixtures('js/custom');
 
   it('registers a custom resolver for a given extension', () => {
-    const stub = sinon.stub().returns('foo.foobar');
+    const stub = vi.fn().mockReturnValue('foo.foobar');
     cabinet.register('.foobar', stub);
 
     const result = cabinet({
@@ -59,14 +63,14 @@ describe('register', () => {
       directory: 'js/custom/'
     });
 
-    assert.equal(stub.called, true);
-    assert.equal(result, 'foo.foobar');
+    expect(stub).toHaveBeenCalledOnce();
+    expect(result).toBe('foo.foobar');
     cabinet.unregister('.foobar');
   });
 
   it('does not break default resolvers', () => {
     const stylusDirectory = fixtures('stylus');
-    const stub = sinon.stub().returns('foo.foobar');
+    const stub = vi.fn().mockReturnValue('foo.foobar');
     cabinet.register('.foobar', stub);
 
     cabinet({
@@ -81,15 +85,15 @@ describe('register', () => {
       directory: stylusDirectory
     });
 
-    assert.equal(stub.called, true);
-    assert.notEqual(result, '');
+    expect(stub).toHaveBeenCalledOnce();
+    expect(result).not.toBe('');
     cabinet.unregister('.foobar');
   });
 
   it('can be called multiple times', () => {
     const amdDirectory = fixtures('js/amd');
-    const stub = sinon.stub().returns('foo');
-    const stub2 = sinon.stub().returns('foo');
+    const stub = vi.fn().mockReturnValue('foo');
+    const stub2 = vi.fn().mockReturnValue('foo');
     cabinet.register('.foobar', stub);
     cabinet.register('.barbar', stub2);
 
@@ -105,14 +109,14 @@ describe('register', () => {
       directory: customDirectory
     });
 
-    assert.equal(stub.called, true);
-    assert.equal(stub2.called, true);
+    expect(stub).toHaveBeenCalledOnce();
+    expect(stub2).toHaveBeenCalledOnce();
     cabinet.unregister('.foobar');
     cabinet.unregister('.barbar');
   });
 
   it('does not add redundant extensions to supportedFileExtensions', () => {
-    const { stub } = sinon;
+    const stub = vi.fn();
     const newExt = '.foobar';
     cabinet.register(newExt, stub);
     cabinet.register(newExt, stub);
@@ -121,6 +125,6 @@ describe('register', () => {
     const firstIndex = supportedFileExtensions.indexOf(newExt);
     const lastIndex = supportedFileExtensions.lastIndexOf(newExt);
 
-    assert.equal(firstIndex, lastIndex);
+    expect(firstIndex).toBe(lastIndex);
   });
 });
