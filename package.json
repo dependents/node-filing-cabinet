@@ -48,7 +48,6 @@
     "node": ">=20.19.0 || >=22.12.0"
   },
   "dependencies": {
-    "app-module-path": "^2.2.0",
     "commander": "^14.0.3",
     "enhanced-resolve": "^5.24.0",
     "module-definition": "^7.0.0",

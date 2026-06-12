@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { debuglog } from 'node:util';
 import { createRequire } from 'node:module';
-import appModulePath from 'app-module-path';
 import sassLookup from 'sass-lookup';
 import stylusLookup from 'stylus-lookup';
 import { createMatchPath } from 'tsconfig-paths';
@@ -368,13 +367,6 @@ function commonJSLookup(options) {
     const hashResult = resolveHashImport(dependency, filename);
     if (hashResult) return hashResult;
   }
-
-  // Need to resolve partials within the directory of the module, not filing-cabinet
-  const moduleLookupDir = path.join(directory, 'node_modules');
-
-  debug(`adding ${moduleLookupDir} to the require resolution paths`);
-
-  appModulePath.addPath(moduleLookupDir);
 
   // Make sure the partial is being resolved to the filename's context
   // 3rd party modules will not be relative
