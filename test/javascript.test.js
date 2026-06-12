@@ -146,6 +146,28 @@ describe('JavaScript', () => {
       assert.equal(result, expected);
     });
 
+    it('resolves a relative partial to a .mjs file', () => {
+      const result = cabinet({
+        partial: './esm',
+        filename: path.join(directory, 'foo.js'),
+        directory
+      });
+      const expected = path.join(directory, 'esm.mjs');
+
+      assert.equal(result, expected);
+    });
+
+    it('resolves a relative partial to a .cjs file', () => {
+      const result = cabinet({
+        partial: './cjs',
+        filename: path.join(directory, 'foo.js'),
+        directory
+      });
+      const expected = path.join(directory, 'cjs.cjs');
+
+      assert.equal(result, expected);
+    });
+
     it('returns an empty string for an unresolved module', () => {
       const result = cabinet({
         partial: 'foobar',
