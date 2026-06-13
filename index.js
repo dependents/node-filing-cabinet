@@ -138,6 +138,7 @@ function getJSType(options = {}) {
 }
 
 const webpackResolverByConfig = new Map();
+const commonJSResolverCache = new Map();
 let compilerHost;
 
 function getCompilerHost() {
@@ -353,6 +354,30 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
   return result ? path.resolve(result) : '';
 }
 
+// Cache resolvers; rebuilding one per lookup is several times slower.
+// Key on every input that affects resolution.
+function getCommonJSResolver(extensions, mainFields, directory, honorExports) {
+  const resolveConfig = {
+    // Empty array disables exports; enhanced-resolve defaults to ['exports']
+    exportsFields: honorExports ? ['exports'] : [],
+    conditionNames: ['import', 'require', 'node', 'default'],
+    extensions,
+    mainFields,
+    modules: ['node_modules', directory]
+  };
+
+  const cacheKey = JSON.stringify(resolveConfig);
+
+  let resolver = commonJSResolverCache.get(cacheKey);
+  if (!resolver) {
+    enhancedResolve ||= require('enhanced-resolve');
+    resolver = enhancedResolve.create.sync(resolveConfig);
+    commonJSResolverCache.set(cacheKey, resolver);
+  }
+
+  return resolver;
+}
+
 function commonJSLookup(options) {
   const { filename, directory, nodeModulesConfig, tsConfig } = options;
   let { dependency } = options;
@@ -402,16 +427,8 @@ function commonJSLookup(options) {
 
   const mainFields = nodeModulesConfig?.entry ? [nodeModulesConfig.entry, 'main'] : ['main'];
 
-  enhancedResolve ||= require('enhanced-resolve');
-
   try {
-    const resolver = enhancedResolve.create.sync({
-      exportsFields: ['exports'],
-      conditionNames: ['import', 'require', 'node', 'default'],
-      extensions,
-      mainFields,
-      modules: ['node_modules', directory]
-    });
+    const resolver = getCommonJSResolver(extensions, mainFields, directory, true);
     result = resolver(path.dirname(filename), dependency);
     debug(`resolved path: ${result}`);
   } catch {
@@ -438,13 +455,7 @@ function commonJSLookup(options) {
       // Retry without exports so those still resolve.
       // TODO: drop this fallback in the next major and honor exports strictly, like Node.js
       try {
-        const resolver = enhancedResolve.create.sync({
-          exportsFields: [],
-          conditionNames: ['import', 'require', 'node', 'default'],
-          extensions,
-          mainFields,
-          modules: ['node_modules', directory]
-        });
+        const resolver = getCommonJSResolver(extensions, mainFields, directory, false);
         result = resolver(path.dirname(filename), dependency);
         debug(`resolved path ignoring exports: ${result}`);
       } catch {

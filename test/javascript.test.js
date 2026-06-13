@@ -224,6 +224,31 @@ describe('JavaScript', () => {
       expect(result).toBe(expected);
     });
 
+    it('returns the same result on repeated commonjs lookups', () => {
+      const options = {
+        partial: 'lodash.assign',
+        filename: path.join(directory, 'foo.js'),
+        directory
+      };
+      const first = cabinet(options);
+
+      expect(first).not.toBe('');
+      expect(cabinet(options)).toBe(first);
+    });
+
+    it('uses a distinct cached resolver per entry config', () => {
+      const base = {
+        partial: 'module.entry',
+        filename: path.join(directory, 'module-entry.js'),
+        directory
+      };
+      const withMain = cabinet(base);
+      const withModule = cabinet({ ...base, nodeModulesConfig: { entry: 'module' } });
+
+      expect(withMain).toBe(fixtures('js/node_modules/module.entry/index.main.js'));
+      expect(withModule).toBe(fixtures('js/node_modules/module.entry/index.module.js'));
+    });
+
     it('resolves a node module via function using pkg.exports.default', () => {
       const result = cabinet({
         partial: 'exports.default',
