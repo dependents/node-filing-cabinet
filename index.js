@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { debuglog } from 'node:util';
-import { createRequire } from 'node:module';
+import Module, { createRequire } from 'node:module';
 import sassLookup from 'sass-lookup';
 import stylusLookup from 'stylus-lookup';
 import { createMatchPath } from 'tsconfig-paths';
@@ -454,6 +454,30 @@ function sfcLookup(options) {
   return jsLookup(options);
 }
 
+// Add the project's node_modules so a config outside that tree can require its plugins
+function loadWebpackConfig(webpackConfig, directory) {
+  const original = Module._nodeModulePaths;
+
+  if (directory) {
+    const extraPath = path.join(directory, 'node_modules');
+    Module._nodeModulePaths = function(from) {
+      return [...original.call(this, from), extraPath];
+    };
+  }
+
+  try {
+    let loadedConfig = require(webpackConfig);
+
+    if (typeof loadedConfig === 'function') {
+      loadedConfig = loadedConfig();
+    }
+
+    return loadedConfig;
+  } finally {
+    Module._nodeModulePaths = original;
+  }
+}
+
 function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) {
   enhancedResolve ||= require('enhanced-resolve');
 
@@ -465,11 +489,7 @@ function resolveWebpackPath({ dependency, filename, directory, webpackConfig }) 
     let loadedConfig;
 
     try {
-      loadedConfig = require(webpackConfig);
-
-      if (typeof loadedConfig === 'function') {
-        loadedConfig = loadedConfig();
-      }
+      loadedConfig = loadWebpackConfig(webpackConfig, directory);
 
       // Webpack 2+ allows Promise exports; we're synchronous so bail out gracefully.
       if (loadedConfig && typeof loadedConfig.then === 'function') {

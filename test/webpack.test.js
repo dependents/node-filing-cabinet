@@ -219,4 +219,17 @@ describe('webpack', () => {
     expect(cabinet(options)).toBe(expected);
     expect(cabinet(options)).toBe(expected);
   });
+
+  it('loads a config that requires a plugin from the project node_modules', () => {
+    const projectDir = fixtures('webpack/plugin-project');
+    const result = cabinet({
+      partial: './bar',
+      filename: path.join(projectDir, 'index.js'),
+      directory: projectDir,
+      webpackConfig: path.join(directory, 'plugin-from-project.config.js')
+    });
+    const expected = path.join(projectDir, 'bar.js');
+
+    expect(result).toBe(expected);
+  });
 });
