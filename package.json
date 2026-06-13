@@ -50,9 +50,9 @@
   "dependencies": {
     "app-module-path": "^2.2.0",
     "commander": "^14.0.3",
-    "enhanced-resolve": "^5.21.5",
+    "enhanced-resolve": "^5.24.0",
     "module-definition": "^7.0.0",
-    "module-lookup-amd": "^10.0.0",
+    "module-lookup-amd": "^10.0.1",
     "resolve": "^1.22.12",
     "resolve-dependency-path": "^5.0.0",
     "sass-lookup": "^7.0.0",
@@ -63,7 +63,7 @@
   "devDependencies": {
     "c8": "^11.0.0",
     "globals": "^17.6.0",
-    "mocha": "^11.7.5",
+    "mocha": "^11.7.6",
     "sinon": "^22.0.0",
     "xo": "^2.0.2"
   }
