@@ -384,7 +384,7 @@ function commonJSLookup(options) {
 
   const tsCompilerOptions = getCompilerOptionsFromTsConfig(tsConfig);
   const allowMixedJsAndTs = tsCompilerOptions.allowJs;
-  let extensions = ['.js', '.jsx', '.json'];
+  let extensions = ['.js', '.jsx', '.json', '.mjs', '.cjs'];
   let result = '';
 
   if (allowMixedJsAndTs) {
