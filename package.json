@@ -45,11 +45,11 @@
   },
   "homepage": "https://github.com/dependents/node-filing-cabinet",
   "engines": {
-    "node": ">=20.19.0 || >=22.12.0"
+    "node": ">=22.13.0"
   },
   "dependencies": {
     "app-module-path": "^2.2.0",
-    "commander": "^14.0.3",
+    "commander": "^15.0.0",
     "enhanced-resolve": "^5.24.0",
     "module-definition": "^7.0.0",
     "module-lookup-amd": "^10.0.1",
@@ -64,6 +64,6 @@
     "@vitest/coverage-v8": "^4.1.9",
     "globals": "^17.6.0",
     "vitest": "^4.1.9",
-    "xo": "^2.0.2"
+    "xo": "^3.0.2"
   }
 }

@@ -10,7 +10,7 @@ import { fixtures } from './helpers.js';
 
 describe('supportedFileExtensions', () => {
   it('dangles off its supported file extensions', () => {
-    const actual = cabinet.supportedFileExtensions.toSorted();
+    const actual = cabinet.supportedFileExtensions.toSorted((a, b) => a.localeCompare(b));
     const expected = [
       '.js',
       '.jsx',
@@ -22,7 +22,7 @@ describe('supportedFileExtensions', () => {
       '.ts',
       '.tsx',
       '.vue'
-    ].toSorted();
+    ].toSorted((a, b) => a.localeCompare(b));
 
     expect(actual).toStrictEqual(expected);
   });

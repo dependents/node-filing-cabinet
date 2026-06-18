@@ -37,19 +37,22 @@ const defaultLookups = {
 };
 
 /**
- * @param {Object} options
- * @param {string} options.partial The dependency being looked up
- * @param {string} options.filename The file that contains the dependency being looked up
- * @param {string|Object} [options.config] Path to a RequireJS config
- * @param {string} [options.configPath] For AMD resolution, if `config` is an object, this is the config file path.
- * @param {Object|Function} [options.nodeModulesConfig] Config for overriding the entry point defined in package.json for node_modules resolution.
- * @param {string} [options.nodeModulesConfig.entry] The field value to use as package `main` (for example, `module`).
- * @param {string} [options.webpackConfig] Path to the webpack config
- * @param {Object} [options.ast] A pre-parsed AST for the file identified by `filename`.
- * @param {string|Object} [options.tsConfig] Path to a TypeScript config or a pre-parsed TypeScript config object.
- * @param {string} [options.tsConfigPath] A (virtual) path to a TypeScript config file when `tsConfig` is an object. Needed to calculate [Path Mapping](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping). If omitted in object mode, path mapping is ignored.
- * @param {boolean} [options.noTypeDefinitions] For TypeScript dependencies, whether to prefer `.js` over `.d.ts`.
- * @param {Object} [options.fileSystem] An alternative fs implementation to use for reading tsConfigPath.
+ Resolve the partial dependency of a file to an absolute path.
+
+ @param {object} options The lookup options
+ @param {string} options.partial The dependency being looked up
+ @param {string} options.filename The file that contains the dependency being looked up
+ @param {string | object} [options.config] Path to a RequireJS config
+ @param {string} [options.configPath] For AMD resolution, if `config` is an object, this is the config file path.
+ @param {object | ((options: object) => string)} [options.nodeModulesConfig] Config for overriding the entry point defined in package.json for node_modules resolution.
+ @param {string} [options.nodeModulesConfig.entry] The field value to use as package `main` (for example, `module`).
+ @param {string} [options.webpackConfig] Path to the webpack config
+ @param {object} [options.ast] A pre-parsed AST for the file identified by `filename`.
+ @param {string | object} [options.tsConfig] Path to a TypeScript config or a pre-parsed TypeScript config object.
+ @param {string} [options.tsConfigPath] A (virtual) path to a TypeScript config file when `tsConfig` is an object. Needed to calculate [Path Mapping](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping). If omitted in object mode, path mapping is ignored.
+ @param {boolean} [options.noTypeDefinitions] For TypeScript dependencies, whether to prefer `.js` over `.d.ts`.
+ @param {object} [options.fileSystem] An alternative fs implementation to use for reading tsConfigPath.
+ @returns {string} The resolved absolute path, or empty string if not found
  */
 export default function cabinet(options = {}) {
   const { partial, filename } = options;
@@ -76,20 +79,20 @@ export default function cabinet(options = {}) {
 cabinet.supportedFileExtensions = Object.keys(defaultLookups);
 
 /**
- * Get the lookup resolver for a given file extension
- *
- * @param {string} extension - The file extension whose resolver should be retrieved.
- * @returns {Function|undefined}
+ Get the lookup resolver for a given file extension
+
+ @param {string} extension - The file extension whose resolver should be retrieved
+ @returns {((options: object) => string)|undefined} The resolver for the extension, or undefined if none is registered
  */
 cabinet.getLookup = function(extension) {
   return defaultLookups[extension];
 };
 
 /**
- * Register a custom lookup resolver for a file extension
- *
- * @param  {string} extension - The file extension that should use the resolver
- * @param  {Function} lookupStrategy - A resolver that accepts the options object used by `cabinet`
+ Register a custom lookup resolver for a file extension
+
+ @param {string} extension - The file extension that should use the resolver
+ @param {(options: object) => string} lookupStrategy - A resolver that accepts the options object used by `cabinet`
  */
 cabinet.register = function(extension, lookupStrategy) {
   defaultLookups[extension] = lookupStrategy;
@@ -100,9 +103,9 @@ cabinet.register = function(extension, lookupStrategy) {
 };
 
 /**
- * Unregister a custom lookup resolver for a file extension
- *
- * @param  {string} extension - The file extension whose resolver should be removed
+ Unregister a custom lookup resolver for a file extension
+
+ @param {string} extension - The file extension whose resolver should be removed
  */
 cabinet.unregister = function(extension) {
   delete defaultLookups[extension];
@@ -110,12 +113,14 @@ cabinet.unregister = function(extension) {
 };
 
 /**
- * @param  {Object} options
- * @param  {string} options.config
- * @param  {string} options.webpackConfig
- * @param  {string} options.filename
- * @param  {Object} options.ast
- * @return {'amd'|'webpack'|'commonjs'|'es6'|string}
+ Determine the module type of a JavaScript file
+
+ @param {object} options The lookup options
+ @param {string} options.config Path to a RequireJS config, signalling an AMD module
+ @param {string} options.webpackConfig Path to a webpack config, signalling a webpack module
+ @param {string} options.filename The file whose module type should be determined
+ @param {object} options.ast A pre-parsed AST for `filename`
+ @returns {'amd'|'webpack'|'commonjs'|'es6'|string} The detected module type
  */
 function getJSType(options = {}) {
   getModuleType ||= require('module-definition').default;
@@ -186,17 +191,19 @@ function getCompilerOptionsFromTsConfig(tsConfig) {
 }
 
 /**
- * @private
- * @param  {Object} options
- * @param  {String} options.dependency
- * @param  {String} options.filename
- * @param  {String} options.directory
- * @param  {String} [options.config]
- * @param  {String} [options.webpackConfig]
- * @param  {String} [options.configPath]
- * @param  {Object} [options.nodeModulesConfig]
- * @param  {Object} [options.ast]
- * @return {String}
+ Resolve a dependency for a JavaScript file based on its detected module type
+
+ @private
+ @param {object} options The arguments passed through from `cabinet`
+ @param {string} options.dependency The dependency being looked up
+ @param {string} options.filename The file that contains the dependency
+ @param {string} options.directory The directory of the file containing the dependency
+ @param {string} [options.config] Path to a RequireJS config
+ @param {string} [options.webpackConfig] Path to a webpack config
+ @param {string} [options.configPath] The config file path when `config` is an object
+ @param {object} [options.nodeModulesConfig] Config for overriding the package.json entry point
+ @param {object} [options.ast] A pre-parsed AST for `filename`
+ @returns {string} The resolved path for the dependency
  */
 function jsLookup(options) {
   const { dependency, filename, directory, config, webpackConfig, configPath, ast } = options;
@@ -551,8 +558,10 @@ function stripLoader(dependency) {
 
 // Source: https://github.com/mrjoelkemp/is-relative-path/blob/v1.0.2/index.js
 /**
- * @param  {String}  filename
- * @return {Boolean}
+ Check whether a path is relative (starts with a dot)
+
+ @param {string} filename The path to check
+ @returns {boolean} True if the path is relative
  */
 function isRelativePath(filename) {
   if (typeof filename !== 'string') {
