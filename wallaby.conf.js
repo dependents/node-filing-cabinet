@@ -16,6 +16,6 @@ export default function wallabyConfig() {
 
     // or any other supported testing framework:
     // https://wallabyjs.com/docs/integration/overview.html#supported-testing-frameworks
-    testFramework: 'mocha'
+    testFramework: 'vitest'
   };
 }

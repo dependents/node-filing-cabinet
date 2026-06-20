@@ -1,5 +1,5 @@
-import { strict as assert } from 'node:assert';
 import path from 'node:path';
+import { describe, it, expect } from 'vitest';
 import cabinet from '../index.js';
 import { fixtures } from './helpers.js';
 import mockAST from './fixtures/ast.js';
@@ -15,17 +15,17 @@ describe('JavaScript', () => {
     });
     const expected = path.join(directory, 'bar.baz');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('does not throw a runtime exception when using resolve dependency path (#71)', () => {
-    assert.doesNotThrow(() => {
+    expect(() => {
       cabinet({
         partial: './bar',
         filename: path.join(directory, 'foo.baz'),
         directory
       });
-    });
+    }).not.toThrow();
   });
 
   describe('es6', () => {
@@ -40,7 +40,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(directory, 'bar.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('assumes commonjs for es6 modules with no requirejs/webpack config', () => {
@@ -51,7 +51,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(directory, 'bar.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('assumes amd for es6 modules with a requirejs config', () => {
@@ -65,7 +65,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(directory, 'bar.js');
 
-      assert.equal(path.normalize(result), expected);
+      expect(path.normalize(result)).toBe(expected);
     });
 
     it('does not throw for a lazy import with interpolation', () => {
@@ -76,7 +76,7 @@ describe('JavaScript', () => {
         directory
       });
 
-      assert.doesNotThrow(call);
+      expect(call).not.toThrow();
     });
 
     it('does not throw for an undefined dependency', () => {
@@ -86,7 +86,7 @@ describe('JavaScript', () => {
         directory
       });
 
-      assert.doesNotThrow(call);
+      expect(call).not.toThrow();
     });
   });
 
@@ -101,7 +101,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(directory, 'bar.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
   });
 
@@ -116,7 +116,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(directory, 'bar.js');
 
-      assert.equal(path.normalize(result), expected);
+      expect(path.normalize(result)).toBe(expected);
     });
 
     it('passes along arguments', () => {
@@ -130,7 +130,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(directory, 'bar.js');
 
-      assert.equal(path.normalize(result), expected);
+      expect(path.normalize(result)).toBe(expected);
     });
   });
 
@@ -143,7 +143,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(directory, 'bar.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves a relative partial to a .mjs file', () => {
@@ -154,7 +154,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(directory, 'esm.mjs');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves a relative partial to a .cjs file', () => {
@@ -165,7 +165,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(directory, 'cjs.cjs');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('returns an empty string for an unresolved module', () => {
@@ -175,7 +175,7 @@ describe('JavaScript', () => {
         directory
       });
 
-      assert.equal(result, '');
+      expect(result).toBe('');
     });
 
     it('resolves a .. partial to its parent directory\'s index.js file', () => {
@@ -186,7 +186,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(directory, 'index.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves a partial within a directory outside of the given file', () => {
@@ -197,7 +197,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(directory, 'subdir/index.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves a node module with module entry in package.json', () => {
@@ -211,7 +211,7 @@ describe('JavaScript', () => {
       });
       const expected = fixtures('js/node_modules/module.entry/index.module.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves a node module via function using pkg.exports.default', () => {
@@ -230,7 +230,7 @@ describe('JavaScript', () => {
       });
       const expected = fixtures('js/node_modules/exports.default/index.default.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves a nested module', () => {
@@ -242,7 +242,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(nestedDirectory, 'node_modules/lodash.assign/index.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves a nested module when directory is an ancestor of the file', () => {
@@ -255,7 +255,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(nestedDirectory, 'node_modules/lodash.assign/index.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves to the index.js file of a directory', () => {
@@ -267,7 +267,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(withIndexDirectory, 'subdir/index.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves implicit .jsx requires', () => {
@@ -279,7 +279,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(cjsDirectory, 'bar.jsx');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves a partial require of a JSON file', () => {
@@ -291,7 +291,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(commonjsDirectory, 'config.json');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
   });
 
@@ -307,7 +307,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(importsDir, 'src/utils.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves a wildcard #hash import', () => {
@@ -318,7 +318,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(importsDir, 'src/button.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves a conditional #hash import (prefers import over default)', () => {
@@ -329,7 +329,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(importsDir, 'src/config-esm.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('returns empty string for unresolved #hash import', () => {
@@ -339,7 +339,7 @@ describe('JavaScript', () => {
         directory: srcDir
       });
 
-      assert.equal(result, '');
+      expect(result).toBe('');
     });
 
     it('resolves a default-condition-only #hash import', () => {
@@ -350,7 +350,7 @@ describe('JavaScript', () => {
       });
       const expected = path.join(importsDir, 'src/config-cjs.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
   });
 });

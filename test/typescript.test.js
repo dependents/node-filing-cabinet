@@ -1,8 +1,12 @@
-import { strict as assert } from 'node:assert';
 import fs from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import sinon from 'sinon';
+import {
+  describe,
+  it,
+  expect,
+  vi
+} from 'vitest';
 import cabinet from '../index.js';
 import { fixtures } from './helpers.js';
 
@@ -17,7 +21,7 @@ describe('TypeScript', () => {
     });
     const expected = path.join(directory, 'foo.ts');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves the import within a tsx file', () => {
@@ -28,7 +32,7 @@ describe('TypeScript', () => {
     });
     const expected = path.join(directory, 'foo.ts');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('resolves the import of a file with type-definition', () => {
@@ -39,7 +43,7 @@ describe('TypeScript', () => {
     });
     const expected = path.join(directory, 'withTypeDef.d.ts');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   it('returns an empty result for a non-existent partial', () => {
@@ -49,7 +53,7 @@ describe('TypeScript', () => {
       directory
     });
 
-    assert.equal(result, '');
+    expect(result).toBe('');
   });
 
   it('resolves the module with both tsconfig and webpack config', () => {
@@ -62,7 +66,7 @@ describe('TypeScript', () => {
     });
     const expected = path.join(directory, 'subdir/index.tsx');
 
-    assert.equal(result, expected);
+    expect(result).toBe(expected);
   });
 
   describe('noTypeDefinitions', () => {
@@ -75,7 +79,7 @@ describe('TypeScript', () => {
       });
       const expected = path.join(directory, 'withTypeDef.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves the import of a file with type-definition to the JS file using custom import paths', () => {
@@ -97,7 +101,7 @@ describe('TypeScript', () => {
       });
       const expected = path.join(directory, 'withTypeDef.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('still returns the .d.ts file if no JS file is found', () => {
@@ -109,7 +113,7 @@ describe('TypeScript', () => {
       });
       const expected = path.join(directory, 'withOnlyTypeDef.d.ts');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('strips only the trailing extension when a parent directory name also contains .d.ts', () => {
@@ -121,7 +125,7 @@ describe('TypeScript', () => {
       });
       const expected = path.join(directory, 'dirWithDts.d.ts/inner.js');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
   });
 
@@ -138,7 +142,7 @@ describe('TypeScript', () => {
       });
       const expected = path.join(directory, 'foo.ts');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('finds import from child subdirectories when using node module resolution', () => {
@@ -155,7 +159,7 @@ describe('TypeScript', () => {
       });
       const expected = path.join(directory, '/subdir/index.tsx');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('finds import from child subdirectories when using node module resolution in extended config', () => {
@@ -167,7 +171,7 @@ describe('TypeScript', () => {
       });
       const expected = path.join(directory, '/subdir/index.tsx');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('finds imports of non-typescript files', () => {
@@ -178,7 +182,7 @@ describe('TypeScript', () => {
       });
       const expected = path.join(directory, '/image.svg');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('finds imports of non-existent typescript imports', () => {
@@ -188,7 +192,7 @@ describe('TypeScript', () => {
         directory
       });
 
-      assert.equal(result, '');
+      expect(result).toBe('');
     });
 
     it('finds imports of non-typescript files using custom import paths', () => {
@@ -208,7 +212,7 @@ describe('TypeScript', () => {
       });
       const expected = path.join(directory, 'subdir/subimage.svg');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('finds imports of non-typescript files from node_modules', () => {
@@ -224,7 +228,7 @@ describe('TypeScript', () => {
       });
       const expected = path.join(directory, 'node_modules/image/npm-image.svg');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('finds imports of typescript files from non-typescript files with allowJs option (#89)', () => {
@@ -240,7 +244,7 @@ describe('TypeScript', () => {
       });
       const expected = path.join(directory, '/foo.ts');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('finds imports using custom import paths from javascript files with allowJs option', () => {
@@ -261,7 +265,7 @@ describe('TypeScript', () => {
       });
       const expected = path.join(directory, 'subdir/subimage.svg');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('returns empty string and extends to ts extensions when allowJs module is not found by typescript', () => {
@@ -276,7 +280,7 @@ describe('TypeScript', () => {
         }
       });
 
-      assert.equal(result, '');
+      expect(result).toBe('');
     });
 
     it('parses the tsconfig given as a string path', () => {
@@ -288,18 +292,18 @@ describe('TypeScript', () => {
       });
       const expected = path.join(directory, 'foo.ts');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('throws when the tsconfig file cannot be read', () => {
-      assert.throws(() => {
+      expect(() => {
         cabinet({
           partial: './foo',
           filename: path.join(directory, 'index.ts'),
           directory,
           tsConfig: path.join(directory, 'nonexistent-tsconfig.json')
         });
-      }, /could not read tsconfig/);
+      }).toThrow(new Error('could not read tsconfig'));
     });
   });
 
@@ -327,7 +331,7 @@ describe('TypeScript', () => {
       });
       const expected = path.join(root3Dir, 'packages/foo/hello.ts');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves a file import with explicit extension via path mapping using pre-parsed options object', () => {
@@ -347,7 +351,7 @@ describe('TypeScript', () => {
       });
       const expected = path.resolve(root3Dir, 'packages/foo/hello.ts');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     it('resolves a directory import via path mapping to its index file', () => {
@@ -367,7 +371,7 @@ describe('TypeScript', () => {
       });
       const expected = path.resolve(root3Dir, 'packages/foo/index.ts');
 
-      assert.equal(result, expected);
+      expect(result).toBe(expected);
     });
 
     describe('alternate fileSystem', () => {
@@ -383,8 +387,8 @@ describe('TypeScript', () => {
 
       it('uses the alternate fs for stat checks during path-mapping resolution', () => {
         const realFs = fs;
-        const statSpy = sinon.spy(realFs, 'statSync');
-        const existsSpy = sinon.spy(realFs, 'existsSync');
+        const statSpy = vi.spyOn(realFs, 'statSync');
+        const existsSpy = vi.spyOn(realFs, 'existsSync');
 
         const fakeFs = {
           statSync: statSpy,
@@ -400,16 +404,14 @@ describe('TypeScript', () => {
             tsConfigPath,
             fileSystem: fakeFs
           });
+          const expected = path.resolve(root3Dir, 'packages/foo/hello.ts');
 
-          assert.equal(result, path.resolve(root3Dir, 'packages/foo/hello.ts'));
-          assert.equal(
-            statSpy.called || existsSpy.called,
-            true,
-            'alternate fs should be used for stat/exists checks'
-          );
+          expect(result).toBe(expected);
+          const wasCalled = statSpy.mock.calls.length > 0 || existsSpy.mock.calls.length > 0;
+          expect(wasCalled).toBe(true);
         } finally {
-          statSpy.restore();
-          existsSpy.restore();
+          statSpy.mockRestore();
+          existsSpy.mockRestore();
         }
       });
 
@@ -421,8 +423,9 @@ describe('TypeScript', () => {
           tsConfig,
           tsConfigPath
         });
+        const expected = path.resolve(root3Dir, 'packages/foo/hello.ts');
 
-        assert.equal(result, path.resolve(root3Dir, 'packages/foo/hello.ts'));
+        expect(result).toBe(expected);
       });
 
       it('returns empty string when alternate fs reports the resolved alias path does not exist', () => {
@@ -440,7 +443,7 @@ describe('TypeScript', () => {
           fileSystem: fakeFs
         });
 
-        assert.equal(result, '');
+        expect(result).toBe('');
       });
     });
 
@@ -455,7 +458,7 @@ describe('TypeScript', () => {
         });
         const expected = path.join(importsDir, 'src/utils.ts');
 
-        assert.equal(result, expected);
+        expect(result).toBe(expected);
       });
 
       it('resolves a wildcard #hash import to a .tsx file', () => {
@@ -466,7 +469,7 @@ describe('TypeScript', () => {
         });
         const expected = path.join(importsDir, 'src/button.tsx');
 
-        assert.equal(result, expected);
+        expect(result).toBe(expected);
       });
 
       it('resolves a conditional #hash import (prefers import over default)', () => {
@@ -477,7 +480,7 @@ describe('TypeScript', () => {
         });
         const expected = path.join(importsDir, 'src/config-esm.ts');
 
-        assert.equal(result, expected);
+        expect(result).toBe(expected);
       });
 
       it('returns empty string for unresolved #hash import', () => {
@@ -487,7 +490,7 @@ describe('TypeScript', () => {
           directory: importsDir
         });
 
-        assert.equal(result, '');
+        expect(result).toBe('');
       });
     });
   });
