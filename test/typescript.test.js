@@ -375,7 +375,6 @@ describe('TypeScript', () => {
     });
 
     describe('alternate fileSystem', () => {
-      const root3Dir = fixtures('root3');
       const tsConfig = {
         options: {
           baseUrl: 'packages',

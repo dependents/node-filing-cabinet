@@ -29,16 +29,16 @@ describe('JavaScript', () => {
   });
 
   describe('es6', () => {
-    const directory = fixtures('js/es6');
+    const es6Directory = fixtures('js/es6');
 
     it('resolves the partial successfully when given an ast', () => {
       const result = cabinet({
         partial: './bar',
-        filename: path.join(directory, 'foo.js'),
-        directory,
+        filename: path.join(es6Directory, 'foo.js'),
+        directory: es6Directory,
         ast: mockAST
       });
-      const expected = path.join(directory, 'bar.js');
+      const expected = path.join(es6Directory, 'bar.js');
 
       expect(result).toBe(expected);
     });
@@ -46,10 +46,10 @@ describe('JavaScript', () => {
     it('assumes commonjs for es6 modules with no requirejs/webpack config', () => {
       const result = cabinet({
         partial: './bar',
-        filename: path.join(directory, 'foo.js'),
-        directory
+        filename: path.join(es6Directory, 'foo.js'),
+        directory: es6Directory
       });
-      const expected = path.join(directory, 'bar.js');
+      const expected = path.join(es6Directory, 'bar.js');
 
       expect(result).toBe(expected);
     });
@@ -57,13 +57,13 @@ describe('JavaScript', () => {
     it('assumes amd for es6 modules with a requirejs config', () => {
       const result = cabinet({
         partial: './bar',
-        filename: path.join(directory, 'foo.js'),
-        directory,
+        filename: path.join(es6Directory, 'foo.js'),
+        directory: es6Directory,
         config: {
           baseUrl: './'
         }
       });
-      const expected = path.join(directory, 'bar.js');
+      const expected = path.join(es6Directory, 'bar.js');
 
       expect(path.normalize(result)).toBe(expected);
     });
@@ -72,8 +72,8 @@ describe('JavaScript', () => {
       const call = () => cabinet({
         // eslint-disable-next-line no-template-curly-in-string
         partial: '`modulename/locales/${locale}`',
-        filename: path.join(directory, 'lazy.js'),
-        directory
+        filename: path.join(es6Directory, 'lazy.js'),
+        directory: es6Directory
       });
 
       expect(call).not.toThrow();
@@ -82,8 +82,8 @@ describe('JavaScript', () => {
     it('does not throw for an undefined dependency', () => {
       const call = () => cabinet({
         partial: undefined,
-        filename: path.join(directory, 'lazy.js'),
-        directory
+        filename: path.join(es6Directory, 'lazy.js'),
+        directory: es6Directory
       });
 
       expect(call).not.toThrow();
@@ -91,30 +91,30 @@ describe('JavaScript', () => {
   });
 
   describe('jsx', () => {
-    const directory = fixtures('js/es6');
+    const jsxDirectory = fixtures('js/es6');
 
     it('resolves files with the .jsx extension', () => {
       const result = cabinet({
         partial: './bar',
-        filename: path.join(directory, 'foo.jsx'),
-        directory
+        filename: path.join(jsxDirectory, 'foo.jsx'),
+        directory: jsxDirectory
       });
-      const expected = path.join(directory, 'bar.js');
+      const expected = path.join(jsxDirectory, 'bar.js');
 
       expect(result).toBe(expected);
     });
   });
 
   describe('amd', () => {
-    const directory = fixtures('js/amd');
+    const amdDirectory = fixtures('js/amd');
 
     it('uses the amd resolver', () => {
       const result = cabinet({
         partial: './bar',
-        filename: path.join(directory, 'foo.js'),
-        directory
+        filename: path.join(amdDirectory, 'foo.js'),
+        directory: amdDirectory
       });
-      const expected = path.join(directory, 'bar.js');
+      const expected = path.join(amdDirectory, 'bar.js');
 
       expect(path.normalize(result)).toBe(expected);
     });
@@ -125,10 +125,10 @@ describe('JavaScript', () => {
         config: {
           baseUrl: 'js'
         },
-        filename: path.join(directory, 'foo.js'),
-        directory
+        filename: path.join(amdDirectory, 'foo.js'),
+        directory: amdDirectory
       });
-      const expected = path.join(directory, 'bar.js');
+      const expected = path.join(amdDirectory, 'bar.js');
 
       expect(path.normalize(result)).toBe(expected);
     });
