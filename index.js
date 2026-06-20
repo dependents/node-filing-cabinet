@@ -42,8 +42,8 @@ const defaultLookups = {
  * @param {string} options.filename The file that contains the dependency being looked up
  * @param {string|Object} [options.config] Path to a RequireJS config
  * @param {string} [options.configPath] For AMD resolution, if `config` is an object, this is the config file path.
- * @param {Object|Function} [options.nodeModulesConfig] Config for overriding the entry point defined in package.json for node_modules resolution.
- * @param {string} [options.nodeModulesConfig.entry] The field value to use as package `main` (for example, `module`).
+ * @param {Object|Function} [options.nodeModulesConfig] Config for node_modules entry-point selection. The package.json `exports` field is always honored automatically. Object form: set `entry` to a field name to prefer over `main`. Function form: fallback callback for packages with no `exports` field that need custom package.json transforms; receives and must return the parsed package.json.
+ * @param {string} [options.nodeModulesConfig.entry] Field name to use instead of `main` (for example, `module`).
  * @param {string} [options.webpackConfig] Path to the webpack config
  * @param {Object} [options.ast] A pre-parsed AST for the file identified by `filename`.
  * @param {string|Object} [options.tsConfig] Path to a TypeScript config or a pre-parsed TypeScript config object.
@@ -138,6 +138,7 @@ function getJSType(options = {}) {
 }
 
 const webpackResolverByConfig = new Map();
+const commonJSResolverCache = new Map();
 let compilerHost;
 
 function getCompilerHost() {
@@ -353,6 +354,30 @@ function tsLookup({ dependency, filename, directory, webpackConfig, tsConfig, ts
   return result ? path.resolve(result) : '';
 }
 
+// Cache resolvers; rebuilding one per lookup is several times slower.
+// Key on every input that affects resolution.
+function getCommonJSResolver(extensions, mainFields, directory, honorExports) {
+  const resolveConfig = {
+    // Empty array disables exports; enhanced-resolve defaults to ['exports']
+    exportsFields: honorExports ? ['exports'] : [],
+    conditionNames: ['import', 'require', 'node', 'default'],
+    extensions,
+    mainFields,
+    modules: ['node_modules', directory]
+  };
+
+  const cacheKey = JSON.stringify(resolveConfig);
+
+  let resolver = commonJSResolverCache.get(cacheKey);
+  if (!resolver) {
+    enhancedResolve ||= require('enhanced-resolve');
+    resolver = enhancedResolve.create.sync(resolveConfig);
+    commonJSResolverCache.set(cacheKey, resolver);
+  }
+
+  return resolver;
+}
+
 function commonJSLookup(options) {
   const { filename, directory, nodeModulesConfig, tsConfig } = options;
   let { dependency } = options;
@@ -400,32 +425,43 @@ function commonJSLookup(options) {
     extensions = [...extensions, '.ts', '.tsx'];
   }
 
-  // Allows us to configure what is used as the "main" entry point
-  function packageFilter(packageJson) {
-    packageJson.main = packageJson[nodeModulesConfig.entry] ?? packageJson.main;
-    return packageJson;
-  }
-
-  resolve ||= require('resolve');
+  const mainFields = nodeModulesConfig?.entry ? [nodeModulesConfig.entry, 'main'] : ['main'];
 
   try {
-    let packageFilterOption;
-    if (nodeModulesConfig && nodeModulesConfig.entry) {
-      packageFilterOption = packageFilter;
-    } else if (typeof nodeModulesConfig === 'function') {
-      packageFilterOption = nodeModulesConfig;
-    }
-
-    result = resolve.sync(dependency, {
-      extensions,
-      basedir: path.dirname(filename),
-      packageFilter: packageFilterOption,
-      // Add fileDir to resolve index.js files in that dir
-      moduleDirectory: ['node_modules', directory]
-    });
+    const resolver = getCommonJSResolver(extensions, mainFields, directory, true);
+    result = resolver(path.dirname(filename), dependency);
     debug(`resolved path: ${result}`);
   } catch {
     debug(`could not resolve ${dependency}`);
+
+    // For custom packageFilter functions, fall back to resolve which supports them.
+    // enhanced-resolve has no equivalent hook for arbitrary package.json transforms.
+    if (typeof nodeModulesConfig === 'function') {
+      resolve ||= require('resolve');
+      try {
+        result = resolve.sync(dependency, {
+          extensions,
+          basedir: path.dirname(filename),
+          packageFilter: nodeModulesConfig,
+          // Add fileDir to resolve index.js files in that dir
+          moduleDirectory: ['node_modules', directory]
+        });
+        debug(`resolved path via custom filter: ${result}`);
+      } catch {
+        debug(`could not resolve ${dependency}`);
+      }
+    } else {
+      // A package's exports field can gate off a subpath that exists on disk.
+      // Retry without exports so those still resolve.
+      // TODO: drop this fallback in the next major and honor exports strictly, like Node.js
+      try {
+        const resolver = getCommonJSResolver(extensions, mainFields, directory, false);
+        result = resolver(path.dirname(filename), dependency);
+        debug(`resolved path ignoring exports: ${result}`);
+      } catch {
+        debug(`could not resolve ${dependency}`);
+      }
+    }
   }
 
   return result;

@@ -68,7 +68,7 @@ Resolves a dependency string from the context of a file.
 | `webpackConfig` | `string` | No | **JS only.** Webpack config path for webpack-style resolution; if the config exports an array, the first config is used |
 | `nodeModulesConfig` | `Object \| Function` | No | Controls package entry selection when resolving from `node_modules` (see examples below) |
 | `nodeModulesConfig.entry` | `string` | No | Object form: field name to prefer instead of `main` (for example `module`) |
-| `nodeModulesConfig` (function) | `Function` | No | Function form: custom [`resolve` packageFilter](https://github.com/browserify/resolve#resolveid-opts-cb) callback for full control of package entry selection |
+| `nodeModulesConfig` (function) | `Function` | No | Function form: fallback callback for packages that require custom `package.json` transforms (receives and must return the parsed `package.json`); used only when standard resolution fails |
 | `tsConfig` | `string \| Object` | No | **TS only.** TypeScript config path or pre-parsed config object |
 | `tsConfigPath` | `string` | No | **TS only.** (Virtual) path to tsconfig when `tsConfig` is an object; needed for [Path Mapping](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping) |
 | `noTypeDefinitions` | `boolean` | No | **TS only.** Prefer `*.js` over `*.d.ts` when resolving TypeScript dependencies |
@@ -87,7 +87,7 @@ cabinet({
 });
 ```
 
-Function form - full control via a custom `packageFilter`:
+Function form - fallback for packages that use a non-standard entry field and have no `exports` field:
 
 ```js
 cabinet({
@@ -178,6 +178,12 @@ By default, filing-cabinet supports:
 ## Package `#imports` Field
 
 filing-cabinet automatically resolves [Node.js package `imports`](https://nodejs.org/api/packages.html#subpath-imports) (dependencies starting with `#`) for both JavaScript and TypeScript files.
+
+## Package `exports` Field
+
+filing-cabinet automatically resolves [Node.js package `exports`](https://nodejs.org/api/packages.html#exports) when resolving JavaScript dependencies from `node_modules`. This includes subpath patterns such as `"./*": "./dist/*"`, condition matching (`require`, `import`, `node`, `default`).
+
+If a package's `exports` does not expose a requested subpath, filing-cabinet falls back to the matching file on disk when one exists.
 
 ## CLI
 
